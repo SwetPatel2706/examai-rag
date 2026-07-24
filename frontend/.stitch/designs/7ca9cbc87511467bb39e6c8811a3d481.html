@@ -1,0 +1,285 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "on-background": "#191c1e",
+                "secondary-fixed-dim": "#bec6e0",
+                "on-surface-variant": "#464555",
+                "tertiary-container": "#006e4b",
+                "surface-container-low": "#f2f4f6",
+                "surface-variant": "#e0e3e5",
+                "secondary-fixed": "#dae2fd",
+                "on-primary-fixed": "#0f0069",
+                "on-secondary-container": "#5c647a",
+                "on-primary-container": "#dad7ff",
+                "primary": "#3525cd",
+                "surface-container-lowest": "#ffffff",
+                "on-error": "#ffffff",
+                "surface-dim": "#d8dadc",
+                "outline": "#777587",
+                "on-secondary-fixed": "#131b2e",
+                "primary-container": "#4f46e5",
+                "error-container": "#ffdad6",
+                "on-tertiary-container": "#67f4b7",
+                "on-secondary": "#ffffff",
+                "on-secondary-fixed-variant": "#3f465c",
+                "inverse-surface": "#2d3133",
+                "surface": "#f7f9fb",
+                "on-tertiary-fixed": "#002113",
+                "surface-container-highest": "#e0e3e5",
+                "secondary": "#565e74",
+                "on-tertiary": "#ffffff",
+                "background": "#f7f9fb",
+                "surface-container-high": "#e6e8ea",
+                "tertiary-fixed": "#6ffbbe",
+                "inverse-on-surface": "#eff1f3",
+                "primary-fixed": "#e2dfff",
+                "surface-container": "#eceef0",
+                "tertiary": "#005338",
+                "inverse-primary": "#c3c0ff",
+                "on-error-container": "#93000a",
+                "secondary-container": "#dae2fd",
+                "primary-fixed-dim": "#c3c0ff",
+                "surface-tint": "#4d44e3",
+                "on-primary": "#ffffff",
+                "on-surface": "#191c1e",
+                "outline-variant": "#c7c4d8",
+                "surface-bright": "#f7f9fb",
+                "on-primary-fixed-variant": "#3323cc",
+                "error": "#ba1a1a",
+                "tertiary-fixed-dim": "#4edea3",
+                "on-tertiary-fixed-variant": "#005236"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+              },
+              "fontFamily": {
+                "headline-lg": ["Geist"],
+                "headline-md": ["Geist"],
+                "body-lg": ["Geist"],
+                "body-md": ["Geist"],
+                "label-md": ["Geist"],
+                "label-sm": ["Geist"]
+              },
+              "fontSize": {
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    }catch(_e){}</script><meta charset="utf-8"></head><body class="bg-surface text-on-surface">
+<!-- TopNavBar -->
+<nav class="flex justify-between items-center px-6 h-16 w-full sticky top-0 z-50 bg-surface shadow-sm">
+<div class="font-headline-md text-headline-md font-bold text-primary">ExamAI</div>
+<div class="hidden md:flex items-center gap-8">
+<a href="#" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Home</a>
+<a href="#" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Chat</a>
+<a href="#" class="font-label-md text-label-md text-primary border-b-2 border-primary">Quizzes</a>
+<a href="#" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Resources</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a college student, 20s, wearing a smart casual sweater, set against a blurred academic library background with warm, soft lighting. The aesthetic is clean, high-end, and focused, reflecting a premium educational platform for Computer Science students." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCr03hPCB2pYHmVxLW4By2YyLFFmMDymkJl5sW5RXIx1QOalgtE0vtivBT6riHSuofzFI3uYlD0ibQsPXGc7ARjBNI5-j8KxvYcsjv1QbhzDzpU2JzsXxIK3dVH8xIg-DBd0kvDYn-NmU3biXL9a7hs1FhVxLiadBhVUD0IShaLn52hD3kc8hAkyLlYIAIBlKITE5O95ZqzTKJ5d2NrxSoLMLeA7-qkVs4HkyP7dXYqKYcNE7Ri14OGHE5AkJ9gOeuMVDnv_6npJo">
+</div>
+</div>
+</nav>
+<main class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-12">
+<div class="max-w-4xl mx-auto space-y-8">
+<!-- Result Header Card -->
+<section class="bg-white rounded-[24px] p-8 shadow-sm overflow-hidden relative animate-fade-up">
+<div class="absolute top-0 right-0 w-64 h-64 -mr-20 -mt-20 opacity-10">
+<span class="material-symbols-outlined text-[200px] text-primary select-none" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex flex-col items-center text-center space-y-4">
+<div class="inline-flex items-center justify-center bg-secondary-container text-primary rounded-full px-4 py-1">
+<span class="material-symbols-outlined text-sm mr-2" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Quiz Completed</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-background">Data Structures &amp; Algorithms</h1>
+<div class="py-6 flex flex-col items-center">
+<div class="relative flex items-center justify-center">
+<!-- Circular Progress Ring (Simulated with SVG) -->
+<svg class="w-48 h-48 -rotate-90">
+<circle class="text-surface-container" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary transition-all duration-1000 ease-out" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="110.58" stroke-width="12"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-display-lg text-display-lg text-primary">80%</span>
+<span class="font-label-md text-label-md text-on-surface-variant">8/10 Correct</span>
+</div>
+</div>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">
+                        Great job, Alex! You've mastered the basics of Graph Theory, but some concepts in 
+                        <strong>Asymptotic Analysis</strong> need a quick refresher.
+                    </p>
+</div>
+</section>
+<!-- Bento Grid Details -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter animate-fade-up" style="animation-delay: 0.1s;">
+<!-- Breakdown List -->
+<div class="md:col-span-7 bg-white rounded-[24px] p-8 shadow-sm flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md">Question Breakdown</h2>
+<span class="font-label-md text-label-md text-on-surface-variant">10 Questions</span>
+</div>
+<div class="space-y-4 overflow-y-auto pr-2 max-h-[500px] custom-scrollbar">
+<!-- Item 1 (Correct) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container-low border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface line-clamp-1">What is the time complexity of Dijkstra's Algorithm using a Fibonacci Heap?</p>
+<span class="font-label-sm text-label-sm text-tertiary">Correct • O(E + V log V)</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+<!-- Item 2 (Correct) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container-low border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface line-clamp-1">Identify the Adjacency Matrix representation for the given cyclic graph.</p>
+<span class="font-label-sm text-label-sm text-tertiary">Correct • Matrix [0,1][1,0]</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+<!-- Item 3 (Incorrect) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-error-container text-on-error-container border border-transparent hover:border-error transition-all cursor-pointer">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-error text-on-error flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">close</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-background line-clamp-1">Which data structure is best for implementing a priority queue?</p>
+<span class="font-label-sm text-label-sm text-error">Incorrect • Selected: Stack</span>
+</div>
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+<!-- Item 4 (Correct) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container-low border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-surface line-clamp-1">Define "In-degree" in the context of a directed graph vertex.</p>
+<span class="font-label-sm text-label-sm text-tertiary">Correct • Incoming edges count</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+<!-- Item 5 (Incorrect) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-error-container text-on-error-container border border-transparent hover:border-error transition-all cursor-pointer">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-error text-on-error flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">close</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-label-md text-on-background line-clamp-1">What is the space complexity of BFS on a graph with V vertices and E edges?</p>
+<span class="font-label-sm text-label-sm text-error">Incorrect • Selected: O(E)</span>
+</div>
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Right Sidebar Sections -->
+<div class="md:col-span-5 space-y-gutter flex flex-col">
+<!-- Weak Topics -->
+<div class="bg-white rounded-[24px] p-8 shadow-sm flex-1">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<h2 class="font-headline-md text-headline-md">Knowledge Gaps</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">You struggled with these topics. Reviewing them could increase your grade by <span class="text-primary font-bold">15%</span>.</p>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-md text-label-md">Space Complexity</span>
+<span class="font-label-sm text-label-sm text-error">40% Mastery</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-error h-2 rounded-full" style="width: 40%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-md text-label-md">Heaps &amp; Priority Queues</span>
+<span class="font-label-sm text-label-sm text-error">55% Mastery</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-error h-2 rounded-full" style="width: 55%"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex flex-wrap gap-2">
+<span class="px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Dijkstra's Optimization</span>
+<span class="px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Vertex Connectivity</span>
+<span class="px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Big-O Proofs</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="bg-primary rounded-[24px] p-8 text-white shadow-lg space-y-4">
+<h3 class="font-headline-md text-headline-md">Next Steps</h3>
+<button class="w-full py-4 bg-white text-primary rounded-xl font-label-md text-label-md font-bold flex items-center justify-center gap-2 hover:bg-opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined fill-icon">auto_fix</span>
+                            Ask AI about these topics
+                        </button>
+<button class="w-full py-4 bg-white/10 text-white rounded-xl font-label-md text-label-md font-bold flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all">
+<span class="material-symbols-outlined">description</span>
+                            Review Answers
+                        </button>
+</div>
+</div>
+</div>
+<!-- Footer Return -->
+<div class="flex justify-center pt-8 animate-fade-up" style="animation-delay: 0.2s;">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined transition-transform group-hover:-translate-x-1">arrow_back</span>
+<span class="font-label-md text-label-md">Return to Dashboard</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none opacity-40">
+<div class="absolute top-[10%] left-[5%] w-64 h-64 bg-primary/10 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[20%] right-[10%] w-96 h-96 bg-secondary/10 blur-[150px] rounded-full"></div>
+</div>
+<script>
+        // Micro-interaction: Scale down progress on mount and animate up
+        window.addEventListener('load', () => {
+            const circle = document.querySelector('circle.text-primary');
+            if (circle) {
+                // Triggering reflow for animation
+                circle.style.strokeDashoffset = '552.92';
+                setTimeout(() => {
+                    circle.style.strokeDashoffset = '110.58';
+                }, 100);
+            }
+        });
+
+        // Add interaction for the Question Breakdown items
+        document.querySelectorAll('.cursor-pointer').forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.toggle('bg-surface-container-high');
+                this.style.transform = 'scale(0.99)';
+                setTimeout(() => this.style.transform = 'scale(1)', 100);
+            });
+        });
+    </script>
+</body></html>

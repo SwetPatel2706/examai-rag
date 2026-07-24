@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#191c1e",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-surface-variant": "#464555",
+                    "tertiary-container": "#006e4b",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-variant": "#e0e3e5",
+                    "secondary-fixed": "#dae2fd",
+                    "on-primary-fixed": "#0f0069",
+                    "on-secondary-container": "#5c647a",
+                    "on-primary-container": "#dad7ff",
+                    "primary": "#3525cd",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "outline": "#777587",
+                    "on-secondary-fixed": "#131b2e",
+                    "primary-container": "#4f46e5",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#67f4b7",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "inverse-surface": "#2d3133",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-highest": "#e0e3e5",
+                    "secondary": "#565e74",
+                    "on-tertiary": "#ffffff",
+                    "background": "#f7f9fb",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary-fixed": "#6ffbbe",
+                    "inverse-on-surface": "#eff1f3",
+                    "primary-fixed": "#e2dfff",
+                    "surface-container": "#eceef0",
+                    "tertiary": "#005338",
+                    "inverse-primary": "#c3c0ff",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#dae2fd",
+                    "primary-fixed-dim": "#c3c0ff",
+                    "surface-tint": "#4d44e3",
+                    "on-primary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "outline-variant": "#c7c4d8",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-tertiary-fixed-variant": "#005236"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xl": "64px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "margin-mobile": "16px",
+                    "sm": "16px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Geist"],
+                    "label-sm": ["Geist"],
+                    "headline-lg-mobile": ["Geist"],
+                    "body-lg": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "body-md": ["Geist"],
+                    "label-md": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    }catch(_e){}</script><meta charset="utf-8"></head><body class="text-on-surface">
+<div class="flex min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-white dark:bg-surface-dim flex flex-col border-r border-outline-variant dark:border-none z-50">
+<div class="p-6">
+<span class="font-headline-md text-headline-md font-bold text-primary">ExamAI</span>
+</div>
+<nav class="flex-1 mt-4">
+<div class="space-y-1">
+<!-- Home (Active) -->
+<a href="#" class="flex items-center gap-3 bg-secondary-container dark:bg-on-secondary-container text-on-secondary-container dark:text-on-tertiary-container rounded-xl px-4 py-3 mx-2 transition-all translate-x-1 duration-200">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Chat -->
+<a href="#" class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-3 mx-2 hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-md text-label-md">Chat</span>
+</a>
+<!-- Quizzes -->
+<a href="#" class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-3 mx-2 hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span class="font-label-md text-label-md">Quizzes</span>
+</a>
+<!-- Resources -->
+<a href="#" class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-3 mx-2 hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-md text-label-md">Resources</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 px-2 py-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young male student in his early 20s with a friendly expression. He is wearing a clean, minimalist charcoal sweater against a soft, out-of-focus library background. The lighting is warm and natural, following a high-end academic lifestyle aesthetic with a focus on reliability and focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbvchZsrjyikbvlcUQkIfGnn8o-xooVKF85JT-AEjmdDm8h2H_o0HLubiLNZa5qHX1BOn6fbA7Z_24QuArACpLyBXMS6NZzZL4l11A7lIE29diMac7Gxw0T4_r3RLqzf0Ajt8dzXoHx6vHdWIOsjgP34DeBPXJI4N5D0LyH1BNuRWgFUVMOVFxwHUqYxSfWyiYCu9QPa6n_h0vmevCxeP_N5n1WeLckwYUcS9TIiDbGEu__6tUFtOV6k2TR2EMVRLAhTsb1jIuhK4">
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">Alex Rivers</span>
+<span class="text-[12px] text-secondary opacity-80">Junior • Computer Science</span>
+</div>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-2 mx-2 hover:bg-surface-container-low transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+<a class="flex items-center gap-3 text-error px-4 py-2 mx-2 hover:bg-error-container transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 p-margin-desktop bg-surface min-h-screen">
+<!-- Top Bar / Welcome -->
+<header class="flex justify-between items-center mb-xl">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-background">Welcome back, Alex</h1>
+<p class="font-body-md text-body-md text-secondary mt-1">Your academic progress is looking strong this week.</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white ambient-shadow hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white ambient-shadow hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- CTA Section -->
+<section class="mb-xl">
+<div class="relative overflow-hidden rounded-3xl bg-primary text-on-primary p-lg flex flex-col md:flex-row items-center justify-between ambient-shadow">
+<div class="z-10 relative">
+<h2 class="font-headline-md text-headline-md mb-2">Have a study question?</h2>
+<p class="font-body-md text-body-md text-primary-fixed mb-6 max-w-md">Our AI tutor is ready to help you solve complex problems, explain concepts, or prep for exams in seconds.</p>
+<button class="h-12 px-8 bg-white text-primary font-label-md text-label-md rounded-full flex items-center gap-2 hover:scale-95 transition-all duration-150 shadow-lg shadow-black/10">
+<span class="material-symbols-outlined" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+                            Ask ExamAI a Question
+                        </button>
+</div>
+<div class="absolute right-0 top-0 w-1/3 h-full opacity-20 pointer-events-none">
+
+</div>
+</div>
+</section>
+<!-- Quick Stats Section -->
+<section class="mb-xl">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary">Quick Stats</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Stat 1 -->
+<div class="bg-white p-md rounded-2xl ambient-shadow card-hover flex flex-col gap-xs">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed text-primary flex items-center justify-center mb-2">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+</div>
+<span class="font-display-lg text-display-lg text-on-background">12</span>
+<span class="font-label-md text-label-md text-secondary">Quizzes Taken</span>
+</div>
+<!-- Stat 2 -->
+<div class="bg-white p-md rounded-2xl ambient-shadow card-hover flex flex-col gap-xs">
+<div class="w-10 h-10 rounded-xl bg-error-container text-error flex items-center justify-center mb-2">
+<span class="material-symbols-outlined" data-icon="trending_down">trending_down</span>
+</div>
+<span class="font-display-lg text-display-lg text-on-background">4</span>
+<span class="font-label-md text-label-md text-secondary">Weak Topics</span>
+</div>
+<!-- Stat 3 -->
+<div class="bg-white p-md rounded-2xl ambient-shadow card-hover flex flex-col gap-xs">
+<div class="w-10 h-10 rounded-xl bg-tertiary-fixed text-tertiary flex items-center justify-center mb-2">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<span class="font-display-lg text-display-lg text-on-background">85%</span>
+<span class="font-label-md text-label-md text-secondary">Average Score</span>
+</div>
+</div>
+</section>
+<!-- Enrolled Subjects Section -->
+<section>
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary">Enrolled Subjects</h2>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:underline">
+                        View All
+                        <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Subject 1 -->
+<div class="bg-white rounded-2xl ambient-shadow card-hover overflow-hidden group">
+<div class="h-32 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A clean, abstract architectural photograph showing interlocking concrete geometric shapes with strong shadows. The color palette is minimal, using varying tones of slate blue and light grey. The composition conveys structure, logic, and complexity, perfectly mirroring the academic concept of computer science data structures in a high-end, professional style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFJP8KtXRM5bFWYr_pINREzhxF8hbk8TizVYfJnwui7x3l-Bg7EV5nLmKktkE0Lb2dM904ivv7WUp4We6iojW7gBqLW-9g6k2xypGogyO5GKIu0aNpCS0_zUY7itlyAzUI3zKB-QO0ObnTlHEcVRELjnCrqQFPPdhCAgToD9sFhk3HWij1psyg1u-1wxenqvs-QthU8pL_zBAYM-0J4SExOt_dJnv3n_BjbsQ_uRzxbP106fNQgQd_uGWth-k36PEc4I9j3vnISps">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<div class="p-md">
+<h3 class="font-headline-md text-[20px] text-on-background mb-1">Data Structures</h3>
+<p class="font-body-md text-body-md text-secondary mb-4">Dr. Eleanor Vance</p>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-[12px] font-label-md">
+<span class="text-secondary">Progress</span>
+<span class="text-on-background font-bold">75%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[75%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Subject 2 -->
+<div class="bg-white rounded-2xl ambient-shadow card-hover overflow-hidden group">
+<div class="h-32 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A sophisticated still life image featuring a designer glass prism sitting on a stack of premium textured paper. Light refracts through the prism creating soft spectrums of color across a neutral workspace. The mood is intellectual and focused, representing the broad perspectives of macroeconomics with a clean, light-mode aesthetic and high-quality artistic photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJKLjj7vZ3ia3TmTDpO4M8l5pQmM0HswqfH_7gmRradyeZcDEAOAleoJaRk4lkSOZBp1mryeb56-bdlgEqTf3A21-TH_mUOXUPn9K-9Qo-Jx1Ifzna1ytqwet6GdeCyXFHf-0qQoB7FCJgr3GwRNRXggeSH2ZhUQG7uWk18Id9lcRvXE4zDPBdjYMAjBTBKzkgOyJhSrK8YBWG9wxW3k9G34waeMDJ8rTrg58g-41eM3JXi8_3f2qAWmUKbGIMAW5UA_xx9SlOUQM">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<div class="p-md">
+<h3 class="font-headline-md text-[20px] text-on-background mb-1">Macroeconomics</h3>
+<p class="font-body-md text-body-md text-secondary mb-4">Prof. Julian Thorne</p>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-[12px] font-label-md">
+<span class="text-secondary">Progress</span>
+<span class="text-on-background font-bold">42%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[42%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Subject-->
+<div class="bg-white rounded-2xl ambient-shadow card-hover overflow-hidden group">
+<div class="h-32 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A minimalist fine-art photography piece showcasing precise mathematical patterns found in nature, like a perfectly symmetrical succulent or a desert landscape with rhythmic dunes. The lighting is crisp and directional, emphasizing lines and vectors. The style is professional and academic, evoking the precision of linear algebra through a modern minimalist lens." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdRitKTvjTv6OktEREPZZNzbTl5xZCPdV8xNeGzw-wRuDKYQa_IOZr-ywBXSb4IbEOf6mwDYFg4FRrcMrwIh2sfIRdCUchVlzsSxV0QtskrlOhmPnM_r6PoHSZOvUcqLws8w1igO-KTWWFvpPk8xCL7Tc3wOE2gaph5DOvkVkJ7Mk1vJ-1_6EcR0DD1gN9SmSjTp1z_Rju0201DMxtjQ5xB2Sal8ARzViBFQGjK3Xnbf_gSOJ8OHNzyQu-ywTHS8S5xLJkqyvV05U">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<div class="p-md">
+<h3 class="font-headline-md text-[20px] text-on-background mb-1">Linear Algebra</h3>
+<p class="font-body-md text-body-md text-secondary mb-4">Dr. Sarah Chen</p>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-[12px] font-label-md">
+<span class="text-secondary">Progress</span>
+<span class="text-on-background font-bold">90%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[90%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('.card-hover').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98) translateY(0px)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1) translateY(-2px)';
+            });
+        });
+
+        // Simple Greeting Update based on time
+        const welcomeHeading = document.querySelector('header h1');
+        const hour = new Date().getHours();
+        if (hour < 12) welcomeHeading.innerText = "Good morning, Alex";
+        else if (hour < 18) welcomeHeading.innerText = "Good afternoon, Alex";
+        else welcomeHeading.innerText = "Good evening, Alex";
+    </script>
+</body></html>

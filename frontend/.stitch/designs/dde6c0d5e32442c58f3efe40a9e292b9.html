@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191c1e",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-surface-variant": "#464555",
+                        "tertiary-container": "#006e4b",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-variant": "#e0e3e5",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#0f0069",
+                        "on-secondary-container": "#5c647a",
+                        "on-primary-container": "#dad7ff",
+                        "primary": "#3525cd",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "outline": "#777587",
+                        "on-secondary-fixed": "#131b2e",
+                        "primary-container": "#4f46e5",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#67f4b7",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#2d3133",
+                        "surface": "#f7f9fb",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed": "#6ffbbe",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-fixed": "#e2dfff",
+                        "surface-container": "#eceef0",
+                        "tertiary": "#005338",
+                        "inverse-primary": "#c3c0ff",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#dae2fd",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "surface-tint": "#4d44e3",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#c7c4d8",
+                        "surface-bright": "#f7f9fb",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#005236"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "label-md": ["Geist"],
+                        "label-sm": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script><meta charset="utf-8"></head><body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- Top Navigation Bar (JSON Guided) -->
+<header class="flex justify-between items-center px-6 h-16 w-full sticky top-0 z-50 bg-surface shadow-sm">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-primary">ExamAI</span>
+<div class="h-6 w-[1px] bg-outline-variant mx-2"></div>
+<span class="font-label-md text-on-surface-variant">Computer Science 201: Algorithms</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-secondary font-label-md bg-secondary-container/50 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">timer</span>
+<span>24:15 remaining</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<img class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A close-up portrait of a professional young college student with a friendly expression, wearing a clean white t-shirt against a soft-focus library background. The lighting is bright and natural, reflecting a high-quality academic environment. The aesthetic is clean, minimalist, and modern, using a soft-tint color palette of light blues and whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzH_ETg-fKc_1eKL0yvktOUX0UqOQiYKeIdxGUSfYeKujmiQakr3E8qiqclve-eVKWjlErx-rxvY-Qj5-CiYZX3U991ZykavlN4B6UyLzd8ifmp5GVC7hlYsfvha-OR-h8ksxOtk2kchFwAt6DFo4974r1IoRkJdsxkgbYC0_Jf1L_18aYpmfj-3MGAaz43j2Mksqqs-jxgKaxWLfcRcnIS3gbo7caJ8G-IGsISiPm_TucL6adMLGkCTQx_QZK4IV0IPvP0Sx4Fe8">
+</div>
+</div>
+</header>
+<!-- Progress Indicator Strip -->
+<div class="w-full h-1.5 bg-surface-container flex">
+<div class="h-full bg-primary transition-all duration-500" style="width: 40%"></div>
+<div class="h-full bg-surface-container flex-grow"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center p-6 md:p-12 max-w-4xl mx-auto w-full">
+<!-- Question Meta -->
+<div class="w-full mb-8 flex justify-between items-end">
+<div>
+<span class="text-primary font-label-md uppercase tracking-widest block mb-2">Question 4 of 10</span>
+<h1 class="font-headline-lg text-headline-lg text-on-surface max-w-2xl">
+                    Explain the difference between BFS and DFS in graph traversal.
+                </h1>
+</div>
+<button class="flex items-center gap-2 text-secondary font-label-md hover:text-primary transition-colors">
+<span class="material-symbols-outlined">flag</span>
+<span>Report Issue</span>
+</button>
+</div>
+<!-- Options Container (Bento-like Grid Layout) -->
+<div class="grid grid-cols-1 gap-4 w-full">
+<!-- Option A -->
+<button class="option-card group relative w-full p-6 bg-white border border-outline-variant rounded-xl text-left transition-all hover:shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 active:scale-[0.98]" onclick="selectOption(this)">
+<div class="flex items-start gap-4">
+<div class="radio-circle w-6 h-6 rounded-full border-2 border-outline-variant mt-0.5 transition-all flex-shrink-0"></div>
+<div>
+<span class="block font-label-md text-primary mb-1">Option A</span>
+<p class="font-body-md text-on-surface">BFS uses a Stack for implementation, while DFS uses a Queue to explore adjacent nodes first.</p>
+</div>
+</div>
+</button>
+<!-- Option B -->
+<button class="option-card group relative w-full p-6 bg-white border border-outline-variant rounded-xl text-left transition-all hover:shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 active:scale-[0.98]" onclick="selectOption(this)">
+<div class="flex items-start gap-4">
+<div class="radio-circle w-6 h-6 rounded-full border-2 border-outline-variant mt-0.5 transition-all flex-shrink-0"></div>
+<div>
+<span class="block font-label-md text-primary mb-1">Option B</span>
+<p class="font-body-md text-on-surface">BFS explores neighbors level-by-level using a Queue; DFS explores as deep as possible along branches before backtracking using a Stack.</p>
+</div>
+</div>
+</button>
+<!-- Option C -->
+<button class="option-card group relative w-full p-6 bg-white border border-outline-variant rounded-xl text-left transition-all hover:shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 active:scale-[0.98]" onclick="selectOption(this)">
+<div class="flex items-start gap-4">
+<div class="radio-circle w-6 h-6 rounded-full border-2 border-outline-variant mt-0.5 transition-all flex-shrink-0"></div>
+<div>
+<span class="block font-label-md text-primary mb-1">Option C</span>
+<p class="font-body-md text-on-surface">Both algorithms explore all nodes at the same depth level before moving to the next level in a binary tree.</p>
+</div>
+</div>
+</button>
+<!-- Option D -->
+<button class="option-card group relative w-full p-6 bg-white border border-outline-variant rounded-xl text-left transition-all hover:shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 active:scale-[0.98]" onclick="selectOption(this)">
+<div class="flex items-start gap-4">
+<div class="radio-circle w-6 h-6 rounded-full border-2 border-outline-variant mt-0.5 transition-all flex-shrink-0"></div>
+<div>
+<span class="block font-label-md text-primary mb-1">Option D</span>
+<p class="font-body-md text-on-surface">BFS is strictly used for directed graphs, whereas DFS is specifically designed for undirected graphs only.</p>
+</div>
+</div>
+</button>
+</div>
+</main>
+<!-- Footer Action-->
+<footer class="w-full bg-white border-t border-outline-variant px-6 py-6 mt-auto">
+<div class="max-w-4xl mx-auto flex justify-between items-center w-full">
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl font-label-md text-secondary hover:bg-surface transition-all active:scale-95">
+<span class="material-symbols-outlined">arrow_back</span>
+<span>Previous</span>
+</button>
+<div class="flex gap-4">
+<!-- Save for later -->
+<button class="px-6 py-3 rounded-xl font-label-md text-secondary hover:bg-surface border border-outline-variant transition-all active:scale-95">
+                    Save Progress
+                </button>
+<!-- Primary Action -->
+<button class="flex items-center gap-2 px-8 py-3 bg-primary text-on-primary rounded-xl font-label-md shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95" id="nextBtn">
+<span>Next Question</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<!-- Hidden Submit (Visible on Last Question) -->
+<button class="hidden flex items-center gap-2 px-8 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95" id="submitBtn">
+<span>Submit Quiz</span>
+<span class="material-symbols-outlined">check_circle</span>
+</button>
+</div>
+</div>
+</footer>
+<!-- Help FAB (Only for Quiz) -->
+<button class="fixed bottom-24 right-8 w-14 h-14 bg-secondary-container text-on-secondary-container rounded-2xl shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95 z-40 group">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+<div class="absolute right-full mr-4 bg-on-background text-white text-xs px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            Need a hint? (-5 pts)
+        </div>
+</button>
+<script>
+        function selectOption(element) {
+            // Remove selection from all options
+            const options = document.querySelectorAll('.option-card');
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selection to clicked option
+            element.classList.add('selected');
+
+            // Haptic/Interactive feedback
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(5);
+            }
+        }
+
+        // Simulating the "Last Question" logic for the final action
+        let currentQuestion = 4;
+        const totalQuestions = 10;
+
+        // Example logic for switching to Submit on question 10
+        function checkSubmitState() {
+            if (currentQuestion === totalQuestions) {
+                document.getElementById('nextBtn').classList.add('hidden');
+                document.getElementById('submitBtn').classList.remove('hidden');
+            }
+        }
+
+        // Atmospheric micro-interaction for progress bar
+        document.addEventListener('DOMContentLoaded', () => {
+            const bar = document.querySelector('.bg-primary');
+            // Initial animation state
+            setTimeout(() => {
+                bar.style.width = '40%';
+            }, 500);
+        });
+    </script>
+</body></html>

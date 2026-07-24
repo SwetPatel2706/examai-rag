@@ -1,0 +1,422 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AI Exam Prep - Quiz Creator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "inverse-surface": "#2d3133",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#e2dfff",
+                    "secondary-container": "#dae2fd",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-container-highest": "#e0e3e5",
+                    "primary": "#3525cd",
+                    "on-secondary-fixed": "#131b2e",
+                    "tertiary-container": "#006e4b",
+                    "surface-bright": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "tertiary": "#005338",
+                    "on-surface": "#191c1e",
+                    "outline-variant": "#c7c4d8",
+                    "inverse-primary": "#c3c0ff",
+                    "secondary-fixed": "#dae2fd",
+                    "surface-tint": "#4d44e3",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#0f0069",
+                    "background": "#f7f9fb",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-tertiary-container": "#67f4b7",
+                    "primary-container": "#4f46e5",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "secondary": "#565e74",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#c3c0ff",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#002113",
+                    "on-surface-variant": "#464555",
+                    "on-primary-container": "#dad7ff",
+                    "on-error-container": "#93000a",
+                    "on-background": "#191c1e",
+                    "outline": "#777587",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-secondary-container": "#5c647a",
+                    "on-primary": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-container-high": "#e6e8ea"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "base": "4px",
+                    "xl": "64px",
+                    "lg": "40px",
+                    "sm": "16px",
+                    "xs": "8px",
+                    "md": "24px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "label-md": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "label-sm": ["Geist"],
+                    "body-md": ["Geist"],
+                    "headline-lg-mobile": ["Geist"],
+                    "headline-lg": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "body-lg": ["Geist"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e0e3e5; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #777587; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] flex flex-col py-lg px-sm z-50">
+<div class="mb-lg px-xs">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">AI Exam Prep</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider opacity-70">Professor View</p>
+</div>
+<nav class="flex-grow space-y-xs">
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-primary font-bold border-r-4 border-primary bg-primary-fixed/30 transition-transform duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-label-md text-label-md">Assignments</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="font-label-md text-label-md">Question Bank</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md text-label-md">Student Progress</span>
+</a>
+</nav>
+<div class="mt-auto space-y-xs">
+<button class="w-full mb-md bg-primary text-on-primary py-sm rounded-xl font-label-md text-label-md flex items-center justify-center gap-xs shadow-md transition-transform active:scale-95 hover:bg-primary-container">
+<span class="material-symbols-outlined">add</span>
+                Create New Exam
+            </button>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</div>
+</aside>
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant flex items-center justify-between px-md z-40">
+<div class="flex items-center gap-md">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-xl pr-md py-xs bg-surface-container-low border-none rounded-full font-body-md text-body-md focus:ring-2 focus:ring-primary/20" placeholder="Search exams or questions..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-xs text-primary font-label-md text-label-md px-md py-xs hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">add</span>
+                New Module
+            </button>
+<button class="p-xs hover:bg-surface-container-high rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-sm pl-sm border-l border-outline-variant">
+<img class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a university professor in a light-filled modern office. The professor has a friendly expression, wearing a stylish navy blazer over a crisp white shirt. The background is softly blurred, showing books and academic artifacts in a clean, minimalist setting with cool-toned lighting and a professional academic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcyzWNFNkhw7ccB3ONLUp84vywHt1EJfc0g3LnYmHXOdgpxPfA9mg6eXSQ7WHhE9gZag5-YVVv92Z9D9sZyhWiSsmCQQI0cIeM7A56wQjzTPdTygrygUsCB1ySNdC2brLRy6NwI4Vv8x0cSNbG7CubKMJhQW3rpuQr99S6EoXlq8B9OHmvFRtQVC_VgeCCmG-sERcXmyROy_jAT0R1Jzwh-FxBARzCHMp_y5kFPsUrWhcdr2kN8JiqTVx4Esb0YLDg2mFIPmtscxc">
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pl-64 pt-16 min-h-screen">
+<div class="p-md lg:p-xl max-w-7xl mx-auto">
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Left Panel: Form Builder -->
+<div class="flex-grow space-y-gutter">
+<header class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Quiz Creator</h2>
+<nav class="flex items-center gap-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="">Assignments</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-bold">New Exam Builder</span>
+</nav>
+</div>
+<div class="flex gap-sm">
+<button class="px-lg py-sm rounded-xl font-label-md text-label-md text-secondary hover:bg-surface-container-high transition-colors">
+                                Save Draft
+                            </button>
+<button class="px-lg py-sm rounded-xl font-label-md text-label-md bg-primary text-on-primary shadow-lg hover:shadow-xl active:scale-[0.98] transition-all">
+                                Publish Quiz
+                            </button>
+</div>
+</header>
+<section class="bg-surface-container-lowest rounded-3xl p-md lg:p-lg shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)]">
+<div class="space-y-md">
+<!-- Question Text -->
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-xs">Question Text</label>
+<textarea class="w-full min-h-[120px] p-md bg-surface-container-low border border-slate-100 rounded-2xl font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" placeholder="Enter your question here..."></textarea>
+</div>
+<!-- Multiple Choice Options -->
+<div class="space-y-md">
+<label class="font-label-md text-label-md text-on-surface-variant ml-xs">Multiple Choice Options</label>
+<div class="grid gap-sm">
+<!-- Option A -->
+<div class="flex items-center gap-sm p-sm bg-surface rounded-2xl border border-slate-100 hover:border-primary/30 transition-colors group">
+<label class="relative flex items-center cursor-pointer">
+<input checked="" class="peer sr-only" name="correct-answer" type="radio">
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary transition-all relative">
+<div class="absolute inset-1 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</label>
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md text-on-surface" placeholder="Option 1" type="text" value="Photosynthesis">
+<span class="text-label-sm font-label-sm text-on-surface-variant px-sm bg-surface-container-high rounded-full py-1">Correct</span>
+</div>
+<!-- Option B -->
+<div class="flex items-center gap-sm p-sm bg-surface rounded-2xl border border-slate-100 hover:border-primary/30 transition-colors group">
+<label class="relative flex items-center cursor-pointer">
+<input class="peer sr-only" name="correct-answer" type="radio">
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary transition-all relative">
+<div class="absolute inset-1 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</label>
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md text-on-surface" placeholder="Option 2" type="text" value="Respiration">
+</div>
+<!-- Option C -->
+<div class="flex items-center gap-sm p-sm bg-surface rounded-2xl border border-slate-100 hover:border-primary/30 transition-colors group">
+<label class="relative flex items-center cursor-pointer">
+<input class="peer sr-only" name="correct-answer" type="radio">
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary transition-all relative">
+<div class="absolute inset-1 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</label>
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md text-on-surface" placeholder="Add option 3..." type="text">
+</div>
+<!-- Option D -->
+<div class="flex items-center gap-sm p-sm bg-surface rounded-2xl border border-slate-100 hover:border-primary/30 transition-colors group">
+<label class="relative flex items-center cursor-pointer">
+<input class="peer sr-only" name="correct-answer" type="radio">
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary transition-all relative">
+<div class="absolute inset-1 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</label>
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md text-on-surface" placeholder="Add option 4..." type="text">
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Topic Tag -->
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-xs">Topic Tag</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant">sell</span>
+<input class="w-full pl-xl pr-md py-sm bg-surface-container-low border border-slate-100 rounded-2xl font-body-md text-body-md focus:ring-2 focus:ring-primary/20 outline-none" type="text" value="Cell Biology">
+</div>
+</div>
+<!-- Difficulty -->
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-xs">Difficulty Level</label>
+<select class="w-full px-md py-sm bg-surface-container-low border border-slate-100 rounded-2xl font-body-md text-body-md focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer">
+<option>Beginner</option>
+<option selected="">Intermediate</option>
+<option>Advanced</option>
+</select>
+</div>
+</div>
+<div class="pt-md flex justify-end">
+<button class="flex items-center gap-xs bg-primary-fixed text-primary font-bold px-lg py-sm rounded-xl hover:bg-primary-fixed/80 active:scale-[0.98] transition-all" id="add-question">
+<span class="material-symbols-outlined">add_circle</span>
+                                    Add Question
+                                </button>
+</div>
+</div>
+</section>
+<!-- Quick Tools (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="p-md bg-secondary-container text-on-secondary-container rounded-3xl flex items-center gap-md cursor-pointer hover:opacity-90 transition-opacity">
+<div class="w-12 h-12 bg-white/50 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+</div>
+<div>
+<p class="font-bold font-label-md text-label-md">AI Generate</p>
+<p class="text-label-sm font-label-sm opacity-80">Generate from Syllabus</p>
+</div>
+</div>
+<div class="p-md bg-tertiary-container text-on-tertiary-container rounded-3xl flex items-center gap-md cursor-pointer hover:opacity-90 transition-opacity">
+<div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-white">upload_file</span>
+</div>
+<div>
+<p class="font-bold font-label-md text-label-md text-white">Import PDF</p>
+<p class="text-label-sm font-label-sm text-white/80">Convert notes to quiz</p>
+</div>
+</div>
+<div class="p-md bg-surface-container-high rounded-3xl flex items-center gap-md cursor-pointer hover:bg-surface-variant transition-all">
+<div class="w-12 h-12 bg-surface-container-lowest rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">library_books</span>
+</div>
+<div>
+<p class="font-bold font-label-md text-label-md text-on-surface">Question Bank</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Browse existing items</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar: Added Questions -->
+<aside class="w-full lg:w-80 flex-shrink-0">
+<div class="bg-surface-container-lowest rounded-3xl shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] sticky top-xl flex flex-col max-h-[calc(100vh-160px)]">
+<div class="p-md border-b border-outline-variant flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-on-surface">Exam Draft</h3>
+<span class="px-sm py-1 bg-primary-fixed text-primary font-bold rounded-full text-label-sm">4 Items</span>
+</div>
+<div class="p-sm space-y-sm overflow-y-auto custom-scrollbar flex-grow">
+<!-- Question Preview 1 -->
+<div class="p-md bg-surface border border-slate-100 rounded-2xl hover:border-primary transition-colors cursor-pointer group">
+<div class="flex justify-between mb-xs">
+<span class="text-label-sm font-label-sm text-primary">Q1 • Multiple Choice</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-error transition-colors text-[20px]">delete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface line-clamp-2 mb-sm">What is the primary function of the mitochondria in a eukaryotic cell?</p>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-0.5 bg-secondary-fixed text-on-secondary-fixed-variant rounded text-[10px] font-bold">BIO-101</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">EASY</span>
+</div>
+</div>
+<!-- Question Preview 2 -->
+<div class="p-md bg-surface border border-slate-100 rounded-2xl hover:border-primary transition-colors cursor-pointer group">
+<div class="flex justify-between mb-xs">
+<span class="text-label-sm font-label-sm text-primary">Q2 • Multiple Choice</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-error transition-colors text-[20px]">delete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface line-clamp-2 mb-sm">Which of the following nitrogenous bases is found only in RNA?</p>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-0.5 bg-secondary-fixed text-on-secondary-fixed-variant rounded text-[10px] font-bold">GENETICS</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">MEDIUM</span>
+</div>
+</div>
+<!-- Question Preview 3 -->
+<div class="p-md bg-primary-fixed/20 border border-primary/30 rounded-2xl hover:border-primary transition-colors cursor-pointer group">
+<div class="flex justify-between mb-xs">
+<span class="text-label-sm font-label-sm text-primary">Q3 • Multiple Choice</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-error transition-colors text-[20px]">delete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface line-clamp-2 mb-sm">Explain the process of DNA replication during the S phase.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-0.5 bg-secondary-fixed text-on-secondary-fixed-variant rounded text-[10px] font-bold">CELL CYCLE</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">HARD</span>
+</div>
+</div>
+<!-- Question Preview 4 -->
+<div class="p-md bg-surface border border-slate-100 rounded-2xl hover:border-primary transition-colors cursor-pointer group">
+<div class="flex justify-between mb-xs">
+<span class="text-label-sm font-label-sm text-primary">Q4 • Multiple Choice</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-error transition-colors text-[20px]">delete</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface line-clamp-2 mb-sm">What is the main byproduct of photosynthesis?</p>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-0.5 bg-secondary-fixed text-on-secondary-fixed-variant rounded text-[10px] font-bold">BOTANY</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">EASY</span>
+</div>
+</div>
+</div>
+<div class="p-md border-t border-outline-variant bg-surface-container-low rounded-b-3xl">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Estimated Time</span>
+<span class="font-bold text-on-surface">12 mins</span>
+</div>
+<button class="w-full py-sm bg-surface-container-highest text-on-surface font-bold rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+                                Preview Full Exam
+                            </button>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for the "Add Question" button
+        const addBtn = document.getElementById('add-question');
+        addBtn.addEventListener('click', function() {
+            const originalContent = this.innerHTML;
+            this.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Added!';
+            this.classList.remove('bg-primary-fixed');
+            this.classList.add('bg-tertiary-fixed', 'text-on-tertiary-fixed');
+            
+            setTimeout(() => {
+                this.innerHTML = originalContent;
+                this.classList.add('bg-primary-fixed');
+                this.classList.remove('bg-tertiary-fixed', 'text-on-tertiary-fixed');
+            }, 2000);
+        });
+
+        // Toggle radio button style visualization
+        const radioLabels = document.querySelectorAll('input[type="radio"]');
+        radioLabels.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                document.querySelectorAll('.correct-badge').forEach(b => b.remove());
+                if(e.target.checked) {
+                    const badge = document.createElement('span');
+                    badge.className = 'correct-badge text-label-sm font-label-sm text-on-surface-variant px-sm bg-surface-container-high rounded-full py-1';
+                    badge.innerText = 'Correct';
+                    e.target.closest('.group').appendChild(badge);
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

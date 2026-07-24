@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mission Control | AI Exam Prep Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .neon-indigo { color: #6366f1; text-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
+        .neon-emerald { color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        .neon-ruby { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        
+        .bg-neon-indigo { background-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+        .bg-neon-emerald { background-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .bg-neon-ruby { background-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+
+        .performance-ribbon {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#0f172a",
+                        "surface-container": "#1e293b",
+                        "primary": "#6366f1",
+                        "secondary": "#94a3b8",
+                        "on-surface": "#f8fafc",
+                        "on-surface-variant": "#94a3b8",
+                        "error": "#ef4444",
+                        "tertiary": "#10b981",
+                        "outline": "#334155"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#020617] border-r border-outline flex flex-col py-8 px-4 z-50">
+<div class="px-4 mb-10">
+<h1 class="text-xl font-black tracking-tighter text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined neon-indigo">terminal</span>
+<span>CORE_OS</span>
+</h1>
+<p class="text-[10px] uppercase tracking-widest text-primary font-bold mt-1">Faculty Access Level 4</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary bg-primary/10 border-l-2 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span class="text-sm font-semibold">Live Results</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="text-sm font-semibold">Archived Data</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="text-sm font-semibold">Student Vitals</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4 pt-8 border-t border-outline/50">
+<button class="w-full bg-primary hover:bg-indigo-500 text-white py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+            Initialize New Exam
+        </button>
+<div class="flex items-center gap-3 px-4 py-2 opacity-60">
+<div class="w-8 h-8 rounded-full bg-slate-800 border border-outline overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeKJ-orUugalapfNuUUkD-dfjIssxXQkG6F4UxwvnyflkB11L0LC1efxcBu4xJOlIB_32hVCWyqmS1aEkNYBYR4OKTouE5ETL6altdmL_sWlj_yW86VNpxJmJoYh9JT2C4o7sbOnlJED0WwAsYp_RSkMQ-pz1qD-045XcNiiMdEwyXcklV55t9NuHWouav2cwT03VVayQZ8TCzO7WF0AGJgivMMamVgFm63rhKq8b6mB0SYQaluVrToYX22PXVlB04oLxPRqlYTH8"/>
+</div>
+<div class="flex flex-col">
+<span class="text-[11px] font-bold">PROF. ANDERSON</span>
+<span class="text-[9px] text-primary">ONLINE</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-[#0f172a]/60 backdrop-blur-xl border-b border-outline/30 flex items-center justify-between px-8 z-40">
+<div class="flex items-center gap-4 text-xs font-mono text-secondary">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> SYSTEM_NOMINAL</span>
+<span class="border-l border-outline/30 pl-4">UTC: 14:32:05</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary cursor-pointer transition-colors">notifications</span>
+<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-ruby-500 rounded-full"></span>
+</div>
+<button class="bg-surface-container border border-outline px-4 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider text-on-surface hover:bg-slate-700 transition-all">
+            Export_Kernel_Log
+        </button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+<div class="max-w-[1440px] mx-auto space-y-8">
+<!-- Page Header -->
+<div class="flex justify-between items-start">
+<div>
+<nav class="flex gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">
+<span>REPORTS</span>
+<span class="text-secondary opacity-30">/</span>
+<span class="text-on-surface">MIDTERM_01_FEEDBACK</span>
+</nav>
+<h2 class="text-4xl font-black tracking-tight text-on-surface">Mission Control <span class="font-light opacity-50">Dashboard</span></h2>
+</div>
+<div class="flex gap-3">
+<button class="glass-card flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest text-on-surface hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-sm">share</span> Relay Data
+                </button>
+</div>
+</div>
+<!-- Performance Ribbon (New Layout) -->
+<div class="performance-ribbon rounded-2xl overflow-hidden glass-card">
+<div class="p-8 flex flex-col justify-center border-r border-outline/30 bg-primary/5">
+<p class="text-[10px] uppercase font-black tracking-widest text-primary mb-2">Class Efficiency</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-5xl font-black neon-indigo tracking-tighter">74.8%</h3>
+<span class="text-[10px] font-bold text-emerald-500 flex items-center">+4.2%</span>
+</div>
+</div>
+<div class="p-8 flex flex-col justify-center border-r border-outline/30">
+<p class="text-[10px] uppercase font-black tracking-widest text-secondary mb-2">Active Nodes</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-bold tracking-tight">142<span class="text-xl text-secondary">/150</span></h3>
+</div>
+<div class="mt-2 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-neon-emerald w-[94.6%]"></div>
+</div>
+</div>
+<div class="p-8 flex flex-col justify-center border-r border-outline/30">
+<p class="text-[10px] uppercase font-black tracking-widest text-secondary mb-2">Processing Time</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-bold tracking-tight">32<span class="text-xl text-secondary">m</span> 14<span class="text-xl text-secondary">s</span></h3>
+</div>
+<p class="text-[10px] text-secondary/60 mt-1 uppercase font-bold">Quota: 45m 00s</p>
+</div>
+<div class="p-8 flex flex-col justify-center bg-error/5">
+<p class="text-[10px] uppercase font-black tracking-widest text-error mb-2">Critical Failures</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-bold text-error tracking-tight">24</h3>
+<span class="text-[10px] font-bold text-secondary uppercase">Students &lt; 60%</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-8">
+<!-- Question Breakdown -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<div class="glass-card rounded-3xl p-8 border border-outline/30">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h3 class="text-xl font-black uppercase tracking-tight">Detailed Telemetry</h3>
+<p class="text-xs text-secondary mt-1">Cross-sectional analysis of all 20 probe questions.</p>
+</div>
+<select class="bg-surface-container border border-outline text-xs font-bold rounded-lg px-4 py-2 text-on-surface focus:ring-1 ring-primary outline-none">
+<option>Order: SEQUENCE</option>
+<option>Order: MIN_ACCURACY</option>
+</select>
+</div>
+<div class="space-y-6">
+<!-- Q1 -->
+<div class="group cursor-crosshair">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-black text-secondary bg-slate-800 w-8 h-8 flex items-center justify-center rounded-md border border-outline group-hover:border-primary transition-all">01</span>
+<p class="text-sm font-medium text-secondary group-hover:text-on-surface transition-colors">Compare the effects of expansionary fiscal policy in open versus closed economies.</p>
+</div>
+<span class="text-sm font-black text-error">42.0%</span>
+</div>
+<div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
+<div class="h-full bg-neon-ruby w-[42%]"></div>
+<div class="h-full bg-white/5 w-[58%]"></div>
+</div>
+</div>
+<!-- Q2 -->
+<div class="group cursor-crosshair">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-black text-secondary bg-slate-800 w-8 h-8 flex items-center justify-center rounded-md border border-outline">02</span>
+<p class="text-sm font-medium text-secondary group-hover:text-on-surface transition-colors">Identify the primary function of the Federal Open Market Committee (FOMC).</p>
+</div>
+<span class="text-sm font-black text-tertiary">89.0%</span>
+</div>
+<div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-neon-emerald w-[89%]"></div>
+</div>
+</div>
+<!-- Q3 -->
+<div class="group cursor-crosshair">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-black text-secondary bg-slate-800 w-8 h-8 flex items-center justify-center rounded-md border border-outline">03</span>
+<p class="text-sm font-medium text-secondary group-hover:text-on-surface transition-colors">Calculate the real interest rate given a nominal rate of 5% and inflation of 2%.</p>
+</div>
+<span class="text-sm font-black text-primary">76.0%</span>
+</div>
+<div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-neon-indigo w-[76%]"></div>
+</div>
+</div>
+</div>
+<!-- Heatmap -->
+<div class="mt-12 pt-10 border-t border-outline/20">
+<h4 class="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-6">Real-time accuracy array (Q5-Q20)</h4>
+<div class="grid grid-cols-8 md:grid-cols-16 gap-2">
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm" title="95%"></div>
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm" title="88%"></div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm" title="72%"></div>
+<div class="aspect-square bg-neon-ruby/20 border border-ruby-500/50 rounded-sm" title="38%"></div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm" title="68%"></div>
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm" title="82%"></div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm" title="75%"></div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm" title="71%"></div>
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm" title="91%"></div>
+<div class="aspect-square bg-ruby-950/40 border border-ruby-500 flex items-center justify-center rounded-sm">
+<span class="material-symbols-outlined text-[12px] neon-ruby">priority_high</span>
+</div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm"></div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm"></div>
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm"></div>
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm"></div>
+<div class="aspect-square bg-neon-indigo/20 border border-indigo-500/50 rounded-sm"></div>
+<div class="aspect-square bg-neon-emerald/20 border border-emerald-500/50 rounded-sm"></div>
+</div>
+</div>
+</div>
+<!-- Class Distribution -->
+<div class="glass-card rounded-3xl p-8 border border-outline/30">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-xl font-black uppercase tracking-tight">Grade Distribution Curve</h3>
+<div class="flex gap-4">
+<span class="flex items-center gap-1.5 text-[10px] font-bold text-secondary"><span class="w-2 h-2 rounded-full bg-error"></span> FAIL</span>
+<span class="flex items-center gap-1.5 text-[10px] font-bold text-secondary"><span class="w-2 h-2 rounded-full bg-primary"></span> PASS</span>
+<span class="flex items-center gap-1.5 text-[10px] font-bold text-secondary"><span class="w-2 h-2 rounded-full bg-tertiary"></span> ELITE</span>
+</div>
+</div>
+<div class="h-48 flex items-end gap-3 px-4">
+<div class="flex-1 bg-slate-800 h-[15%] rounded-t-sm relative group"><div class="absolute -top-6 w-full text-center text-[10px] font-mono">8</div></div>
+<div class="flex-1 bg-neon-ruby h-[35%] rounded-t-sm relative group"><div class="absolute -top-6 w-full text-center text-[10px] font-mono">24</div></div>
+<div class="flex-1 bg-neon-indigo h-[85%] rounded-t-sm relative group shadow-[0_0_20px_rgba(99,102,241,0.2)] border-x border-white/10"><div class="absolute -top-6 w-full text-center text-[10px] font-mono neon-indigo font-black">56</div></div>
+<div class="flex-1 bg-neon-indigo h-[60%] rounded-t-sm relative group opacity-60"></div>
+<div class="flex-1 bg-neon-emerald h-[30%] rounded-t-sm relative group shadow-[0_0_20px_rgba(16,185,129,0.2)]"></div>
+</div>
+<div class="grid grid-cols-5 mt-4 text-[10px] font-black text-secondary tracking-widest text-center border-t border-outline/30 pt-4">
+<span>CRITICAL</span>
+<span>MARGINAL</span>
+<span>OPTIMAL</span>
+<span>ADVANCED</span>
+<span>EXPERT</span>
+</div>
+</div>
+</div>
+<!-- Side Intelligence Panel -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<!-- AI Recommendations -->
+<div class="bg-indigo-950/20 border border-indigo-500/30 rounded-3xl p-8 backdrop-blur-md relative overflow-hidden">
+<div class="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+<h3 class="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined neon-indigo">neurology</span>
+                        Core Intelligence Output
+                    </h3>
+<div class="space-y-8 relative z-10">
+<div class="flex gap-4">
+<div class="shrink-0 w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">event_repeat</span>
+</div>
+<div>
+<p class="text-xs leading-relaxed text-secondary">Initiate tactical review: <b class="text-on-surface">"Macroeconomic Cycles"</b>. Class variance exceeds threshold.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="shrink-0 w-10 h-10 rounded-xl bg-tertiary/20 border border-tertiary/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-xl">add_task</span>
+</div>
+<div>
+<p class="text-xs leading-relaxed text-secondary">Injecting 5 corrective modules for <b class="text-on-surface">"Derivative Regulations"</b> into study stream.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="shrink-0 w-10 h-10 rounded-xl bg-error/20 border border-error/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-error text-xl">outbound</span>
+</div>
+<div>
+<p class="text-xs leading-relaxed text-secondary">Dispatching personalized data-nudge to <b class="text-on-surface">24 outlier nodes</b> with low accuracy scores.</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-10 py-4 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all">
+                        Execute All Commands
+                    </button>
+</div>
+<!-- Weak Topics -->
+<div class="glass-card rounded-3xl p-8 border border-ruby-500/20">
+<h3 class="text-sm font-black text-error uppercase tracking-[0.2em] flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined neon-ruby">warning</span>
+                        Critical Knowledge Gaps
+                    </h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-[10px] font-black text-secondary mb-2 uppercase tracking-wider">
+<span>Macro Cycles</span>
+<span class="text-error">42% ACC</span>
+</div>
+<div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-neon-ruby w-[42%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-black text-secondary mb-2 uppercase tracking-wider">
+<span>Monetary Policy</span>
+<span class="text-error">51% ACC</span>
+</div>
+<div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-neon-ruby w-[51%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-black text-secondary mb-2 uppercase tracking-wider">
+<span>Derivative Regs</span>
+<span class="text-error">58% ACC</span>
+</div>
+<div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-neon-ruby w-[58%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+    // Mission control interactions
+    document.querySelectorAll('.glass-card, .performance-ribbon > div').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            el.style.borderColor = 'rgba(99, 102, 241, 0.4)';
+            el.style.transition = 'all 0.3s ease';
+        });
+        el.addEventListener('mouseleave', () => {
+            el.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+        });
+    });
+</script>
+</body></html>

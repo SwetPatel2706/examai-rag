@@ -13,6 +13,7 @@ import QuizTaking from './pages/QuizTaking';
 import QuizResults from './pages/QuizResults';
 import FlashcardDecks from './pages/FlashcardDecks';
 import FlashcardStudy from './pages/FlashcardStudy';
+import StudentMaterials from './pages/StudentMaterials';
 
 // Teacher pages
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/student/quiz/:id/results" element={<QuizResults />} />
         <Route path="/student/flashcards" element={<FlashcardDecks />} />
         <Route path="/student/flashcards/:id/study" element={<FlashcardStudy />} />
+        <Route path="/student/materials" element={<StudentMaterials />} />
 
         {/* ── Teacher ── */}
         <Route path="/teacher" element={<TeacherDashboard />} />

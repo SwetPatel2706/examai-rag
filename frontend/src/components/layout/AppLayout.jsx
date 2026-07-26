@@ -6,7 +6,7 @@ const STUDENT_NAV = [
   { icon: 'chat_bubble', label: 'Chat', to: '/student/chat' },
   { icon: 'quiz', label: 'Quizzes', to: '/student/quizzes' },
   { icon: 'style', label: 'Flashcards', to: '/student/flashcards' },
-  { icon: 'menu_book', label: 'Resources', to: '/student/materials' },
+  { icon: 'library_books', label: 'Resources', to: '/student/materials' },
 ];
 
 const TEACHER_NAV = [

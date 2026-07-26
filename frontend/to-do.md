@@ -1,0 +1,1 @@
+in student resourcse/material page the default option in course is ALL which should show all teaches and when a course/subject is selected/filtered only the teachers of that subject should apper in the FILTER BY TEACHER section

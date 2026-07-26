@@ -65,6 +65,17 @@ This file gives a central view of every placeholder, what it stands in for, and 
 |------|-----|-------------|
 | `MOCK_DECKS` with hardcoded cards | No flashcard card API | `GET /flashcard-decks/:id/cards` |
 
+### StudentMaterials (Resources)
+| Mock | Why | Replacement |
+|------|-----|-------------|
+| `COURSE_FILTERS` (All + 4 courses) | No cross-subject materials API | Derived from `GET /students/me/subjects` |
+| `TEACHERS` (3 teachers) | No teacher roster per student | `GET /students/me/subjects` → teachers per subject |
+| `RECENTLY_ACCESSED` (4 items) | No access-history API | `GET /students/me/materials/recent` |
+| `ALL_MATERIALS` (10 rows; `TOTAL_MATERIALS = 24`) | No paginated materials API | `GET /students/me/materials?page=X&course=Y&teacher=Z&q=…` |
+| Search / course / teacher filters are client-side only | Backend filtering not wired | Same query params on materials endpoint |
+| Download / more-actions buttons are UI-only | No signed download URLs yet | `GET /materials/:id/download` |
+| One row uses external avatar URL (`ownerAvatarUrl`) | Demo co-teacher/student attribution | Owner avatar from `GET /users/:id` or omit |
+
 ---
 
 ## Teacher Pages

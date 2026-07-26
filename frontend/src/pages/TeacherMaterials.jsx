@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
 import { cn } from '@/lib/utils';
+import { getTypeConfig } from '@/lib/materials';
 
 // --- Mock data (replace with GET /materials?owned=true and GET /materials?subject=X when backend is ready) ---
 const INITIAL_MATERIALS = [
@@ -36,13 +37,6 @@ const INITIAL_MATERIALS = [
     uploadedAt: '2026-07-15',
   },
 ];
-
-const TYPE_ICONS = {
-  PDF: { icon: 'picture_as_pdf', bg: 'bg-error-container', color: 'text-error' },
-  DOCX: { icon: 'description', bg: 'bg-primary-fixed', color: 'text-primary' },
-  PPTX: { icon: 'slideshow', bg: 'bg-tertiary-fixed/30', color: 'text-tertiary' },
-  default: { icon: 'description', bg: 'bg-surface-container', color: 'text-secondary' },
-};
 
 export default function TeacherMaterials() {
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
@@ -141,7 +135,7 @@ export default function TeacherMaterials() {
               </thead>
               <tbody className="divide-y divide-surface-container-high">
                 {materials.map((mat) => {
-                  const typeConfig = TYPE_ICONS[mat.type] ?? TYPE_ICONS.default;
+                  const typeConfig = getTypeConfig(mat.type);
                   const isOwn = mat.ownerId === 'me';
                   return (
                     <tr key={mat.id} className="hover:bg-surface-container-low transition-colors group">

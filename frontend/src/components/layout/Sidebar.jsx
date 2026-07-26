@@ -1,0 +1,91 @@
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import useAuthStore from '@/store/authStore';
+
+/**
+ * @param {{ items: Array<{icon: string, label: string, to: string}>, bottomItems?: Array<{icon: string, label: string, to?: string, onClick?: fn}> }} props
+ */
+export default function Sidebar({ items, bottomItems = [] }) {
+  const navigate = useNavigate();
+  const { user, role, clearAuth } = useAuthStore();
+
+  const displayName = user?.name ?? (role === 'teacher' ? 'Professor' : 'Student');
+  const displayRole = role === 'teacher' ? 'Professor View' : 'Student View';
+  const initials = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+  function handleLogout() {
+    clearAuth();
+    navigate('/login', { replace: true });
+  }
+
+  return (
+    <aside className="h-screen w-64 fixed left-0 top-0 bg-white flex flex-col border-r border-outline-variant z-50">
+      {/* Logo */}
+      <div className="p-6 shrink-0">
+        <span className="font-headline-md text-headline-md font-bold text-primary">ExamAI</span>
+        <p className="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider opacity-70 mt-0.5">
+          {displayRole}
+        </p>
+      </div>
+
+      {/* Main Nav */}
+      <nav className="flex-1 overflow-y-auto custom-scrollbar px-2 space-y-1">
+        {items.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-label-md text-label-md',
+                isActive
+                  ? 'bg-secondary-container text-on-secondary-container translate-x-1'
+                  : 'text-secondary hover:bg-surface-container-low'
+              )
+            }
+          >
+            <span className="material-symbols-outlined">{item.icon}</span>
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Bottom section */}
+      <div className="p-4 border-t border-outline-variant shrink-0">
+        {/* User info */}
+        <div className="flex items-center gap-3 px-2 py-2 mb-3">
+          <Avatar>
+            {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName} />}
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col min-w-0">
+            <span className="font-label-md text-label-md font-bold text-on-surface truncate">{displayName}</span>
+            <span className="text-[12px] text-secondary opacity-80 truncate">{user?.email ?? ''}</span>
+          </div>
+        </div>
+
+        {/* Bottom items (e.g. Settings) */}
+        {bottomItems.map((item) => (
+          <button
+            key={item.label}
+            onClick={item.onClick ?? (() => item.to && navigate(item.to))}
+            className="flex items-center gap-3 text-secondary px-4 py-2 mx-0 hover:bg-surface-container-low transition-all rounded-lg w-full text-left font-label-md text-label-md"
+          >
+            <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 text-error px-4 py-2 hover:bg-error-container transition-all rounded-lg w-full text-left font-label-md text-label-md"
+        >
+          <span className="material-symbols-outlined text-[20px]">logout</span>
+          Log Out
+        </button>
+      </div>
+    </aside>
+  );
+}

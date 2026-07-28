@@ -1,0 +1,315 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#191c1e",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-surface-variant": "#464555",
+                    "tertiary-container": "#006e4b",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-variant": "#e0e3e5",
+                    "secondary-fixed": "#dae2fd",
+                    "on-primary-fixed": "#0f0069",
+                    "on-secondary-container": "#5c647a",
+                    "on-primary-container": "#dad7ff",
+                    "primary": "#3525cd",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "outline": "#777587",
+                    "on-secondary-fixed": "#131b2e",
+                    "primary-container": "#4f46e5",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#67f4b7",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "inverse-surface": "#2d3133",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary-fixed": "#6ffbbe",
+                    "inverse-on-surface": "#eff1f3",
+                    "primary-fixed": "#e2dfff",
+                    "surface-container": "#eceef0",
+                    "tertiary": "#005338",
+                    "inverse-primary": "#c3c0ff",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#dae2fd",
+                    "primary-fixed-dim": "#c3c0ff",
+                    "surface-tint": "#4d44e3",
+                    "on-primary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "outline-variant": "#c7c4d8",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-tertiary-fixed-variant": "#005236"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xl": "64px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "margin-mobile": "16px",
+                    "sm": "16px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Geist"],
+                    "label-sm": ["Geist"],
+                    "headline-lg-mobile": ["Geist"],
+                    "body-lg": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "body-md": ["Geist"],
+                    "label-md": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    }catch(_e){}</script><meta charset="utf-8"></head><body class="bg-surface text-on-surface">
+<div class="flex min-h-screen">
+<!-- SideNavBar (Predicted Component) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-white dark:bg-surface-dim shadow-lg flex flex-col border-r border-outline-variant dark:border-none z-50">
+<div class="p-6">
+<span class="font-headline-md text-headline-md font-bold text-primary">ExamAI</span>
+</div>
+<div class="flex flex-col gap-2 flex-grow overflow-y-auto mt-4">
+<a href="#" class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-3 mx-2 hover:bg-surface-container-low transition-all rounded-xl">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a href="#" class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-3 mx-2 hover:bg-surface-container-low transition-all rounded-xl">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-md text-label-md">Chat</span>
+</a>
+<!-- ACTIVE STATE: Quizzes -->
+<a href="#" class="flex items-center gap-3 bg-secondary-container dark:bg-on-secondary-container text-on-secondary-container dark:text-on-tertiary-container rounded-xl px-4 py-3 mx-2 active-nav-item shadow-sm">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span class="font-label-md text-label-md">Quizzes</span>
+</a>
+<a class="flex items-center gap-3 text-secondary dark:text-secondary-fixed-dim px-4 py-3 mx-2 hover:bg-surface-container-low transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-md text-label-md">Resources</span>
+</a>
+</div>
+<div class="p-4 border-t border-outline-variant bg-surface-container-lowest">
+<div class="flex items-center gap-3 mb-6 p-2">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a young university student named Alex Rivers. He has a friendly expression, short dark hair, and is wearing a modern blue sweater. The background is a softly blurred modern campus library with bright natural lighting and clean architectural lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXUjWUnMd7gDoQp3EIdbN8X-_ar1IzEhvSiM-VO67exRWMs2dZ-Mpw3QUa2yNC7eM2zU4OSgMjVGh8800fDClsdz4kPabG4fF1ktIqTYc2JG-KQ6BJ0KfY9ZKZPKqdbWR80A--a24uSE1mDRVTnYWahi_pNaInxgSFklJKHjS3xVHXEwpj36Vg2J_IT80g2ULoo6HSwf5VqzZbqRlvRrAFme3NQs7V3rCtjZaQed1C6jnlO1qlnPRQHqZyI-XWCjnebXLp2vne2U">
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold">Alex Rivers</span>
+<span class="text-xs text-on-surface-variant">Junior • CompSci</span>
+</div>
+</div>
+<a class="flex items-center gap-3 text-secondary px-4 py-2 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+<a class="flex items-center gap-3 text-error px-4 py-2 hover:opacity-80 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 min-h-screen relative overflow-x-hidden">
+<!-- TopNavBar (Predicted Component) -->
+<header class="flex justify-between items-center px-8 h-16 w-full sticky top-0 z-40 bg-surface/80 backdrop-blur-md">
+<div class="flex items-center gap-4">
+<h1 class="font-headline-md text-headline-md font-bold text-on-background">Available Quizzes</h1>
+</div>
+<div class="flex items-center gap-4 flex-1 justify-end">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container rounded-full border-none focus:ring-2 focus:ring-primary/20 text-body-md placeholder:text-outline-variant" placeholder="Search subjects or quiz titles..." type="text">
+</div>
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto">
+<!-- Filters/Subject Tags -->
+<div class="flex items-center gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-5 py-2 rounded-full bg-primary text-on-primary font-label-md whitespace-nowrap">All Subjects</button>
+<button class="px-5 py-2 rounded-full bg-white text-secondary font-label-md shadow-sm border border-outline-variant hover:border-primary transition-all whitespace-nowrap">Computer Science</button>
+<button class="px-5 py-2 rounded-full bg-white text-secondary font-label-md shadow-sm border border-outline-variant hover:border-primary transition-all whitespace-nowrap">Macroeconomics</button>
+<button class="px-5 py-2 rounded-full bg-white text-secondary font-label-md shadow-sm border border-outline-variant hover:border-primary transition-all whitespace-nowrap">Linear Algebra</button>
+<button class="px-5 py-2 rounded-full bg-white text-secondary font-label-md shadow-sm border border-outline-variant hover:border-primary transition-all whitespace-nowrap">Ethics in AI</button>
+</div>
+<!-- Bento Grid Layout for Quiz Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1: New Quiz -->
+<div class="soft-card rounded-2xl p-6 flex flex-col h-full border border-transparent hover:border-primary/10">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-primary/10 text-primary rounded-full font-label-sm text-label-sm">Computer Science</span>
+<span class="text-outline-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span> 15 mins
+                            </span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">Quiz 3: Graph Theory</h3>
+<p class="text-on-surface-variant font-body-md text-body-md mb-6 flex-grow">Advanced algorithms, BFS, DFS, and Dijkstra's implementation patterns.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="quiz">quiz</span>
+<span class="font-label-md">12 Questions</span>
+</div>
+<button class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md">
+                                Start Quiz
+                            </button>
+</div>
+</div>
+<!-- Card 2: New Quiz -->
+<div class="soft-card rounded-2xl p-6 flex flex-col h-full border border-transparent hover:border-primary/10">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant rounded-full font-label-sm text-label-sm">Economics</span>
+<span class="text-outline-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span> 10 mins
+                            </span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">Weekly Recap: Supply &amp; Demand</h3>
+<p class="text-on-surface-variant font-body-md text-body-md mb-6 flex-grow">Reviewing equilibrium shifts, price floors, and elasticities from Week 4.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="quiz">quiz</span>
+<span class="font-label-md">8 Questions</span>
+</div>
+<button class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md">
+                                Start Quiz
+                            </button>
+</div>
+</div>
+<!-- Card 3: Completed Quiz -->
+<div class="soft-card rounded-2xl p-6 flex flex-col h-full bg-surface-container-lowest/50 opacity-90 border-dashed border-2 border-outline-variant/30 relative">
+<div class="absolute -top-3 -right-3">
+<div class="bg-tertiary text-on-tertiary w-10 h-10 rounded-full flex items-center justify-center shadow-lg transform rotate-12">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-outline-variant/20 text-on-surface-variant rounded-full font-label-sm text-label-sm">Mathematics</span>
+<span class="text-outline-variant font-label-sm text-label-sm">Completed</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2 text-on-surface/70">Calculus II: Taylor Series</h3>
+<div class="bg-surface-container-low rounded-lg p-3 mb-6 flex items-center justify-between">
+<span class="font-label-md text-on-surface-variant">Previous Score:</span>
+<span class="font-headline-md text-tertiary font-bold">92%</span>
+</div>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="history">history</span>
+<span class="font-label-md">2 days ago</span>
+</div>
+<button class="px-6 py-2.5 bg-surface-container-high text-secondary rounded-xl font-label-md hover:bg-outline-variant/20 transition-all active:scale-95">
+                                Retake
+                            </button>
+</div>
+</div>
+<!-- Card 4: New Quiz (Modern Pattern) -->
+<div class="soft-card rounded-2xl p-6 flex flex-col h-full border border-transparent hover:border-primary/10 overflow-hidden relative">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 -mr-16 -mt-16 rounded-full blur-2xl"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-sm text-label-sm">AI Ethics</span>
+<span class="text-outline-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span> 20 mins
+                            </span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">Bias in Machine Learning</h3>
+<p class="text-on-surface-variant font-body-md text-body-md mb-6 flex-grow">Identifying algorithmic unfairness and data collection ethics.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="quiz">quiz</span>
+<span class="font-label-md">15 Questions</span>
+</div>
+<button class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-all active:scale-95 shadow-md">
+                                Start Quiz
+                            </button>
+</div>
+</div>
+<!-- Card 5: Medium Score Quiz -->
+<div class="soft-card rounded-2xl p-6 flex flex-col h-full border border-transparent hover:border-primary/10 opacity-95">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-primary/10 text-primary rounded-full font-label-sm text-label-sm">Computer Science</span>
+<span class="text-outline-variant font-label-sm text-label-sm">Completed</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">Intro to React: Hooks</h3>
+<div class="bg-error-container rounded-lg p-3 mb-6 flex items-center justify-between">
+<span class="font-label-md text-on-error-container">Previous Score:</span>
+<span class="font-headline-md text-error font-bold">68%</span>
+</div>
+<p class="text-xs text-on-surface-variant mb-4 italic">Recommended: Review 'useEffect' resources before retaking.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-md text-xs">AIs Suggestion</span>
+</div>
+<button class="px-6 py-2.5 bg-primary-container text-on-primary-container rounded-xl font-label-md hover:opacity-90 transition-all active:scale-95">
+                                Retake Now
+                            </button>
+</div>
+</div>
+<!-- Card 6: Upcoming Quiz Placeholder -->
+<div class="rounded-2xl p-6 flex flex-col h-full border-2 border-dashed border-outline-variant/50 bg-transparent flex items-center justify-center text-center">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-outline" data-icon="add">add</span>
+</div>
+<h4 class="font-label-md text-label-md text-outline">Generate New Custom Quiz</h4>
+<p class="text-xs text-outline-variant mt-2 max-w-[200px]">Paste your syllabus or lecture notes to create a personalized study session.</p>
+</div>
+</div>
+<!-- FAB Suppression Note: As per instructions, FAB is suppressed on list/details screens to focus on canvas -->
+</div>
+</main>
+</div>
+<script>
+        // Micro-interaction for quiz cards
+        document.querySelectorAll('.soft-card').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98) translateY(2px)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+</body></html>

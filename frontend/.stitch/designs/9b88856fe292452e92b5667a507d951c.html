@@ -1,0 +1,350 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Resources - AI Exam Prep</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e2dfff;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3525cd;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f7f9fb",
+                        "surface-dim": "#d8dadc",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#e2dfff",
+                        "secondary-container": "#dae2fd",
+                        "surface-variant": "#e0e3e5",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-highest": "#e0e3e5",
+                        "primary": "#3525cd",
+                        "on-secondary-fixed": "#131b2e",
+                        "tertiary-container": "#006e4b",
+                        "surface-bright": "#f7f9fb",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "tertiary": "#005338",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#c7c4d8",
+                        "inverse-primary": "#c3c0ff",
+                        "secondary-fixed": "#dae2fd",
+                        "surface-tint": "#4d44e3",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#0f0069",
+                        "background": "#f7f9fb",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-tertiary-container": "#67f4b7",
+                        "primary-container": "#4f46e5",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "secondary": "#565e74",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#002113",
+                        "on-surface-variant": "#464555",
+                        "on-primary-container": "#dad7ff",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1e",
+                        "outline": "#777587",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary-container": "#5c647a",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-container-high": "#e6e8ea"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "16px",
+                        "2xl": "24px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "xl": "64px",
+                        "lg": "40px",
+                        "sm": "16px",
+                        "xs": "8px",
+                        "md": "24px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "body-md": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface antialiased">
+<!-- Sidebar Navigation -->
+<aside class="bg-surface-container-lowest shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] h-screen w-64 fixed left-0 top-0 flex flex-col py-lg px-sm z-50" id="sidebar">
+<div class="mb-lg px-sm">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">AI Exam Prep</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider opacity-70">Professor View</p>
+</div>
+<nav class="flex-1 space-y-xs overflow-y-auto">
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-primary-fixed/30 dark:bg-primary-container/20 transition-transform duration-150 active:scale-[0.98]" href="#"><span class="material-symbols-outlined">dashboard</span><span class="font-label-md text-label-md">Dashboard</span></a>
+
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 active:scale-[0.98]" href="#"><span class="material-symbols-outlined">assignment</span><span class="font-label-md text-label-md">Assignments</span></a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 active:scale-[0.98]" href="#"><span class="material-symbols-outlined">database</span><span class="font-label-md text-label-md">Question Bank</span></a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 active:scale-[0.98]" href="#"><span class="material-symbols-outlined">bar_chart</span><span class="font-label-md text-label-md">Analytics</span></a>
+<a class="flex items-center gap-sm px-md py-sm rounded-xl text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 active:scale-[0.98]" href="#"><span class="material-symbols-outlined">groups</span><span class="font-label-md text-label-md">Student Progress</span></a>
+</nav>
+<div class="pt-md mt-auto border-t border-outline-variant/30 space-y-xs">
+<button class="w-full bg-primary text-on-primary py-sm px-md rounded-xl font-label-md text-label-md flex items-center justify-center gap-xs hover:shadow-lg active:scale-[0.98] transition-all duration-150 mb-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+            Create New Exam
+        </button>
+<a class="flex items-center gap-sm px-sm py-xs rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+            Settings
+        </a>
+<a class="flex items-center gap-sm px-sm py-xs rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+            Support
+        </a>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="fixed top-0 right-0 left-64 h-16 flex items-center justify-between px-md bg-surface/80 backdrop-blur-md border-b border-outline-variant z-40">
+<div class="flex items-center bg-surface-container-high px-sm py-xs rounded-full w-96">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md font-label-md w-full ml-xs" placeholder="Search resources..." type="text">
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container">
+<img alt="Professor Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqtdFkk_BUpDdtrTDyvMyQ7ckGO1lBKL9sCviC2TrZwKrartVlXx_Loj9J2KTb_6nyIOWoOk5JAigPeA_SxUWvhHF8hj699ixOTptnk8tQ_7Np7CNWb836_Bf8dBdiRJ88BVPImV5ev1qRk37mFpQmOEtkvYhuvzomK40MDgwihF4eBOMn6iYIGUcc_otyC4-0k3qiXyWL2BKlxyHpbWxjQboCC4scEPtVRsIgsJlcSKWKweVox1kYKyYLFuJ6TJNJ_4IJjwWi8gk">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 mt-16 p-md min-h-[calc(100vh-64px)]">
+<!-- Resources Header -->
+<div class="mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Resources</h2>
+<p class="text-on-surface-variant font-body-md text-body-md mt-xs">Upload new materials and manage your existing academic library.</p>
+</div>
+<!-- Top Section: Upload Area -->
+<div class="grid grid-cols-1 gap-md mb-lg">
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-lg shadow-sm">
+<div class="flex flex-col md:flex-row items-center gap-lg">
+<div class="flex-1 w-full">
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-md flex flex-col items-center justify-center text-center hover:bg-primary/5 transition-colors cursor-pointer group">
+<div class="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center mb-sm group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">Drop files here or click to browse</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">PDF, DOCX, TXT (Max 50MB)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Materials List -->
+<div class="bg-surface-container-lowest rounded-2xl shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] border border-outline-variant/20 overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50 border-b border-outline-variant/20">
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant">Filename</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant">Subject</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant">Upload Date</th><th class="px-md py-md font-label-md text-label-md text-on-surface-variant">Owner</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-md py-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-error-container/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-error" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate">lecture_notes_v2.pdf</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Computer Science</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Oct 12, 2023</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Me</td>
+<td class="px-md py-md text-right">
+<div class="flex items-center justify-end gap-xs">
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-primary-fixed hover:text-primary transition-all" title="View">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-all" title="Delete">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-md py-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="article">article</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate">data_structures_midterm.docx</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Software Engineering</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Oct 14, 2023</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Me</td>
+<td class="px-md py-md text-right">
+<div class="flex items-center justify-end gap-xs">
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-primary-fixed hover:text-primary transition-all" title="View">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-all" title="Delete">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-md py-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary" data-icon="analytics">analytics</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate">market_analysis_dataset.csv</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Economics</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Oct 15, 2023</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Me</td>
+<td class="px-md py-md text-right">
+<div class="flex items-center justify-end gap-xs">
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-primary-fixed hover:text-primary transition-all" title="View">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-all" title="Delete">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-md py-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-error-container/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-error" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface font-medium truncate">molecular_biology_summary.pdf</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Biological Sciences</td>
+<td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Oct 16, 2023</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Me</td>
+<td class="px-md py-md text-right">
+<div class="flex items-center justify-end gap-xs">
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-primary-fixed hover:text-primary transition-all" title="View">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-all" title="Delete">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group"><td class="px-md py-md"><div class="flex items-center gap-sm"><div class="w-10 h-10 rounded-lg bg-primary-fixed/20 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary" data-icon="article">article</span></div><span class="font-body-md text-body-md text-on-surface font-medium truncate">advanced_algorithms_syllabus.pdf</span></div></td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Computer Science</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Oct 18, 2023</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Prof. Sarah Chen</td><td class="px-md py-md text-right"><div class="flex items-center justify-end gap-xs"><button class="p-sm rounded-full text-on-surface-variant hover:bg-primary-fixed hover:text-primary transition-all" title="View"><span class="material-symbols-outlined" data-icon="visibility">visibility</span></button><button class="p-sm rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-all" title="Delete"><span class="material-symbols-outlined" data-icon="delete">delete</span></button></div></td></tr><tr class="hover:bg-surface-container-low transition-colors group"><td class="px-md py-md"><div class="flex items-center gap-sm"><div class="w-10 h-10 rounded-lg bg-tertiary-fixed/20 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-tertiary" data-icon="analytics">analytics</span></div><span class="font-body-md text-body-md text-on-surface font-medium truncate">macroeconomics_q3_trends.csv</span></div></td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Economics</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Oct 20, 2023</td><td class="px-md py-md font-body-md text-body-md text-on-surface-variant">Dr. Marcus Reed</td><td class="px-md py-md text-right"><div class="flex items-center justify-end gap-xs"><button class="p-sm rounded-full text-on-surface-variant hover:bg-primary-fixed hover:text-primary transition-all" title="View"><span class="material-symbols-outlined" data-icon="visibility">visibility</span></button><button class="p-sm rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-all" title="Delete"><span class="material-symbols-outlined" data-icon="delete">delete</span></button></div></td></tr></tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-md py-sm bg-surface-container-low/30 border-t border-outline-variant/20 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Showing 1 to 4 of 42 materials</span>
+<div class="flex items-center gap-xs">
+<button class="p-xs rounded-lg text-outline hover:bg-surface-container-high transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center">1</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high font-label-sm text-label-sm flex items-center justify-center">2</button>
+<span class="px-xs text-outline">...</span>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high font-label-sm text-label-sm flex items-center justify-center">9</button>
+</div>
+<button class="p-xs rounded-lg text-outline hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+    // Search simulation
+    const searchInput = document.querySelector('input[placeholder="Search resources..."]');
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+
+</body></html>

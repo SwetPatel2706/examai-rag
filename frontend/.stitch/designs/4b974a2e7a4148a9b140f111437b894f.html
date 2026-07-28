@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExamAI - Flashcard Study</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#6ffbbe",
+                    "inverse-primary": "#c3c0ff",
+                    "tertiary": "#005338",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "on-primary-container": "#dad7ff",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "outline-variant": "#c7c4d8",
+                    "on-error": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "secondary": "#565e74",
+                    "on-primary-fixed": "#0f0069",
+                    "primary-container": "#4f46e5",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "secondary-container": "#dae2fd",
+                    "on-tertiary-container": "#67f4b7",
+                    "inverse-surface": "#2d3133",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface": "#f7f9fb",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-surface-variant": "#464555",
+                    "tertiary-container": "#006e4b",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#d8dadc",
+                    "primary": "#3525cd",
+                    "surface-tint": "#4d44e3",
+                    "outline": "#777587",
+                    "primary-fixed-dim": "#c3c0ff",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#5c647a",
+                    "surface-container-low": "#f2f4f6",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#002113",
+                    "on-secondary-fixed": "#131b2e",
+                    "secondary-fixed": "#dae2fd",
+                    "surface-container-high": "#e6e8ea",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-variant": "#e0e3e5",
+                    "surface-bright": "#f7f9fb",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#e2dfff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "xl": "64px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "xs": "8px",
+                    "sm": "16px",
+                    "base": "4px",
+                    "md": "24px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Geist"],
+                    "label-md": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "body-lg": ["Geist"],
+                    "label-sm": ["Geist"],
+                    "headline-lg": ["Geist"],
+                    "headline-lg-mobile": ["Geist"],
+                    "body-md": ["Geist"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        
+        /* Flashcard Flip Animation */
+        .card-container {
+            perspective: 1000px;
+        }
+        .card-inner {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Ambient background effect */
+        .ambient-blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            border-radius: 50%;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 100px); }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface overflow-hidden min-h-screen relative">
+<!-- Ambient Background -->
+<div class="ambient-blob bg-primary-fixed top-[-100px] left-[-100px]"></div>
+<div class="ambient-blob bg-tertiary-fixed bottom-[-100px] right-[-100px]" style="animation-delay: -5s;"></div>
+<!-- Focused Top Bar -->
+<header class="w-full h-16 bg-white/60 backdrop-blur-md flex flex-col justify-center sticky top-0 z-50">
+<div class="px-md md:px-margin-desktop flex justify-between items-center w-full">
+<h1 class="font-headline-md text-headline-md text-on-surface">Graph Theory</h1>
+<button aria-label="Close Study Session" class="p-base hover:bg-surface-container rounded-full transition-colors active:scale-90">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</div>
+<!-- Progress Bar Container -->
+<div class="w-full bg-surface-container-highest h-1 mt-auto">
+<div class="bg-primary h-full transition-all duration-500 ease-out" id="progress-bar" style="width: 20%;"></div>
+</div>
+</header>
+<!-- Main Study Content -->
+<main class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-margin-mobile">
+<!-- Progress Text -->
+<div class="mb-md text-center">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Card 4 of 20</span>
+</div>
+<!-- Flashcard -->
+<div class="card-container w-full max-w-[500px] h-[360px] relative group">
+<div class="card-inner w-full h-full relative" id="flashcard" onclick="toggleFlip()">
+<!-- Front Side -->
+<div class="card-front bg-white rounded-2xl shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] p-lg flex flex-col items-center justify-center text-center border border-surface-variant">
+<p class="font-headline-md text-headline-md text-on-surface leading-snug">What is a bipartite graph?</p>
+<div class="absolute bottom-md right-md flex items-center gap-xs opacity-40 group-hover:opacity-100 transition-opacity">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tap to flip</span>
+<span class="material-symbols-outlined text-sm">sync</span>
+</div>
+</div>
+<!-- Back Side -->
+<div class="card-back bg-white rounded-2xl shadow-[0_4px_20px_-2px_rgba(15,23,42,0.05)] p-lg flex flex-col items-center justify-center text-center border border-primary-fixed overflow-y-auto">
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-md">
+                        A graph whose vertices can be divided into two disjoint sets <span class="font-bold text-primary">U</span> and <span class="font-bold text-primary">V</span> such that every edge connects a vertex in U to one in V.
+                    </p>
+<div class="w-16 h-16 bg-surface-container-low rounded-lg flex items-center justify-center">
+<img class="w-12 h-12" data-alt="A clean mathematical diagram showing a bipartite graph with two sets of nodes colored in soft indigo and emerald, connected by thin gray lines. The style is minimalist and academic, using a light mode color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6GIxSMFgZPRUlPSrMoL3MwvQfDSSKoAUxtNdkGOX9uJl8uVLNAp7O2KclNqXSxWRfZQRo8QShLl3TW5uBkmSurQgx55rMEBwUfTeHoRUllHTnmPtDBSJi-orQiZGR2BmjRf5PgLcjHvUZNGGQEQnDbbL4SMDL79dUhZgXLIt2UdPlY5xAunzttlHf4tXEOg2Z_2QTEbveNgz8BE8Wm-s5BZ6FcwLjaCYfxiTt_l8rOR6JamlzDkTDF2tFm_r3DKOFO82VYLRDg2A"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation & Actions -->
+<div class="mt-lg flex flex-col items-center gap-md w-full max-w-[500px]">
+<!-- Default Navigation (Visible always) -->
+<div class="flex items-center gap-md">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-white shadow-sm border border-surface-variant hover:bg-surface-container-low transition-all active:scale-95 text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-white shadow-sm border border-surface-variant hover:bg-surface-container-low transition-all active:scale-95 text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<!-- Self-Assessment (Hidden until flipped) -->
+<div class="flex gap-sm w-full opacity-0 pointer-events-none translate-y-4 transition-all duration-300" id="assessment-tools">
+<button class="flex-1 py-md bg-orange-100/50 text-orange-800 font-label-md text-label-md rounded-full hover:bg-orange-100 transition-colors active:scale-95">
+                    Still Learning
+                </button>
+<button class="flex-1 py-md bg-tertiary-fixed text-tertiary font-label-md text-label-md rounded-full hover:bg-tertiary-fixed-dim transition-colors active:scale-95">
+                    Got It
+                </button>
+</div>
+</div>
+</main>
+<script>
+        let isFlipped = false;
+        const card = document.getElementById('flashcard');
+        const assessment = document.getElementById('assessment-tools');
+
+        function toggleFlip() {
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                card.classList.add('is-flipped');
+                // Show assessment buttons after flip
+                assessment.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                assessment.classList.add('opacity-100', 'translate-y-0');
+            } else {
+                card.classList.remove('is-flipped');
+                // Optional: hide them again when flipping back
+                // assessment.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleFlip();
+            }
+            if (e.code === 'ArrowRight') {
+                // Logic for next card
+            }
+            if (e.code === 'ArrowLeft') {
+                // Logic for previous card
+            }
+        });
+
+        // Simple progress update logic simulation
+        window.addEventListener('load', () => {
+            const bar = document.getElementById('progress-bar');
+            bar.style.width = '20%'; // Example: Card 4 of 20
+        });
+    </script>
+</body></html>

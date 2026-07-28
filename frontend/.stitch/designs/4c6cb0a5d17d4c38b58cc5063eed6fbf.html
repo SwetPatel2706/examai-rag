@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExamAI — AI Study Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#6ffbbe",
+                        "inverse-primary": "#c3c0ff",
+                        "tertiary": "#005338",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-primary-container": "#dad7ff",
+                        "on-background": "#191c1e",
+                        "background": "#f7f9fb",
+                        "outline-variant": "#c7c4d8",
+                        "on-error": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "secondary": "#565e74",
+                        "on-primary-fixed": "#0f0069",
+                        "primary-container": "#4f46e5",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "secondary-container": "#dae2fd",
+                        "on-tertiary-container": "#67f4b7",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-surface-variant": "#464555",
+                        "tertiary-container": "#006e4b",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#d8dadc",
+                        "primary": "#3525cd",
+                        "surface-tint": "#4d44e3",
+                        "outline": "#777587",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#5c647a",
+                        "surface-container-low": "#f2f4f6",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#002113",
+                        "on-secondary-fixed": "#131b2e",
+                        "secondary-fixed": "#dae2fd",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#e2dfff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "xl": "64px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px",
+                        "xs": "8px",
+                        "sm": "16px",
+                        "base": "4px",
+                        "md": "24px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Geist"],
+                        "label-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "headline-lg-mobile": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .message-bubble-received {
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+        }
+        .message-bubble-sent {
+            border-radius: 12px;
+            border-bottom-right-radius: 4px;
+        }
+        .citation-badge {
+            font-size: 0.65rem;
+            vertical-align: super;
+            margin-left: 2px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background-color: rgba(53, 37, 205, 0.1);
+            color: #3525cd;
+            font-weight: 700;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e0e3e5; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden h-screen flex">
+<!-- SideNavBar Anchor -->
+<nav class="h-screen w-64 fixed left-0 top-0 rounded-r-xl bg-surface-container-low flex flex-col py-lg px-sm shadow-md z-50">
+<div class="font-headline-md text-headline-md font-bold text-primary mb-lg px-md">ExamAI</div>
+<div class="flex flex-col gap-xs flex-grow">
+<!-- Navigation Items Mapping -->
+<a class="flex items-center gap-sm text-on-surface-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex items-center gap-sm bg-primary-container text-on-primary-container rounded-lg px-md py-sm transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined" data-icon="chat" style="font-variation-settings: 'FILL' 1;">chat</span>
+<span class="font-label-md text-label-md">Chat</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span class="font-label-md text-label-md">Quizzes</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="style">style</span>
+<span class="font-label-md text-label-md">Flashcards</span>
+</a>
+<a class="flex items-center gap-sm text-on-surface-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="library_books">library_books</span>
+<span class="font-label-md text-label-md">Resources</span>
+</a>
+</div>
+<!-- Sidebar Footer -->
+<div class="mt-auto pt-md border-t border-outline-variant flex flex-col gap-sm">
+<div class="flex items-center gap-sm px-md py-sm">
+<img class="w-10 h-10 rounded-full border-2 border-primary-fixed" data-alt="A clean, professional headshot of a college student in their early twenties, looking directly into the camera with a friendly smile. The background is a soft-focus library interior with warm, ambient lighting. The overall style is modern minimalist, with crisp details and a balanced, high-key color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmxjladhGsFqvIYf45L3_IqVcVr6pkT7sZcO6qWMub-N9Y1r9VJIZ3YS4CHwcrm8EWhoAsUt73t3Rn9f9LHaYxl210cAIj_Cmj1_3pUxfckQOYILyFOdsnNyPZcvKpkCwYZzQOi3WZX99b-s9Nd-GS3x-1NrVRzxNFODf-5Gob7Em1iK0Y7UAEZJCyj3Lk77S759qoILWnAAImbpix6GCVbhaZswnGaI5gi5aCW628JIu2h-Qk0cHNxSSPgjkvdWvq8KOP168TBeI"/>
+<div class="flex flex-col overflow-hidden">
+<span class="font-label-md text-label-md font-bold truncate">Alex Rivers</span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Junior • CS</span>
+</div>
+</div>
+<button class="flex items-center gap-sm text-on-surface-variant rounded-lg px-md py-sm hover:bg-error-container hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Layout -->
+<main class="ml-64 flex flex-grow h-full overflow-hidden relative">
+<!-- Chat Area -->
+<div class="flex-grow flex flex-col h-full bg-white relative">
+<!-- Chat Header -->
+<header class="h-16 px-md flex items-center border-b border-surface-container-highest justify-between">
+<div class="flex items-center gap-sm">
+<button class="flex items-center gap-xs bg-surface-container-low px-sm py-1.5 rounded-full border border-outline-variant hover:bg-surface-container transition-colors" id="courseDropdown">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-md text-label-md font-semibold">Data Structures</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Message Thread -->
+<section class="flex-grow overflow-y-auto custom-scrollbar p-md flex flex-col gap-lg">
+<!-- Timestamp -->
+<div class="flex justify-center">
+<span class="bg-surface-container px-base py-base rounded-lg font-label-sm text-label-sm text-on-surface-variant">Today, Oct 12th</span>
+</div>
+<!-- User Message -->
+<div class="flex justify-end">
+<div class="max-w-[70%] bg-primary text-white p-md message-bubble-sent shadow-sm">
+<p class="font-body-md text-body-md leading-relaxed">
+                            Hey ExamAI, can you explain the time complexity of building a heap from an unsorted array? I'm getting confused between O(n) and O(n log n).
+                        </p>
+</div>
+</div>
+<!-- AI Message -->
+<div class="flex justify-start items-start gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-primary shrink-0 mt-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="max-w-[80%] bg-surface-container-low text-on-surface p-md message-bubble-received shadow-sm">
+<p class="font-body-md text-body-md leading-relaxed">
+                            That's a classic interview question! While it might seem like $O(n \log n)$ because you're inserting $n$ elements, the actual complexity is **$O(n)$**<span class="citation-badge">1</span>.
+                        </p>
+<p class="mt-sm font-body-md text-body-md leading-relaxed">
+                            This is because the work done at each level of the tree decreases as you move towards the root. Specifically, most nodes are at the bottom (leaves) and require zero swaps, while only the root requires the maximum number of swaps ($\log n$)<span class="citation-badge">2</span>. 
+                        </p>
+<div class="mt-md p-sm bg-white/50 rounded-lg border border-outline-variant/30 flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md text-label-md italic text-on-surface-variant">Pro Tip: Look up "Floyd's Build-Heap Algorithm" in your Dr. Smith's Lecture 4 notes.</span>
+</div>
+</div>
+</div>
+<!-- User Message 2 -->
+<div class="flex justify-end">
+<div class="max-w-[70%] bg-primary text-white p-md message-bubble-sent shadow-sm">
+<p class="font-body-md text-body-md leading-relaxed">
+                            Oh, I see. So it's because we're doing "bottom-up" heapify rather than "top-down" insertion?
+                        </p>
+</div>
+</div>
+<!-- AI Typing Animation Placeholder -->
+<div class="flex justify-start items-center gap-sm opacity-60">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[18px]" data-icon="bolt">bolt</span>
+</div>
+<div class="flex gap-1 items-center bg-surface-container-low px-md py-sm rounded-full">
+<div class="w-1.5 h-1.5 bg-on-surface-variant rounded-full animate-bounce"></div>
+<div class="w-1.5 h-1.5 bg-on-surface-variant rounded-full animate-bounce [animation-delay:0.2s]"></div>
+<div class="w-1.5 h-1.5 bg-on-surface-variant rounded-full animate-bounce [animation-delay:0.4s]"></div>
+</div>
+</div>
+</section>
+<!-- Input Area -->
+<footer class="p-md bg-white border-t border-surface-container-highest">
+<div class="relative max-w-4xl mx-auto flex items-end gap-sm bg-surface-container-lowest border border-outline-variant rounded-2xl p-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+</button>
+<textarea class="flex-grow bg-transparent border-none focus:ring-0 resize-none max-h-32 font-body-md text-body-md py-2 px-1 placeholder:text-outline" placeholder="Ask ExamAI about Data Structures..." rows="1"></textarea>
+<button class="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-on-primary-fixed-variant transition-all active:scale-95 shadow-lg">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+<div class="mt-xs text-center">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">ExamAI can make mistakes. Verify important facts.</span>
+</div>
+</footer>
+</div>
+<!-- Materials Scope Panel (Collapsible) -->
+<aside class="w-80 bg-surface-container-low border-l border-surface-container-highest h-full flex flex-col transition-all duration-300" id="scopePanel">
+<div class="p-md border-b border-surface-container-highest flex items-center justify-between">
+<h3 class="font-label-md text-label-md font-bold text-on-surface">Materials Scope</h3>
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-bold">8 Active</span>
+</div>
+<div class="flex-grow overflow-y-auto custom-scrollbar p-md space-y-lg">
+<!-- Dr. Smith Section -->
+<div>
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="account_circle">account_circle</span>
+<span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Dr. Smith</span>
+</div>
+<div class="space-y-sm">
+<label class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-sm">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center bg-primary text-white">
+<span class="material-symbols-outlined text-[16px] font-bold" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Lecture 04: Heaps</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="description">description</span>
+</label>
+<label class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-sm">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center bg-primary text-white">
+<span class="material-symbols-outlined text-[16px] font-bold" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Midterm Review.pdf</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="picture_as_pdf">picture_as_pdf</span>
+</label>
+<label class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-sm">
+<div class="w-5 h-5 border-2 border-outline-variant rounded flex items-center justify-center hover:border-primary transition-colors bg-white"></div>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Syllabus_Fall2023</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="description">description</span>
+</label>
+</div>
+</div>
+<!-- TA Resources Section -->
+<div>
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="groups">groups</span>
+<span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">TA Resources</span>
+</div>
+<div class="space-y-sm">
+<label class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-sm">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center bg-primary text-white">
+<span class="material-symbols-outlined text-[16px] font-bold" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Recitation_Arrays</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="slideshow">slideshow</span>
+</label>
+<label class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-sm">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center bg-primary text-white">
+<span class="material-symbols-outlined text-[16px] font-bold" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Big O Cheatsheet</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="article">article</span>
+</label>
+</div>
+</div>
+<!-- Custom/Uploaded -->
+<div>
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="upload_file">upload_file</span>
+<span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Your Uploads</span>
+</div>
+<div class="space-y-sm">
+<label class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-sm">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center bg-primary text-white">
+<span class="material-symbols-outlined text-[16px] font-bold" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Alex_Notes_Trees</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="edit_note">edit_note</span>
+</label>
+</div>
+</div>
+</div>
+<div class="p-md bg-surface-container border-t border-surface-container-highest">
+<button class="w-full py-sm bg-white border border-outline-variant rounded-lg font-label-md text-label-md text-primary flex items-center justify-center gap-sm hover:bg-primary-fixed transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                    Upload New Scope
+                </button>
+</div>
+</aside>
+</main>
+<script>
+        // Simple micro-interactions
+        document.getElementById('courseDropdown').addEventListener('click', function() {
+            this.classList.toggle('bg-primary/5');
+            this.classList.toggle('border-primary');
+        });
+
+        // Auto-expand textarea
+        const tx = document.getElementsByTagName("textarea");
+        for (let i = 0; i < tx.length; i++) {
+          tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+          tx[i].addEventListener("input", OnInput, false);
+        }
+        function OnInput() {
+          this.style.height = 0;
+          this.style.height = (this.scrollHeight) + "px";
+        }
+    </script>
+</body></html>

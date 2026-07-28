@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quiz Results Dashboard | AI Exam Prep</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #faf9f6;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 32px;
+        }
+        .minimal-card {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e4e1;
+        }
+        .terracotta-bg { background-color: #d17a61; }
+        .terracotta-text { color: #d17a61; }
+        .sage-bg { background-color: #8fa691; }
+        .sage-text { color: #8fa691; }
+        .sand-bg { background-color: #f0ede6; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#faf9f6",
+                        "on-surface": "#2d2a26",
+                        "primary": "#3d3d3d",
+                        "on-primary": "#ffffff",
+                        "terracotta": "#d17a61",
+                        "sage": "#8fa691",
+                        "sand": "#f0ede6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "2px",
+                        "xl": "4px",
+                        "full": "9999px"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-white border-r border-[#e5e4e1] flex flex-col py-10 px-6 z-50">
+<div class="mb-12">
+<h1 class="font-serif text-2xl font-semibold tracking-tight text-primary">AI Exam Prep</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mt-1">Professor View</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 px-3 py-2 text-neutral-500 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-2 text-primary font-semibold bg-sand/50" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-sm">Assignments</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-2 text-neutral-500 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="text-sm font-medium">Question Bank</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-2 text-neutral-500 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium">Analytics</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4 pt-10 border-t border-[#e5e4e1]">
+<button class="w-full border border-primary text-primary py-3 hover:bg-primary hover:text-white transition-all text-xs font-bold tracking-widest uppercase">
+            Create Exam
+        </button>
+<div class="space-y-1">
+<a class="flex items-center gap-4 px-3 py-2 text-neutral-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-2 text-neutral-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm">Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-64 h-20 bg-surface/95 backdrop-blur-sm border-b border-[#e5e4e1] flex items-center justify-between px-10 z-40">
+<div class="flex items-center border-b border-neutral-300 py-1 w-80 focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-neutral-400 mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-neutral-400" placeholder="Search results..." type="text"/>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-6">
+<button class="text-neutral-500 hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-1 h-1 bg-terracotta rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="w-8 h-8 rounded-full border border-neutral-200 overflow-hidden">
+<img class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeKJ-orUugalapfNuUUkD-dfjIssxXQkG6F4UxwvnyflkB11L0LC1efxcBu4xJOlIB_32hVCWyqmS1aEkNYBYR4OKTouE5ETL6altdmL_sWlj_yW86VNpxJmJoYh9JT2C4o7sbOnlJED0WwAsYp_RSkMQ-pz1qD-045XcNiiMdEwyXcklV55t9NuHWouav2cwT03VVayQZ8TCzO7WF0AGJgivMMamVgFm63rhKq8b6mB0SYQaluVrToYX22PXVlB04oLxPRqlYTH8"/>
+</div>
+<span class="text-xs font-semibold uppercase tracking-wider group-hover:text-primary transition-colors">Prof. Sterling</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 mt-20 p-10 min-h-screen">
+<div class="max-w-6xl mx-auto">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-16">
+<div>
+<nav class="flex gap-2 text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-2">
+<span>Assignments</span>
+<span>/</span>
+<span class="text-primary font-bold">Midterm 01</span>
+</nav>
+<h2 class="font-serif text-5xl text-primary tracking-tight">Quiz Results</h2>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 px-6 py-2 border border-neutral-300 text-[10px] uppercase tracking-widest font-bold hover:bg-neutral-50 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span> PDF
+                </button>
+<button class="flex items-center gap-2 px-6 py-2 bg-primary text-white text-[10px] uppercase tracking-widest font-bold hover:bg-neutral-800 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">share</span> Share
+                </button>
+</div>
+</div>
+<!-- Main Dashboard Flow -->
+<div class="space-y-16">
+<!-- Hero Stats Row -->
+<section class="grid grid-cols-12 gap-10 items-center">
+<div class="col-span-12 md:col-span-5">
+<p class="text-[10px] uppercase tracking-[0.3em] text-neutral-400 mb-4">Overall Performance</p>
+<div class="flex items-baseline gap-4">
+<h3 class="font-serif text-8xl text-primary">74.8<span class="text-4xl text-neutral-300">%</span></h3>
+<span class="text-sage font-semibold text-sm flex items-center gap-1 mb-2">
+<span class="material-symbols-outlined text-sm">trending_up</span> +4.2%
+                        </span>
+</div>
+</div>
+<div class="col-span-12 md:col-span-7 grid grid-cols-2 gap-10">
+<div class="border-l border-neutral-200 pl-8">
+<p class="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-2">Submissions</p>
+<h4 class="font-serif text-3xl">142/150</h4>
+<p class="text-xs text-neutral-400 mt-2">Class Completion Rate: 94%</p>
+</div>
+<div class="border-l border-neutral-200 pl-8">
+<p class="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-2">Median Time</p>
+<h4 class="font-serif text-3xl">32m 14s</h4>
+<p class="text-xs text-neutral-400 mt-2">Allotted Time: 45m</p>
+</div>
+</div>
+</section>
+<!-- AI Floating Cards - Main Flow -->
+<section>
+<div class="flex items-center gap-4 mb-6">
+<span class="material-symbols-outlined terracotta-text">auto_awesome</span>
+<h3 class="text-[10px] uppercase tracking-[0.3em] font-bold">Priority Insights</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="minimal-card p-8 group hover:border-primary transition-all">
+<div class="w-10 h-10 terracotta-bg/10 terracotta-text flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<h4 class="font-serif text-xl mb-3">Macroeconomics Risk</h4>
+<p class="text-sm text-neutral-500 leading-relaxed mb-4">Class accuracy is below 45% for "Macroeconomic Cycles". Review recommended.</p>
+<a class="text-[10px] uppercase tracking-widest font-bold border-b border-primary pb-1" href="#">Schedule Review</a>
+</div>
+<div class="minimal-card p-8 group hover:border-primary transition-all">
+<div class="w-10 h-10 sage-bg/10 sage-text flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">quiz</span>
+</div>
+<h4 class="font-serif text-xl mb-3">Resource Gap</h4>
+<p class="text-sm text-neutral-500 leading-relaxed mb-4">Derivative Regulations lacks sufficient practice material in the portal.</p>
+<a class="text-[10px] uppercase tracking-widest font-bold border-b border-primary pb-1" href="#">Generate Questions</a>
+</div>
+<div class="minimal-card p-8 group hover:border-primary transition-all">
+<div class="w-10 h-10 sand-bg text-primary flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<h4 class="font-serif text-xl mb-3">Student Outreach</h4>
+<p class="text-sm text-neutral-500 leading-relaxed mb-4">24 students scored below 60%. Automated nudge sequence ready.</p>
+<a class="text-[10px] uppercase tracking-widest font-bold border-b border-primary pb-1" href="#">Send Nudges</a>
+</div>
+</div>
+</section>
+<!-- Wide Single-Column Question Breakdown -->
+<section class="pt-10 border-t border-[#e5e4e1]">
+<div class="flex justify-between items-baseline mb-12">
+<h3 class="font-serif text-3xl">Question Breakdown</h3>
+<div class="flex items-center gap-4 text-[10px] uppercase tracking-widest font-bold text-neutral-400">
+<span>Sort by</span>
+<select class="bg-transparent border-none text-[10px] uppercase tracking-widest font-bold p-0 focus:ring-0 cursor-pointer">
+<option>Question No.</option>
+<option>Accuracy</option>
+</select>
+</div>
+</div>
+<div class="space-y-0">
+<!-- Question 1 -->
+<div class="py-10 border-b border-[#e5e4e1] flex gap-12 group">
+<span class="text-xs font-bold text-neutral-300 mt-1">Q1</span>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-6">
+<h5 class="font-serif text-xl max-w-2xl leading-relaxed text-neutral-700">Compare the effects of expansionary fiscal policy in open versus closed economies.</h5>
+<div class="text-right">
+<span class="block font-serif text-2xl terracotta-text">42%</span>
+<span class="text-[10px] uppercase tracking-widest text-neutral-400">Accuracy</span>
+</div>
+</div>
+<div class="w-full h-[2px] bg-neutral-100 relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 terracotta-bg" style="width: 42%;"></div>
+</div>
+<div class="flex gap-8 mt-4 text-[10px] uppercase tracking-widest text-neutral-400 font-bold">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full terracotta-bg"></span> Correct</span>
+<span>Avg. Time: 45s</span>
+</div>
+</div>
+</div>
+<!-- Question 2 -->
+<div class="py-10 border-b border-[#e5e4e1] flex gap-12 group">
+<span class="text-xs font-bold text-neutral-300 mt-1">Q2</span>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-6">
+<h5 class="font-serif text-xl max-w-2xl leading-relaxed text-neutral-700">Identify the primary function of the Federal Open Market Committee (FOMC).</h5>
+<div class="text-right">
+<span class="block font-serif text-2xl sage-text">89%</span>
+<span class="text-[10px] uppercase tracking-widest text-neutral-400">Accuracy</span>
+</div>
+</div>
+<div class="w-full h-[2px] bg-neutral-100 relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 sage-bg" style="width: 89%;"></div>
+</div>
+<div class="flex gap-8 mt-4 text-[10px] uppercase tracking-widest text-neutral-400 font-bold">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full sage-bg"></span> Correct</span>
+<span>Avg. Time: 12s</span>
+</div>
+</div>
+</div>
+<!-- Question 3 -->
+<div class="py-10 border-b border-[#e5e4e1] flex gap-12 group">
+<span class="text-xs font-bold text-neutral-300 mt-1">Q3</span>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-6">
+<h5 class="font-serif text-xl max-w-2xl leading-relaxed text-neutral-700">Calculate the real interest rate given a nominal rate of 5% and inflation of 2%.</h5>
+<div class="text-right">
+<span class="block font-serif text-2xl text-primary">76%</span>
+<span class="text-[10px] uppercase tracking-widest text-neutral-400">Accuracy</span>
+</div>
+</div>
+<div class="w-full h-[2px] bg-neutral-100 relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 bg-primary" style="width: 76%;"></div>
+</div>
+<div class="flex gap-8 mt-4 text-[10px] uppercase tracking-widest text-neutral-400 font-bold">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span> Correct</span>
+<span>Avg. Time: 22s</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Distribution & Footer Insights -->
+<section class="grid grid-cols-12 gap-16 pt-10">
+<div class="col-span-12 md:col-span-7">
+<h4 class="text-[10px] uppercase tracking-[0.3em] font-bold mb-10">Score Distribution</h4>
+<div class="h-64 flex items-end gap-1 px-4 relative">
+<!-- Horizontal baseline -->
+<div class="absolute bottom-0 left-0 right-0 h-[1px] bg-neutral-200"></div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full sand-bg h-[15%] transition-all group-hover:bg-neutral-200"></div>
+<span class="text-[10px] mt-3 font-bold text-neutral-400">F</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full terracotta-bg h-[35%] transition-all opacity-80 group-hover:opacity-100"></div>
+<span class="text-[10px] mt-3 font-bold text-neutral-400">D</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary h-[85%] transition-all"></div>
+<span class="text-[10px] mt-3 font-bold text-primary">C/B</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full bg-primary h-[60%] transition-all opacity-60 group-hover:opacity-100"></div>
+<span class="text-[10px] mt-3 font-bold text-neutral-400">B+</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full sage-bg h-[30%] transition-all opacity-80 group-hover:opacity-100"></div>
+<span class="text-[10px] mt-3 font-bold text-neutral-400">A</span>
+</div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-5 bg-sand/30 p-10 border-l border-primary">
+<h4 class="font-serif text-2xl mb-6">Executive Summary</h4>
+<p class="text-sm text-neutral-600 leading-relaxed mb-6 italic">
+                        "The class demonstrates strong foundational knowledge in FOMC functions but struggles with the complex interplay of fiscal policy across varying market structures."
+                    </p>
+<div class="space-y-4">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-sm terracotta-text">check_circle</span>
+<span class="text-xs font-medium">Class focus: Macro Policy Interaction</span>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-sm sage-text">check_circle</span>
+<span class="text-xs font-medium">Projected Final Exam Avg: 78%</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<script>
+    // Subtle animations for interaction
+    document.querySelectorAll('.minimal-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-2px)';
+            card.style.transition = 'all 0.2s ease-out';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+</script>
+</body></html>

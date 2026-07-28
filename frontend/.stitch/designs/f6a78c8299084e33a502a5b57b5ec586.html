@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191c1e",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-surface-variant": "#464555",
+                        "tertiary-container": "#006e4b",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-variant": "#e0e3e5",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#0f0069",
+                        "on-secondary-container": "#5c647a",
+                        "on-primary-container": "#dad7ff",
+                        "primary": "#3525cd",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "outline": "#777587",
+                        "on-secondary-fixed": "#131b2e",
+                        "primary-container": "#4f46e5",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#67f4b7",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#2d3133",
+                        "surface": "#f7f9fb",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary": "#565e74",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed": "#6ffbbe",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-fixed": "#e2dfff",
+                        "surface-container": "#eceef0",
+                        "tertiary": "#005338",
+                        "inverse-primary": "#c3c0ff",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#dae2fd",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "surface-tint": "#4d44e3",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#c7c4d8",
+                        "surface-bright": "#f7f9fb",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#005236"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-md": ["Geist"],
+                        "label-md": ["Geist"]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script><meta charset="utf-8"></head><body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar (Left) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-white border-r border-outline-variant shadow-lg z-50">
+<div class="p-6">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">ExamAI</h1>
+</div>
+<nav class="flex-1 space-y-1 mt-4">
+<!-- Home -->
+<a href="#" class="flex items-center gap-3 text-secondary px-4 py-3 mx-2 hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Chat (Active) -->
+<a href="#" class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-xl px-4 py-3 mx-2 transition-all translate-x-1">
+<span class="material-symbols-outlined" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-label-md text-label-md">Chat</span>
+</a>
+<!-- Quizzes -->
+<a href="#" class="flex items-center gap-3 text-secondary px-4 py-3 mx-2 hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span class="font-label-md text-label-md">Quizzes</span>
+</a>
+<!-- Resources -->
+<a href="#" class="flex items-center gap-3 text-secondary px-4 py-3 mx-2 hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-md text-label-md">Resources</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 px-2 py-3 mb-2">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="Professional studio portrait of a young male college student with a friendly expression, wearing a minimalist grey hoodie. The lighting is soft and natural against a clean, off-white background, reflecting a modern academic aesthetic. High quality, sharp focus, sophisticated minimalist photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmipGQRDFpjuBlGmp3ASYhU1nhqnT0QXjRwSfUGYCuQZa_Hyt5UlOJTXcVk41aXuCUAozPr8cS_TY4lriHKAR63S78m1gDCEBuU8KbAI4xhwDwSLlZATOyDJl1RKryCUtf5I09Vvg_RYlkUv0Ob-2Xw6KjBjTXD-r1Do-pD_WfmprEqtXetWTocE6dOEsLpRHlqXd1Yd08sSnXbroYtuE_uvayitxDTo74BTAuPFGhbo0lwAi_i8wuTK5qxgZQj_hDNxIfHVxlTGQ">
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold">Alex Rivers</span>
+<span class="text-xs text-on-surface-variant">Junior • Computer Science</span>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 bg-secondary-container text-on-secondary-container py-2 rounded-lg text-sm font-semibold mb-4">
+                    Student
+                </button>
+<a class="flex items-center gap-3 text-secondary px-4 py-2 hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+<a class="flex items-center gap-3 text-secondary px-4 py-2 hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 flex flex-col h-screen relative bg-surface overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 h-16 w-full sticky top-0 z-40 bg-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button class="md:hidden p-2 text-primary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Chat Assistant</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container rounded-full text-sm border-none focus:ring-2 focus:ring-primary w-64" placeholder="Search conversations..." type="text">
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-fixed overflow-hidden sm:flex items-center justify-center hidden">
+<img class="w-full h-full object-cover" data-alt="A small circular avatar of a student looking at a laptop screen, lit by the cool blue light of the display. The background is a blurred library setting with books on shelves. Minimalist, academic, and focused style with clean lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrALo_s4WGeCvMGiLXQN7h0Xsr7kl8yC3qTHOZdtXfWq4-R8upfpW2h0-3goCH--lefH2R8B8Y9nIg4NN-x_Zn_EQ9ziYUB-BmprpH-pai6tLwy9555klcEJ-ptgGwv97faD5MC7AF8rdqyPYIkgW6o_IBSSGzJRQwQAm7dHoHxmtr9sydzq8ci4TypUP0e5GFj6eRbj-Ti-zUqqcBDcQpxeF-PDAQkG59SitIqxEYoTr06XjMH9zgwuH_VAObHGTdv89bNuze86A">
+</div>
+</div>
+</header>
+<!-- Chat Canvas -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Chat Window -->
+<div class="flex-1 flex flex-col bg-white">
+<div class="flex-1 overflow-y-auto p-6 chat-container space-y-6">
+<!-- AI Message -->
+<div class="flex items-start gap-4 max-w-4xl">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="space-y-2">
+<div class="bg-surface-container-low p-5 rounded-2xl message-bubble-ai shadow-sm border border-outline-variant/30">
+<p class="text-body-md text-on-surface leading-relaxed">
+                                        Hello Alex! I've analyzed your upcoming Computer Architecture mid-term materials. Based on the syllabus, the most complex topics will likely be **Pipeline Hazards** and **Cache Mapping**. Would you like to start with a summary of these topics or practice some problems?
+                                    </p>
+</div>
+<span class="text-[10px] text-on-surface-variant px-1 uppercase tracking-wider font-bold">ExamAI • 10:15 AM</span>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex items-start gap-4 flex-row-reverse max-w-4xl ml-auto">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+<div class="space-y-2 text-right">
+<div class="bg-primary p-5 rounded-2xl message-bubble-user shadow-md">
+<p class="text-body-md text-white leading-relaxed">
+                                        Can you explain the difference between structural and data hazards? Please use my lecture notes from Dr. Smith for reference.
+                                    </p>
+</div>
+<span class="text-[10px] text-on-surface-variant px-1 uppercase tracking-wider font-bold">You • 10:16 AM</span>
+</div>
+</div>
+<!-- AI Response with Citations -->
+<div class="flex items-start gap-4 max-w-4xl">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="space-y-2">
+<div class="bg-surface-container-low p-5 rounded-2xl message-bubble-ai shadow-sm border border-outline-variant/30">
+<p class="text-body-md text-on-surface leading-relaxed">
+                                        According to your notes, a <strong>Structural Hazard</strong> occurs when the hardware cannot support all possible combinations of instructions in simultaneous execution
+                                        <span class="inline-block relative citation-trigger ml-0.5">
+<sup class="text-primary font-bold cursor-help bg-primary-fixed px-1 rounded-sm text-[10px]">[1]</sup>
+<span class="citation-tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-inverse-surface text-inverse-on-surface text-xs rounded shadow-xl z-50">
+                                                Dr. Smith - lecture_notes_v2.pdf
+                                            </span>
+</span>. 
+                                        Essentially, two instructions need the same resource at the same time.
+                                    </p>
+<p class="mt-4 text-body-md text-on-surface leading-relaxed">
+                                        In contrast, a <strong>Data Hazard</strong> arises when an instruction depends on the results of a previous instruction that is still in the pipeline
+                                        <span class="inline-block relative citation-trigger ml-0.5">
+<sup class="text-primary font-bold cursor-help bg-primary-fixed px-1 rounded-sm text-[10px]">[2]</sup>
+<span class="citation-tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-inverse-surface text-inverse-on-surface text-xs rounded shadow-xl z-50">
+                                                CS301_Assignment_1_Feedback.pdf
+                                            </span>
+</span>.
+                                        Dr. Smith mentions this often happens with RAW (Read After Write) dependencies.
+                                    </p>
+</div>
+<span class="text-[10px] text-on-surface-variant px-1 uppercase tracking-wider font-bold">ExamAI • 10:16 AM</span>
+</div>
+</div>
+</div>
+<!-- Input Bar -->
+<div class="p-6 bg-white border-t border-outline-variant">
+<div class="max-w-4xl mx-auto">
+<div class="relative flex items-center">
+<div class="absolute left-4 flex gap-2">
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-all rounded-lg hover:bg-surface-container">
+<span class="material-symbols-outlined text-xl" data-icon="attach_file">attach_file</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-all rounded-lg hover:bg-surface-container">
+<span class="material-symbols-outlined text-xl" data-icon="mic">mic</span>
+</button>
+</div>
+<input class="w-full pl-24 pr-16 py-4 bg-surface-container-low rounded-2xl border-none focus:ring-2 focus:ring-primary shadow-inner text-body-md" placeholder="Ask anything about your courses..." type="text">
+<button class="absolute right-3 p-2.5 bg-primary text-white rounded-xl shadow-lg active:scale-95 transition-all hover:bg-primary-container">
+<span class="material-symbols-outlined text-xl" data-icon="send">send</span>
+</button>
+</div>
+<p class="text-center text-[10px] text-on-surface-variant mt-3 uppercase tracking-widest font-medium">ExamAI can make mistakes. Verify important info.</p>
+</div>
+</div>
+</div>
+<!-- Materials Scope Panel (Right) -->
+<aside class="w-80 h-full bg-surface-container-lowest border-l border-outline-variant flex flex-col hidden lg:flex">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-white">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
+<h3 class="font-bold text-sm uppercase tracking-wider">Materials Scope</h3>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl" data-icon="close">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<!-- Group: Dr. Smith -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-2">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Dr. Smith</span>
+<span class="text-[10px] bg-primary-fixed text-primary px-2 py-0.5 rounded-full font-bold">2/3 Selected</span>
+</div>
+<div class="space-y-1">
+<label class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox">
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-medium truncate">lecture_notes_v2.pdf</span>
+<span class="text-[10px] text-on-surface-variant">Modified 2 days ago</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors text-lg" data-icon="description">description</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox">
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-medium truncate">Pipeline_Hardware.pptx</span>
+<span class="text-[10px] text-on-surface-variant">1.2 MB</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors text-lg" data-icon="slideshow">slideshow</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<input class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox">
+<div class="flex flex-col min-w-0 opacity-60">
+<span class="text-sm font-medium truncate">Lab_Session_4.pdf</span>
+<span class="text-[10px] text-on-surface-variant">Archived</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors text-lg" data-icon="description">description</span>
+</label>
+</div>
+</div>
+<!-- Group: TA / Lab -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-2">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">TA Resources</span>
+<span class="text-[10px] bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full font-bold">1/2 Selected</span>
+</div>
+<div class="space-y-1">
+<label class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox">
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-medium truncate">Quiz_Review_W6.pdf</span>
+<span class="text-[10px] text-on-surface-variant">Shared by Sarah (TA)</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors text-lg" data-icon="verified">verified</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<input class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox">
+<div class="flex flex-col min-w-0 opacity-60">
+<span class="text-sm font-medium truncate">MIPS_Reference.pdf</span>
+<span class="text-[10px] text-on-surface-variant">Reference Card</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors text-lg" data-icon="book">book</span>
+</label>
+</div>
+</div>
+</div>
+<div class="p-6 bg-white border-t border-outline-variant">
+<button class="w-full flex items-center justify-center gap-2 py-3 bg-primary-container text-on-primary-container rounded-xl font-bold text-sm shadow-sm hover:shadow-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="add_circle">add_circle</span>
+                            Upload New Material
+                        </button>
+</div>
+</aside>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation (Bottom) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-outline-variant flex items-center justify-around z-50">
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="text-[10px] font-bold">Chat</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span class="text-[10px] font-bold">Quizzes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="text-[10px] font-bold">Resources</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction: Scroll chat to bottom on load
+        window.addEventListener('load', () => {
+            const chatContainer = document.querySelector('.chat-container');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        // Hover animation for citation markers
+        const citations = document.querySelectorAll('.citation-trigger');
+        citations.forEach(cit => {
+            cit.addEventListener('mouseenter', () => {
+                cit.querySelector('sup').style.transform = 'scale(1.2)';
+                cit.querySelector('sup').style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            });
+            cit.addEventListener('mouseleave', () => {
+                cit.querySelector('sup').style.transform = 'scale(1)';
+            });
+        });
+
+        // Input interaction focus effect
+        const chatInput = document.querySelector('input[type="text"]');
+        chatInput.addEventListener('focus', () => {
+            chatInput.parentElement.style.transform = 'translateY(-2px)';
+            chatInput.parentElement.style.transition = 'transform 0.3s ease';
+        });
+        chatInput.addEventListener('blur', () => {
+            chatInput.parentElement.style.transform = 'translateY(0)';
+        });
+    </script>
+</body></html>

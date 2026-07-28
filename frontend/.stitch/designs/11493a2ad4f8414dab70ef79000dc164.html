@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #f7f9fb;
+        }
+        /* Glassmorphism & Soft Shadows */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+        }
+        .soft-shadow-hover:hover {
+            box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.1);
+            transform: translateY(-2px);
+        }
+        /* Custom Accordion Animation */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-item.active .accordion-content {
+            max-height: 500px;
+        }
+        .accordion-item.active .rotate-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#6ffbbe",
+                        "inverse-primary": "#c3c0ff",
+                        "tertiary": "#005338",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-primary-container": "#dad7ff",
+                        "on-background": "#191c1e",
+                        "background": "#f7f9fb",
+                        "outline-variant": "#c7c4d8",
+                        "on-error": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "secondary": "#565e74",
+                        "on-primary-fixed": "#0f0069",
+                        "primary-container": "#4f46e5",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "secondary-container": "#dae2fd",
+                        "on-tertiary-container": "#67f4b7",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-surface-variant": "#464555",
+                        "tertiary-container": "#006e4b",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#d8dadc",
+                        "primary": "#3525cd",
+                        "surface-tint": "#4d44e3",
+                        "outline": "#777587",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#5c647a",
+                        "surface-container-low": "#f2f4f6",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#002113",
+                        "on-secondary-fixed": "#131b2e",
+                        "secondary-fixed": "#dae2fd",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#e2dfff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "xl": "64px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px",
+                        "xs": "8px",
+                        "sm": "16px",
+                        "base": "4px",
+                        "md": "24px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Geist"],
+                        "label-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar (SideNavBar) -->
+<aside class="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-inverse-surface shadow-md dark:shadow-none rounded-r-xl flex-col py-lg px-sm z-50">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed mb-lg px-md">ExamAI</div>
+<nav class="flex-1 space-y-2">
+<!-- Home -->
+<a class="flex items-center gap-sm text-on-surface-variant dark:text-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Chat -->
+<a class="flex items-center gap-sm text-on-surface-variant dark:text-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-md text-label-md">Chat</span>
+</a>
+<!-- Quizzes (Active State logic: This is a sub-page of Quizzes/Studies) -->
+<a class="flex items-center gap-sm bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-lg px-md py-sm" href="#">
+<span class="material-symbols-outlined">quiz</span>
+<span class="font-label-md text-label-md">Quizzes</span>
+</a>
+<!-- Flashcards -->
+<a class="flex items-center gap-sm text-on-surface-variant dark:text-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">style</span>
+<span class="font-label-md text-label-md">Flashcards</span>
+</a>
+<!-- Resources -->
+<a class="flex items-center gap-sm text-on-surface-variant dark:text-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">library_books</span>
+<span class="font-label-md text-label-md">Resources</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-md px-md">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young male college student with glasses, smiling confidently. He is wearing a minimalist navy blue hoodie against a clean, light grey background. The lighting is soft and even, highlighting a sophisticated and studious academic personality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7MbNOeoJD8b69flEALZOZJ4QOHon1VfZltObdB-ST5H5p2YReJtDPQbsjdw3VfW0fKNRxo5q4qH50lpFGdEkSIelhHagPX2DadvLJcGHmo2NLzRUZKNHuYTwvCZK26LMEAipxe2eS-_8ya_m_myXpMwTzetqZCpBFl3i8-z_mdU4vblBtY1T8jBpvna0FL0_5i01rWXFSuDiU__ir3PbK4APR0OyOXmpl0H8dBLqL2o7S2czNgaoduKedSbjgVQejYmVJuy7QVlo"/>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Alex Rivers</div>
+<div class="text-[11px] text-on-surface-variant">Junior • Computer Science</div>
+</div>
+</div>
+<a class="flex items-center gap-sm text-on-surface-variant hover:text-error transition-colors px-md py-sm" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-40 bg-background dark:bg-inverse-surface shadow-sm dark:shadow-none">
+<div class="flex items-center gap-md">
+<div class="md:hidden">
+<span class="material-symbols-outlined text-primary">menu</span>
+</div>
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container rounded-full border-none focus:ring-2 focus:ring-primary text-body-md w-64 transition-all" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">settings</button>
+</div>
+</header>
+<!-- Page Content -->
+<div class="px-margin-mobile md:px-margin-desktop py-lg max-w-[1280px] mx-auto">
+<!-- Hero Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-lg mb-xl">
+<div>
+<nav class="flex items-center gap-2 text-on-surface-variant mb-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Courses</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider">CS201</span>
+</nav>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-md">Data Structures</h1>
+<!-- Teacher Chips -->
+<div class="flex flex-wrap gap-sm">
+<div class="flex items-center gap-xs bg-surface-container-highest rounded-full pr-md pl-1 py-1 soft-shadow-hover transition-all cursor-default">
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of Dr. Eleanor Vance, a professional woman in her 50s with an intelligent expression and kind smile. She is wearing a modern charcoal blazer and elegant glasses. The background is a blurred academic library with soft lighting, reflecting a high-end educational environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrpdJd4wUf2vvRB0J9vvAPiwSOGS17b0DgbyL5ZSSubvYaQHX9XwKHgulNouje-fz064hPa-hwRggKoJN3q7UEIHGF_VB5ajZwWad5t1TfP8ChbBkgR5dFKRDpnwUjyVcf35FdsUy1-9tvpLGpcX0q2QxQUXAWttJo4Ak5QCGeXMrLR_Y5wPpoAmNi7PWrpXIbTxFuQfN7-K6q41VAJAaMEABDNZZc9p936A5KjbF0b6aMAnr6eJ0rJNWlHrIIttQtegudcjt8SP8"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface">Dr. Eleanor Vance</span>
+</div>
+<div class="flex items-center gap-xs bg-surface-container-highest rounded-full pr-md pl-1 py-1 soft-shadow-hover transition-all cursor-default">
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of Prof. Alan Kay, a distinguished academic man with white hair and a thoughtful, visionary look. He is wearing a crisp white shirt and a dark knitted sweater. The image is set in a bright, modern office with soft daylight and clean lines, embodying a minimalist and sophisticated aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnIBj4SxFo90Ca_2Ozb00E29scA7vt-E3ojmzZrFPOSrR5IZE4btSLdUF-3e9gmgHjt3vAc3G_tzr1XUrMFWoY-JBC947-yW3o9StRn3akR0jACNINDKlfaYvCZaaaVDEBaiFgftf9yHf4qU8dgeexhhxZsWwFGZc8j-2CCuhcuxO_1FVZ8d-_NGJb-XX3VpNy5XYzqKAwZr39TWhHS2MS1wBHxqrvOm7a4goiFK05wFdTFBMwK2gt_8bxp3kTASv5DJP3eq4kSCM"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface">Prof. Alan Kay</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-sm">
+<button class="flex items-center gap-sm px-lg h-12 bg-primary text-on-primary rounded-full font-label-md text-label-md soft-shadow hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">
+<span class="material-symbols-outlined">psychology</span>
+                        Ask AI about this subject
+                    </button>
+<button class="flex items-center gap-sm px-lg h-12 bg-surface-container-lowest text-secondary rounded-full font-label-md text-label-md border border-outline-variant soft-shadow hover:bg-surface-variant transition-all active:scale-95">
+<span class="material-symbols-outlined">warning</span>
+                        View Weak Topics
+                    </button>
+</div>
+</div>
+<!-- Stats Row: Bento Style -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-gutter mb-xl">
+<!-- Progress -->
+<div class="bg-surface-container-lowest p-md rounded-xl soft-shadow flex flex-col justify-between h-32 border border-white">
+<div class="flex justify-between items-start">
+<span class="text-on-surface-variant font-label-md text-label-md">Progress</span>
+<span class="material-symbols-outlined text-primary">trending_up</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-on-surface">78%</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-2">
+<div class="bg-primary h-full rounded-full" style="width: 78%"></div>
+</div>
+</div>
+</div>
+<!-- Materials -->
+<div class="bg-surface-container-lowest p-md rounded-xl soft-shadow flex flex-col justify-between h-32 border border-white">
+<div class="flex justify-between items-start">
+<span class="text-on-surface-variant font-label-md text-label-md">Materials</span>
+<span class="material-symbols-outlined text-secondary">description</span>
+</div>
+<div class="font-headline-md text-headline-md text-on-surface">12</div>
+</div>
+<!-- Quizzes -->
+<div class="bg-surface-container-lowest p-md rounded-xl soft-shadow flex flex-col justify-between h-32 border border-white">
+<div class="flex justify-between items-start">
+<span class="text-on-surface-variant font-label-md text-label-md">Quizzes</span>
+<span class="material-symbols-outlined text-tertiary">edit_note</span>
+</div>
+<div class="font-headline-md text-headline-md text-on-surface">4</div>
+</div>
+<!-- Weak Topics -->
+<div class="bg-surface-container-lowest p-md rounded-xl soft-shadow flex flex-col justify-between h-32 border border-white">
+<div class="flex justify-between items-start">
+<span class="text-on-surface-variant font-label-md text-label-md">Weak Topics</span>
+<span class="material-symbols-outlined text-error">assignment_late</span>
+</div>
+<div class="font-headline-md text-headline-md text-error">3</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+<!-- Section 1: Materials by Teacher (Accordion) -->
+<div class="lg:col-span-1">
+<div class="flex items-center gap-2 mb-md">
+<span class="material-symbols-outlined text-primary">folder_shared</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Materials by Teacher</h2>
+</div>
+<div class="space-y-sm">
+<!-- Accordion Item 1 -->
+<div class="accordion-item active bg-white rounded-xl overflow-hidden border border-slate-100 soft-shadow">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors text-left" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">EV</div>
+<span class="font-label-md text-label-md text-on-surface">Dr. Eleanor Vance</span>
+</div>
+<span class="material-symbols-outlined rotate-icon transition-transform">expand_more</span>
+</button>
+<div class="accordion-content">
+<div class="p-md pt-0 space-y-2">
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors group cursor-pointer">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+<span class="text-body-md font-medium text-on-surface-variant group-hover:text-primary transition-colors">Linked_Lists_Final.pdf</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">download</span>
+</div>
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors group cursor-pointer">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-blue-500">description</span>
+<span class="text-body-md font-medium text-on-surface-variant group-hover:text-primary transition-colors">Tree_Traversal_Notes.docx</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">download</span>
+</div>
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors group cursor-pointer">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+<span class="text-body-md font-medium text-on-surface-variant group-hover:text-primary transition-colors">Graph_Algorithms.pdf</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">download</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Accordion Item 2 -->
+<div class="accordion-item bg-white rounded-xl overflow-hidden border border-slate-100 soft-shadow">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors text-left" onclick="this.parentElement.classList.toggle('active')">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-xs">AK</div>
+<span class="font-label-md text-label-md text-on-surface">Prof. Alan Kay</span>
+</div>
+<span class="material-symbols-outlined rotate-icon transition-transform">expand_more</span>
+</button>
+<div class="accordion-content">
+<div class="p-md pt-0 space-y-2">
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors group cursor-pointer">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-blue-500">description</span>
+<span class="text-body-md font-medium text-on-surface-variant group-hover:text-primary transition-colors">Object_Oriented_Review.docx</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">download</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Quizzes for this Subject (Grid) -->
+<div class="lg:col-span-2">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology_alt</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Quizzes for this Subject</h2>
+</div>
+<button class="text-primary font-label-md text-label-md hover:underline">View All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Quiz Card 1 -->
+<div class="bg-white p-md rounded-2xl soft-shadow soft-shadow-hover border border-slate-50 transition-all flex flex-col h-full">
+<div class="flex items-start justify-between mb-sm">
+<div class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-[10px] font-bold uppercase tracking-wider">Complex Structures</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span class="text-[12px]">15 min</span>
+</div>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-xs">Advanced Binary Trees &amp; Heaps</h3>
+<p class="text-on-surface-variant text-body-md mb-lg flex-1">Focus on AVL rotations, balancing factors, and priority queue implementations.</p>
+<div class="flex items-center gap-sm">
+<button class="flex-1 py-3 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95">Start Quiz</button>
+<button class="p-3 bg-surface-container rounded-xl text-on-surface-variant hover:bg-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Quiz Card 2 -->
+<div class="bg-white p-md rounded-2xl soft-shadow soft-shadow-hover border border-slate-50 transition-all flex flex-col h-full">
+<div class="flex items-start justify-between mb-sm">
+<div class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-[10px] font-bold uppercase tracking-wider">Big O Theory</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span class="text-[12px]">10 min</span>
+</div>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-xs">Time Complexity Fundamentals</h3>
+<p class="text-on-surface-variant text-body-md mb-lg flex-1">Mastering asymptotic analysis and identifying efficiency in recursive calls.</p>
+<div class="flex items-center gap-sm">
+<button class="flex-1 py-3 bg-surface-container-highest text-secondary rounded-xl font-label-md text-label-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors active:scale-95">Retake</button>
+<div class="px-3 text-right">
+<div class="text-[10px] text-on-surface-variant uppercase font-bold">Last Score</div>
+<div class="text-headline-md text-on-surface">92%</div>
+</div>
+</div>
+</div>
+<!-- Quiz Card 3 -->
+<div class="bg-white p-md rounded-2xl soft-shadow soft-shadow-hover border border-slate-50 transition-all flex flex-col h-full">
+<div class="flex items-start justify-between mb-sm">
+<div class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[10px] font-bold uppercase tracking-wider">Hashing</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span class="text-[12px]">20 min</span>
+</div>
+</div>
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-xs">Hash Maps &amp; Collision Strategies</h3>
+<p class="text-on-surface-variant text-body-md mb-lg flex-1">Covering open addressing, chaining, and cryptographic hash functions.</p>
+<div class="flex items-center gap-sm">
+<button class="flex-1 py-3 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95">Start Quiz</button>
+<button class="p-3 bg-surface-container rounded-xl text-on-surface-variant hover:bg-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Quiz Card 4 -->
+<div class="bg-white p-md rounded-2xl soft-shadow soft-shadow-hover border border-slate-50 transition-all flex flex-col h-full border-dashed border-2 border-outline-variant items-center justify-center opacity-70 group cursor-pointer hover:opacity-100">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center mb-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</div>
+<div class="text-center">
+<div class="font-label-md text-label-md font-bold text-on-surface">Generate Custom Quiz</div>
+<div class="text-[12px] text-on-surface-variant">Using ExamAI's Smart Engine</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Spacing -->
+<div class="h-xl"></div>
+</div>
+</main>
+<!-- Mobile Bottom Navigation (BottomNavBar) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background dark:bg-inverse-surface shadow-lg flex items-center justify-around z-50">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-[10px] font-medium">Chat</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">quiz</span>
+<span class="text-[10px] font-bold">Study</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">style</span>
+<span class="text-[10px] font-medium">Flash</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+</nav>
+<!-- Floating Action Button (Only on Mobile Context) -->
+<button class="md:hidden fixed bottom-20 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined">psychology</span>
+</button>
+<script>
+        // Micro-interactions for quiz cards
+        document.querySelectorAll('.soft-shadow-hover').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Potential for adding subtle scale or particle effects
+            });
+        });
+
+        // Initialize any necessary JS-driven layouts
+        window.addEventListener('resize', () => {
+            // Adjust layouts for mobile if needed
+        });
+    </script>
+</body></html>

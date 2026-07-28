@@ -39,7 +39,7 @@ Uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for fast static check
 
 ## Architecture overview
 
-```
+```text
 src/
 ├── api/              # Thin fetch wrappers per backend resource
 ├── components/
@@ -64,7 +64,7 @@ src/
 
 - Path alias `@/` maps to `src/` (configured in `vite.config.js`).
 - Visual styling follows Google Stitch exports; see `.stitch/designs/` for reference HTML.
-- Zustand slices: `authStore`, `subjectStore`, `materialScopeStore` (see `frontend/agents.md` for screen-level detail).
+- Zustand slices: `authStore`, `subjectStore`, `materialScopeStore` (see `agents.md` for screen-level detail).
 
 ## Stitch screen sync (optional)
 

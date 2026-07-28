@@ -10,6 +10,20 @@ import useAuthStore from '@/store/authStore';
 export default function Sidebar({ items, bottomItems = [], open = false, onOpenChange }) {
   const navigate = useNavigate();
   const { user, role, clearAuth } = useAuthStore();
+  const [isDesktop, setIsDesktop] = React.useState(false);
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (e) => setIsDesktop(e.matches);
+
+    // Set initial value
+    setIsDesktop(mediaQuery.matches);
+
+    // Listen for changes
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const displayName = user?.name ?? (role === 'teacher' ? 'Professor' : 'Student');
   const displayRole = role === 'teacher' ? 'Professor View' : 'Student View';
@@ -39,6 +53,8 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
           'max-lg:-translate-x-full',
           open && 'max-lg:translate-x-0'
         )}
+        inert={!isDesktop && !open ? '' : undefined}
+        aria-hidden={!isDesktop && !open ? 'true' : undefined}
       >
         {/* Logo */}
         <div className="p-6 shrink-0">

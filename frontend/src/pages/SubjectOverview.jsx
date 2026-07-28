@@ -83,15 +83,15 @@ export default function SubjectOverview() {
   return (
     <AppLayout role="student">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 mb-lg text-on-surface-variant font-label-md text-label-md">
+      <nav className="flex items-center gap-2 mb-sp-lg text-on-surface-variant font-label-md text-label-md">
         <button onClick={() => navigate('/student')} className="hover:text-primary transition-colors">Home</button>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="text-on-surface">{subject.name}</span>
       </nav>
 
       {/* Header */}
-      <header className="mb-xl">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-md">
+      <header className="mb-sp-xl">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-sp-md">
           <div>
             <h1 className="font-headline-lg text-headline-lg text-on-background mb-2">{subject.name}</h1>
             <p className="font-body-md text-body-md text-secondary max-w-xl">{subject.description}</p>
@@ -106,7 +106,7 @@ export default function SubjectOverview() {
         </div>
 
         {/* Progress */}
-        <div className="mt-lg max-w-sm">
+        <div className="mt-sp-lg max-w-sm">
           <div className="flex justify-between mb-1 text-[12px] font-label-md">
             <span className="text-secondary">Overall Progress</span>
             <span className="text-on-background font-bold">{subject.progress}%</span>
@@ -115,9 +115,9 @@ export default function SubjectOverview() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-sp-lg">
         {/* Left — Teachers + Materials */}
-        <div className="lg:col-span-2 space-y-xl">
+        <div className="lg:col-span-2 space-y-sp-xl">
           {/* Teachers */}
           <section>
             <SectionHeader title="Instructors" />
@@ -129,7 +129,7 @@ export default function SubjectOverview() {
           {/* Materials grouped by teacher */}
           <section>
             <SectionHeader title="Study Materials" />
-            <div className="space-y-lg">
+            <div className="space-y-sp-lg">
               {subject.materialsByTeacher.map(({ teacher, materials }) => (
                 <div key={teacher.id}>
                   <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">
@@ -170,7 +170,7 @@ export default function SubjectOverview() {
           />
           <div className="space-y-3">
             {subject.quizzes.map((quiz) => (
-              <div key={quiz.id} className="bg-white p-md rounded-2xl ambient-shadow card-hover">
+              <div key={quiz.id} className="bg-white p-sp-md rounded-2xl ambient-shadow card-hover">
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <h3 className="font-label-md text-label-md text-on-surface font-semibold">{quiz.title}</h3>
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0 ${STATUS_STYLES[quiz.status]}`}>

@@ -1,10 +1,25 @@
 const fs = require('fs');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const path = require('path');
 
-const fetchStitchPath = '/Users/swet/Developer/Project/examai-rag/.agents/skills/stitch-react-components/scripts/fetch-stitch.sh';
-const screensFile = '/Users/swet/.gemini/antigravity-ide/brain/32628ed0-163d-4d04-afc3-6e85877791a0/.system_generated/steps/26/output.txt';
+const fetchStitchPath = path.join(
+  __dirname,
+  '..',
+  '.agents',
+  'skills',
+  'stitch-react-components',
+  'scripts',
+  'fetch-stitch.sh'
+);
+const screensFile = process.argv[2] || process.env.SCREENS_FILE;
 const designsDir = path.join(__dirname, '.stitch', 'designs');
+
+if (!screensFile) {
+  console.error('Error: screens input path is required.');
+  console.error('Usage: node fetch_screens.cjs <screens-json-path>');
+  console.error('Or set the SCREENS_FILE environment variable.');
+  process.exit(1);
+}
 
 fs.mkdirSync(designsDir, { recursive: true });
 
@@ -13,12 +28,12 @@ const screensData = JSON.parse(fs.readFileSync(screensFile, 'utf8'));
 screensData.screens.forEach((screen) => {
   // e.g. projects/9993824954322017543/screens/aa31b6e00cd14b7e89b91d735381d13a -> aa31b6e00cd14b7e89b91d735381d13a
   const screenId = screen.name.split('/').pop();
-  
+
   if (screen.htmlCode && screen.htmlCode.downloadUrl) {
     const htmlDest = path.join(designsDir, `${screenId}.html`);
     console.log(`Fetching HTML for ${screen.title} (${screenId})`);
     try {
-      execSync(`bash "${fetchStitchPath}" "${screen.htmlCode.downloadUrl}" "${htmlDest}"`, { stdio: 'inherit' });
+      execFileSync('bash', [fetchStitchPath, screen.htmlCode.downloadUrl, htmlDest], { stdio: 'inherit' });
     } catch (e) {
       console.error(`Failed to fetch HTML for ${screenId}:`, e.message);
     }
@@ -30,7 +45,7 @@ screensData.screens.forEach((screen) => {
     const pngUrl = `${screen.screenshot.downloadUrl}=w${width}`;
     console.log(`Fetching PNG for ${screen.title} (${screenId})`);
     try {
-      execSync(`bash "${fetchStitchPath}" "${pngUrl}" "${pngDest}"`, { stdio: 'inherit' });
+      execFileSync('bash', [fetchStitchPath, pngUrl, pngDest], { stdio: 'inherit' });
     } catch (e) {
       console.error(`Failed to fetch PNG for ${screenId}:`, e.message);
     }

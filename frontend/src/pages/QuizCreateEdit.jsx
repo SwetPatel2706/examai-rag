@@ -38,12 +38,12 @@ const AI_DRAFT_QUESTIONS = [
 
 function QuestionEditor({ question, index, onChange, onDelete }) {
   return (
-    <div className="bg-white rounded-2xl border border-outline-variant p-md space-y-3">
+    <div className="bg-white rounded-2xl border border-outline-variant p-sp-md space-y-3">
       <div className="flex items-center justify-between">
         <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Question {index + 1}</span>
         <button
           onClick={onDelete}
-          className="p-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors"
+          className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">delete</span>
         </button>
@@ -109,7 +109,7 @@ export default function QuizCreateEdit() {
   const [mode, setMode] = useState('manual'); // 'manual' | 'ai'
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
-  const [questions, setQuestions] = useState([BLANK_QUESTION()]);
+  const [questions, setQuestions] = useState(() => [BLANK_QUESTION()]);
   const [selectedMats, setSelectedMats] = useState(new Set());
   const [generating, setGenerating] = useState(false);
 
@@ -138,7 +138,8 @@ export default function QuizCreateEdit() {
     setGenerating(true);
     // Simulate API call — replace with POST /quiz/generate { material_ids, subject } when backend is ready
     setTimeout(() => {
-      setQuestions(AI_DRAFT_QUESTIONS.map((q) => ({ ...q, id: `${q.id}-${Date.now()}` })));
+      const drafts = AI_DRAFT_QUESTIONS.map((q) => ({ ...q, id: `${q.id}-${Date.now()}` }));
+      setQuestions((prev) => [...prev.filter((q) => q.stem.trim()), ...drafts]);
       setMode('manual'); // switch to manual for review/edit
       setGenerating(false);
     }, 1500);
@@ -151,7 +152,7 @@ export default function QuizCreateEdit() {
 
   return (
     <AppLayout role="teacher">
-      <header className="mb-lg flex items-start justify-between">
+      <header className="mb-sp-lg flex items-start justify-between">
         <div>
           <h1 className="font-headline-lg text-headline-lg text-on-background">Create Quiz</h1>
           <p className="font-body-md text-body-md text-secondary mt-1">
@@ -172,12 +173,12 @@ export default function QuizCreateEdit() {
       </header>
 
       {/* Quiz meta */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-md mb-sp-lg">
         <div>
           <label className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block mb-1">Quiz Title</label>
           <input
             type="text"
-            className="w-full border border-outline-variant rounded-xl px-md py-sm font-body-md text-body-md outline-none focus:border-primary transition-colors"
+            className="w-full border border-outline-variant rounded-xl px-sp-md py-sp-sm font-body-md text-body-md outline-none focus:border-primary transition-colors"
             placeholder="e.g. Sorting Algorithms Quiz"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -186,7 +187,7 @@ export default function QuizCreateEdit() {
         <div>
           <label className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block mb-1">Subject</label>
           <select
-            className="w-full border border-outline-variant rounded-xl px-md py-sm font-body-md text-body-md outline-none focus:border-primary transition-colors bg-white"
+            className="w-full border border-outline-variant rounded-xl px-sp-md py-sp-sm font-body-md text-body-md outline-none focus:border-primary transition-colors bg-white"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
           >
@@ -199,7 +200,7 @@ export default function QuizCreateEdit() {
       </div>
 
       {/* Mode tabs */}
-      <div className="flex gap-2 border-b border-outline-variant mb-lg">
+      <div className="flex gap-2 border-b border-outline-variant mb-sp-lg">
         {[
           { id: 'manual', label: 'Manual', icon: 'edit' },
           { id: 'ai', label: 'AI-Assisted', icon: 'auto_awesome' },
@@ -208,7 +209,7 @@ export default function QuizCreateEdit() {
             key={tab.id}
             onClick={() => setMode(tab.id)}
             className={cn(
-              'flex items-center gap-2 px-md py-sm rounded-t-xl font-label-md text-label-md transition-all -mb-px',
+              'flex items-center gap-2 px-sp-md py-sp-sm rounded-t-xl font-label-md text-label-md transition-all -mb-px',
               mode === tab.id
                 ? 'text-primary bg-primary-fixed/30 border-b-2 border-primary'
                 : 'text-secondary hover:bg-surface-container-low'
@@ -220,12 +221,12 @@ export default function QuizCreateEdit() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-sp-lg">
         {/* Questions panel */}
-        <div className="lg:col-span-2 space-y-md">
+        <div className="lg:col-span-2 space-y-sp-md">
           {mode === 'ai' ? (
             /* AI generation panel */
-            <div className="bg-white rounded-2xl p-md border border-outline-variant space-y-md">
+            <div className="bg-white rounded-2xl p-sp-md border border-outline-variant space-y-sp-md">
               <div className="flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
                 <h3 className="font-headline-md text-headline-md text-on-background">AI-Assisted Generation</h3>
@@ -276,8 +277,8 @@ export default function QuizCreateEdit() {
 
         {/* Materials selector — only meaningful for AI mode but shown always for context */}
         <div>
-          <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary mb-md">Source Materials</h3>
-          <div className="bg-white rounded-2xl border border-outline-variant p-md space-y-2">
+          <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary mb-sp-md">Source Materials</h3>
+          <div className="bg-white rounded-2xl border border-outline-variant p-sp-md space-y-2">
             {MATERIALS_FOR_GENERATION.map((mat) => (
               <label key={mat.id} className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors">
                 <input

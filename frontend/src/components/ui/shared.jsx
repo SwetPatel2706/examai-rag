@@ -19,7 +19,7 @@ export function ProgressBar({ value, className }) {
  */
 export function StatCard({ icon, iconBg, iconColor, value, label, className }) {
   return (
-    <div className={cn('bg-white p-md rounded-2xl ambient-shadow card-hover flex flex-col gap-xs', className)}>
+    <div className={cn('bg-white p-sp-md rounded-2xl ambient-shadow card-hover flex flex-col gap-sp-xs', className)}>
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-2', iconBg, iconColor)}>
         <span className="material-symbols-outlined">{icon}</span>
       </div>
@@ -34,7 +34,7 @@ export function StatCard({ icon, iconBg, iconColor, value, label, className }) {
  */
 export function SectionHeader({ title, action }) {
   return (
-    <div className="flex items-center justify-between mb-sm">
+    <div className="flex items-center justify-between mb-sp-sm">
       <h2 className="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary">{title}</h2>
       {action}
     </div>

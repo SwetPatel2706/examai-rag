@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import TopAppBar from '@/components/layout/TopAppBar';
 import { PageHeader } from '@/components/ui/page-header';
@@ -158,10 +158,6 @@ export default function StudentMaterials() {
   const totalPages = Math.max(1, Math.ceil(filteredMaterials.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
 
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
-
   const paginatedMaterials = filteredMaterials.slice(
     (safePage - 1) * PAGE_SIZE,
     safePage * PAGE_SIZE
@@ -200,15 +196,15 @@ export default function StudentMaterials() {
         onSearchChange={handleSearchChange}
       />
 
-      <div className="-m-margin-desktop mt-0 pt-20 px-lg pb-xl">
+      <div className="-m-margin-desktop mt-0 pt-20 px-sp-lg pb-sp-xl">
         <PageHeader
           title="Resources"
           description="Manage your academic assets and course documentation."
         />
 
         {/* Browse by Course */}
-        <section className="mb-md">
-          <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">
+        <section className="mb-sp-md">
+          <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sp-sm">
             Browse by Course
           </h3>
           <FilterChipGroup
@@ -219,8 +215,8 @@ export default function StudentMaterials() {
         </section>
 
         {/* Filter by Teacher */}
-        <section className="mb-md">
-          <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">
+        <section className="mb-sp-md">
+          <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sp-sm">
             Filter by Teacher
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -236,7 +232,7 @@ export default function StudentMaterials() {
         </section>
 
         {/* Recently Accessed */}
-        <section className="mb-lg">
+        <section className="mb-sp-lg">
           <SectionHeader
             title="Recently Accessed"
             action={
@@ -245,7 +241,7 @@ export default function StudentMaterials() {
               </button>
             }
           />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-sp-sm">
             {RECENTLY_ACCESSED.map((item) => (
               <RecentlyAccessedCard key={item.id} {...item} />
             ))}
@@ -254,7 +250,7 @@ export default function StudentMaterials() {
 
         {/* All Materials */}
         <section>
-          <div className="flex items-center justify-between mb-sm">
+          <div className="flex items-center justify-between mb-sp-sm">
             <h3 className="font-headline-md text-headline-md text-on-surface">All Materials</h3>
             <ViewToggle view={view} onChange={setView} />
           </div>
@@ -271,7 +267,7 @@ export default function StudentMaterials() {
             />
           ) : (
             <div className="bg-white rounded-xl ambient-shadow border border-outline-variant/10 overflow-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-sm p-md">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-sp-sm p-sp-md">
                 {paginatedMaterials.map((mat) => (
                   <RecentlyAccessedCard
                     key={mat.id}

@@ -80,7 +80,7 @@ export default function StudentProgress() {
 
   return (
     <AppLayout role="teacher">
-      <header className="mb-xl">
+      <header className="mb-sp-xl">
         <h1 className="font-headline-lg text-headline-lg text-on-background">Student Progress</h1>
         <p className="font-body-md text-body-md text-secondary mt-1">
           Roster-style cross-quiz progress. At-risk students are flagged automatically.
@@ -88,7 +88,7 @@ export default function StudentProgress() {
       </header>
 
       {/* Filters */}
-      <div className="flex items-center gap-md mb-lg flex-wrap">
+      <div className="flex items-center gap-sp-md mb-sp-lg flex-wrap">
         <div className="relative">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[18px]">search</span>
           <input
@@ -100,7 +100,7 @@ export default function StudentProgress() {
           />
         </div>
         <select
-          className="h-10 px-md border border-outline-variant rounded-xl font-label-md text-label-md outline-none focus:border-primary bg-white"
+          className="h-10 px-sp-md border border-outline-variant rounded-xl font-label-md text-label-md outline-none focus:border-primary bg-white"
           value={subjectFilter}
           onChange={(e) => setSubjectFilter(e.target.value)}
         >
@@ -116,28 +116,40 @@ export default function StudentProgress() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-sp-lg">
         {/* Roster table */}
         <div className={cn('bg-white rounded-2xl ambient-shadow overflow-hidden', selectedStudent ? 'lg:col-span-2' : 'lg:col-span-3')}>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-surface-container-high bg-surface-container-low/50">
                 {['Student', 'Avg Score', 'Completion', 'Last Active', 'Status', ''].map((col) => (
-                  <th key={col} className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant">{col}</th>
+                  <th key={col} className="px-sp-md py-sp-sm font-label-sm text-label-sm text-on-surface-variant">{col}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high">
-              {filtered.map((s) => (
+              {filtered.map((s) => {
+                const toggleStudent = () =>
+                  setSelectedStudent(selectedStudent?.id === s.id ? null : s);
+
+                return (
                 <tr
                   key={s.id}
-                  onClick={() => setSelectedStudent(selectedStudent?.id === s.id ? null : s)}
+                  tabIndex={0}
+                  aria-expanded={selectedStudent?.id === s.id}
+                  onClick={toggleStudent}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleStudent();
+                    }
+                  }}
                   className={cn(
-                    'hover:bg-surface-container-low cursor-pointer transition-colors group',
+                    'hover:bg-surface-container-low cursor-pointer transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50',
                     selectedStudent?.id === s.id && 'bg-primary-fixed/10'
                   )}
                 >
-                  <td className="px-md py-md">
+                  <td className="px-sp-md py-sp-md">
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         'w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0',
@@ -148,8 +160,8 @@ export default function StudentProgress() {
                       <span className="font-label-md text-label-md text-on-surface">{s.name}</span>
                     </div>
                   </td>
-                  <td className="px-md py-md"><ScoreBadge score={s.avgScore} /></td>
-                  <td className="px-md py-md">
+                  <td className="px-sp-md py-sp-md"><ScoreBadge score={s.avgScore} /></td>
+                  <td className="px-sp-md py-sp-md">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
                         <div className="bg-primary h-full rounded-full" style={{ width: `${s.completion}%` }} />
@@ -157,8 +169,8 @@ export default function StudentProgress() {
                       <span className="font-label-sm text-label-sm text-secondary">{s.completion}%</span>
                     </div>
                   </td>
-                  <td className="px-md py-md font-label-sm text-label-sm text-secondary">{s.lastActive}</td>
-                  <td className="px-md py-md">
+                  <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{s.lastActive}</td>
+                  <td className="px-sp-md py-sp-md">
                     {s.atRisk ? (
                       <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-error text-[11px] font-bold w-fit">
                         <span className="material-symbols-outlined text-[14px]">warning</span>
@@ -168,31 +180,32 @@ export default function StudentProgress() {
                       <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/20 text-tertiary text-[11px] font-bold">On Track</span>
                     )}
                   </td>
-                  <td className="px-md py-md text-right">
+                  <td className="px-sp-md py-sp-md text-right">
                     <span className="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[18px]">
                       {selectedStudent?.id === s.id ? 'expand_less' : 'chevron_right'}
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
 
         {/* Drill-down panel */}
         {selectedStudent && (
-          <div className="bg-white rounded-2xl ambient-shadow p-md h-fit">
-            <div className="flex items-center justify-between mb-md">
+          <div className="bg-white rounded-2xl ambient-shadow p-sp-md h-fit">
+            <div className="flex items-center justify-between mb-sp-md">
               <h3 className="font-headline-md text-headline-md text-on-background">{selectedStudent.name}</h3>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="p-xs rounded-lg hover:bg-surface-container-low text-secondary transition-colors"
+                className="p-sp-xs rounded-lg hover:bg-surface-container-low text-secondary transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-sm mb-md">
+            <div className="grid grid-cols-2 gap-sp-sm mb-sp-md">
               {[
                 { label: 'Avg Score', value: `${selectedStudent.avgScore}%`, color: selectedStudent.avgScore >= 70 ? 'text-tertiary' : 'text-error' },
                 { label: 'Completion', value: `${selectedStudent.completion}%`, color: 'text-primary' },
@@ -219,7 +232,7 @@ export default function StudentProgress() {
 
             {/* No messaging — out of scope per agents.md */}
             {selectedStudent.atRisk && (
-              <div className="mt-md p-3 bg-error-container rounded-xl">
+              <div className="mt-sp-md p-3 bg-error-container rounded-xl">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="material-symbols-outlined text-error text-[18px]">warning</span>
                   <span className="font-label-md text-label-md text-error font-bold">At Risk</span>

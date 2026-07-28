@@ -55,9 +55,9 @@ const STATUS_CONFIG = {
 };
 
 function QuizCard({ quiz, onAction }) {
-  const cfg = STATUS_CONFIG[quiz.status];
+  const cfg = STATUS_CONFIG[quiz.status] ?? STATUS_CONFIG.not_started;
   return (
-    <div className="bg-white rounded-2xl ambient-shadow card-hover p-md flex flex-col gap-3">
+    <div className="bg-white rounded-2xl ambient-shadow card-hover p-sp-md flex flex-col gap-3">
       {/* Subject + Status */}
       <div className="flex items-center justify-between">
         <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">{quiz.subject}</span>
@@ -119,7 +119,7 @@ export default function Quizzes() {
 
   return (
     <AppLayout role="student">
-      <header className="mb-xl">
+      <header className="mb-sp-xl">
         <h1 className="font-headline-lg text-headline-lg text-on-background">Available Quizzes</h1>
         <p className="font-body-md text-body-md text-secondary mt-1">
           Teacher-authored quizzes across all your enrolled subjects.

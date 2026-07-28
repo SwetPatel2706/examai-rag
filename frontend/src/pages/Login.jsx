@@ -28,10 +28,10 @@ export default function Login() {
 
       <main className="w-full max-w-md px-margin-mobile md:px-0">
         {/* Auth Card */}
-        <div className="bg-surface-container-lowest rounded-3xl p-lg ambient-shadow relative z-10">
+        <div className="bg-surface-container-lowest rounded-3xl p-sp-lg ambient-shadow relative z-10">
 
           {/* Sliding Pill Role Toggle */}
-          <div className="mb-lg">
+          <div className="mb-sp-lg">
             <div className="relative bg-surface-container flex p-1 rounded-full items-center select-none cursor-pointer">
               {/* Animated sliding pill */}
               <div
@@ -60,18 +60,18 @@ export default function Login() {
           </div>
 
           {/* Heading */}
-          <div className="text-center mb-lg">
+          <div className="text-center mb-sp-lg">
             <h2 className="font-headline-md text-headline-md text-on-background mb-2">Welcome Back</h2>
             <p className="font-body-md text-body-md text-on-surface-variant">Access your academic companion</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-sm">
+          <form onSubmit={handleLogin} className="space-y-sp-sm">
             {/* Email */}
             <div>
               <label
                 htmlFor="email"
-                className="block font-label-md text-label-md text-on-surface-variant mb-xs ml-1"
+                className="block font-label-md text-label-md text-on-surface-variant mb-sp-xs ml-1"
               >
                 Email Address
               </label>
@@ -85,7 +85,7 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <div className="flex justify-between items-center mb-xs ml-1">
+              <div className="flex justify-between items-center mb-sp-xs ml-1">
                 <label htmlFor="password" className="font-label-md text-label-md text-on-surface-variant">
                   Password
                 </label>
@@ -111,7 +111,7 @@ export default function Login() {
             </div>
 
             {/* Submit */}
-            <div className="pt-sm">
+            <div className="pt-sp-sm">
               <button
                 type="submit"
                 className="w-full h-12 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:bg-primary-container active:scale-95 transition-all shadow-md shadow-primary/10"
@@ -122,7 +122,7 @@ export default function Login() {
           </form>
 
           {/* Sign-up link */}
-          <div className="mt-lg text-center">
+          <div className="mt-sp-lg text-center">
             <p className="font-body-md text-body-md text-on-surface-variant">
               Don't have an account?{' '}
               <a href="#" className="text-primary font-bold hover:underline">
@@ -133,7 +133,7 @@ export default function Login() {
         </div>
 
         {/* Atmospheric quote */}
-        <div className="mt-md text-center px-lg opacity-60">
+        <div className="mt-sp-md text-center px-sp-lg opacity-60">
           <p className="italic font-body-md text-body-md text-on-surface-variant">
             "Education is the passport to the future, for tomorrow belongs to those who prepare for it today."
           </p>

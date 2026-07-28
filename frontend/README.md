@@ -1,16 +1,77 @@
-# React + Vite
+# ExamAI Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite client for the ExamAI exam-prep platform. Students use RAG chat, quizzes, flashcards, and shared course materials; teachers upload materials, author quizzes, and monitor class progress.
 
-Currently, two official plugins are available:
+## Requirements
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js **20.19+** or **22.12+** (required by Vite 8)
+- npm
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+cd frontend
+npm install
+```
 
-## Expanding the Oxlint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm run dev
+```
+
+Starts the Vite dev server with HMR. The app expects the FastAPI backend to be running separately for live API calls; many screens still use mock data during Phase 1 development.
+
+## Production build
+
+```bash
+npm run build    # output in dist/
+npm run preview  # serve the production build locally
+```
+
+## Lint
+
+```bash
+npm run lint
+```
+
+Uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for fast static checks.
+
+## Architecture overview
+
+```
+src/
+├── api/              # Thin fetch wrappers per backend resource
+├── components/
+│   ├── layout/       # AppLayout, Sidebar, TopAppBar
+│   ├── materials/    # MaterialsTable, cards, type icons
+│   └── ui/           # shadcn/base-ui primitives (Button, Tabs, …)
+├── pages/            # Route-level screens (Chat, Quizzes, …)
+├── store/            # Zustand slices (authStore, subjectStore, …)
+├── lib/utils.js      # cn() and shared helpers
+└── index.css         # Tailwind 4 + Stitch design tokens
+```
+
+### Data flow
+
+1. **Auth** — `authStore` holds role (`student` | `teacher`) and user profile after login.
+2. **Routing** — React Router splits student (`/student/*`) and teacher (`/teacher/*`) trees; both share login/signup.
+3. **Layout** — `AppLayout` renders a role-specific sidebar and main content. On viewports below `lg`, the sidebar becomes a toggleable drawer.
+4. **API layer** — `src/api/` modules call the FastAPI backend. Business logic stays on the server; pages compose API responses into UI state.
+5. **Material scope** — Chat and flashcard generation send per-session material selections (not persisted server-side). Citations must always include teacher name and material filename.
+
+### Key conventions
+
+- Path alias `@/` maps to `src/` (configured in `vite.config.js`).
+- Visual styling follows Google Stitch exports; see `.stitch/designs/` for reference HTML.
+- Zustand slices: `authStore`, `subjectStore`, `materialScopeStore` (see `frontend/agents.md` for screen-level detail).
+
+## Stitch screen sync (optional)
+
+To download Stitch design exports into `.stitch/designs/`:
+
+```bash
+node fetch_screens.cjs /path/to/screens.json
+# or
+SCREENS_FILE=/path/to/screens.json node fetch_screens.cjs
+```

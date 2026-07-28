@@ -124,7 +124,7 @@ function buildMockResponse(question, subjectId, selectedIds) {
 export default function Chat() {
   const navigate = useNavigate();
   const { currentSubjectId, setCurrentSubject } = useSubjectStore();
-  const { selectedIds } = useMaterialScopeStore();
+  const { selectedIds, deselectAll } = useMaterialScopeStore();
 
   const activeSubjectId = currentSubjectId ?? SUBJECTS_LIST[0].id;
   const activeSubject = SUBJECTS_LIST.find((s) => s.id === activeSubjectId) ?? SUBJECTS_LIST[0];
@@ -149,6 +149,7 @@ export default function Chat() {
 
   function handleSubjectChange(id) {
     setCurrentSubject(id);
+    deselectAll();
     setMessages([{
       id: `init-${id}`,
       role: 'assistant',
@@ -190,7 +191,7 @@ export default function Chat() {
         <aside
           className={cn(
             'flex-shrink-0 border-r border-outline-variant bg-white transition-all duration-300 overflow-y-auto custom-scrollbar',
-            scopeOpen ? 'w-72 p-md' : 'w-0 p-0 overflow-hidden'
+            scopeOpen ? 'w-72 p-sp-md' : 'w-0 p-0 overflow-hidden'
           )}
         >
           <MaterialScopePanel materialsByTeacher={materialsByTeacher} />
@@ -199,12 +200,12 @@ export default function Chat() {
         {/* ── Right: Chat Area ── */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Chat Toolbar */}
-          <div className="flex items-center gap-3 px-md py-sm border-b border-outline-variant bg-white shrink-0">
+          <div className="flex items-center gap-3 px-sp-md py-sp-sm border-b border-outline-variant bg-white shrink-0">
             {/* Toggle scope panel */}
             <button
               onClick={() => setScopeOpen((v) => !v)}
               title={scopeOpen ? 'Hide materials' : 'Show materials'}
-              className="p-xs rounded-lg hover:bg-surface-container-low text-secondary transition-colors"
+              className="p-sp-xs rounded-lg hover:bg-surface-container-low text-secondary transition-colors"
             >
               <span className="material-symbols-outlined">{scopeOpen ? 'menu_open' : 'menu'}</span>
             </button>
@@ -236,7 +237,7 @@ export default function Chat() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-md space-y-4 bg-surface">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-sp-md space-y-4 bg-surface">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -244,7 +245,7 @@ export default function Chat() {
               >
                 <div
                   className={cn(
-                    'max-w-[75%] px-md py-sm rounded-2xl font-body-md text-body-md leading-relaxed',
+                    'max-w-[75%] px-sp-md py-sp-sm rounded-2xl font-body-md text-body-md leading-relaxed',
                     msg.role === 'user'
                       ? 'bg-primary text-on-primary rounded-br-sm'
                       : 'bg-white text-on-surface ambient-shadow rounded-bl-sm'
@@ -265,7 +266,7 @@ export default function Chat() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white ambient-shadow px-md py-sm rounded-2xl rounded-bl-sm flex items-center gap-2">
+                <div className="bg-white ambient-shadow px-sp-md py-sp-sm rounded-2xl rounded-bl-sm flex items-center gap-2">
                   <div className="flex gap-1">
                     {[0, 1, 2].map((i) => (
                       <span
@@ -283,8 +284,8 @@ export default function Chat() {
           </div>
 
           {/* Input Bar */}
-          <div className="shrink-0 p-md bg-white border-t border-outline-variant">
-            <div className="flex items-end gap-3 bg-surface-container-low rounded-2xl px-md py-sm">
+          <div className="shrink-0 p-sp-md bg-white border-t border-outline-variant">
+            <div className="flex items-end gap-3 bg-surface-container-low rounded-2xl px-sp-md py-sp-sm">
               <textarea
                 rows={1}
                 className="flex-1 bg-transparent resize-none outline-none font-body-md text-body-md text-on-surface placeholder:text-secondary max-h-40 min-h-[24px]"

@@ -59,7 +59,7 @@ export default function FlashcardStudy() {
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center" style={{ fontFamily: "'Geist Variable', sans-serif" }}>
       {/* Minimal header */}
-      <header className="w-full h-14 bg-white border-b border-outline-variant flex items-center justify-between px-xl shrink-0">
+      <header className="w-full h-14 bg-white border-b border-outline-variant flex items-center justify-between px-sp-xl shrink-0">
         <button
           onClick={() => navigate('/student/flashcards')}
           className="flex items-center gap-2 text-secondary font-label-md text-label-md hover:text-primary transition-colors"
@@ -82,7 +82,7 @@ export default function FlashcardStudy() {
 
       {isDone ? (
         /* Session complete */
-        <div className="flex-1 flex flex-col items-center justify-center gap-xl text-center p-lg">
+        <div className="flex-1 flex flex-col items-center justify-center gap-sp-xl text-center p-sp-lg">
           <div className="w-24 h-24 rounded-full bg-tertiary-fixed/30 flex items-center justify-center">
             <span className="material-symbols-outlined text-tertiary text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>
               check_circle
@@ -111,7 +111,7 @@ export default function FlashcardStudy() {
         </div>
       ) : (
         /* Card study view */
-        <div className="flex-1 flex flex-col items-center justify-center gap-xl p-lg w-full max-w-2xl">
+        <div className="flex-1 flex flex-col items-center justify-center gap-sp-xl p-sp-lg w-full max-w-2xl">
           {/* Card flip */}
           <div className="w-full" style={{ perspective: '1000px' }}>
             <button
@@ -131,19 +131,19 @@ export default function FlashcardStudy() {
               >
                 {/* Front */}
                 <div
-                  className="absolute inset-0 bg-white rounded-3xl ambient-shadow flex flex-col items-center justify-center p-xl text-center"
+                  className="absolute inset-0 bg-white rounded-3xl ambient-shadow flex flex-col items-center justify-center p-sp-xl text-center"
                   style={{ backfaceVisibility: 'hidden' }}
                 >
-                  <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-md">Question</span>
+                  <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sp-md">Question</span>
                   <p className="font-headline-md text-headline-md text-on-background">{card.front}</p>
-                  <p className="font-label-sm text-label-sm text-secondary mt-lg opacity-60">Tap to reveal answer</p>
+                  <p className="font-label-sm text-label-sm text-secondary mt-sp-lg opacity-60">Tap to reveal answer</p>
                 </div>
                 {/* Back */}
                 <div
-                  className="absolute inset-0 bg-primary-fixed rounded-3xl ambient-shadow flex flex-col items-center justify-center p-xl text-center"
+                  className="absolute inset-0 bg-primary-fixed rounded-3xl ambient-shadow flex flex-col items-center justify-center p-sp-xl text-center"
                   style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                 >
-                  <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-md">Answer</span>
+                  <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-sp-md">Answer</span>
                   <p className="font-body-lg text-body-lg text-on-background">{card.back}</p>
                 </div>
               </div>
@@ -153,6 +153,7 @@ export default function FlashcardStudy() {
           {/* Self-assessment buttons — shown only after flip */}
           <div className={cn('flex gap-4 w-full transition-opacity duration-300', flipped ? 'opacity-100' : 'opacity-0 pointer-events-none')}>
             <button
+              disabled={!flipped}
               onClick={() => grade('still_learning')}
               className="flex-1 h-14 rounded-2xl border-2 border-error text-error font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-error-container transition-colors"
             >
@@ -160,6 +161,7 @@ export default function FlashcardStudy() {
               Still Learning
             </button>
             <button
+              disabled={!flipped}
               onClick={() => grade('got_it')}
               className="flex-1 h-14 rounded-2xl border-2 border-tertiary bg-tertiary-fixed/20 text-tertiary font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-tertiary-fixed/40 transition-colors"
             >

@@ -58,14 +58,14 @@ export default function QuizResults() {
   const grade = gradeLabel(result.score);
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center py-xl px-md" style={{ fontFamily: "'Geist Variable', sans-serif" }}>
-      <div className="w-full max-w-2xl space-y-xl">
+    <div className="min-h-screen bg-surface flex flex-col items-center py-sp-xl px-sp-md" style={{ fontFamily: "'Geist Variable', sans-serif" }}>
+      <div className="w-full max-w-2xl space-y-sp-xl">
         {/* Score card */}
-        <div className="bg-white rounded-3xl ambient-shadow p-lg text-center">
-          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">{result.subject || 'Quiz Complete'}</p>
-          <h1 className="font-headline-lg text-headline-lg text-on-background mb-xs">{result.quizTitle || 'Results'}</h1>
+        <div className="bg-white rounded-3xl ambient-shadow p-sp-lg text-center">
+          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sp-sm">{result.subject || 'Quiz Complete'}</p>
+          <h1 className="font-headline-lg text-headline-lg text-on-background mb-sp-xs">{result.quizTitle || 'Results'}</h1>
 
-          <div className={`w-28 h-28 rounded-full flex items-center justify-center mx-auto my-lg ${grade.bg}`}>
+          <div className={`w-28 h-28 rounded-full flex items-center justify-center mx-auto my-sp-lg ${grade.bg}`}>
             <span className={`text-[56px] font-bold leading-none ${grade.color}`}>{grade.letter}</span>
           </div>
 
@@ -74,15 +74,15 @@ export default function QuizResults() {
             {result.correct} of {result.total} correct
           </p>
 
-          <div className="mt-lg max-w-xs mx-auto">
+          <div className="mt-sp-lg max-w-xs mx-auto">
             <ProgressBar value={result.score} />
           </div>
         </div>
 
         {/* Weak topics — own weak topics only, no classmate data */}
         {result.weakTopics.length > 0 && (
-          <section className="bg-white rounded-2xl ambient-shadow p-md">
-            <h2 className="font-label-md text-label-md font-bold text-error uppercase tracking-wider mb-md">
+          <section className="bg-white rounded-2xl ambient-shadow p-sp-md">
+            <h2 className="font-label-md text-label-md font-bold text-error uppercase tracking-wider mb-sp-md">
               Areas to Review
             </h2>
             <div className="space-y-3">
@@ -103,13 +103,13 @@ export default function QuizResults() {
 
         {/* Question review */}
         <section>
-          <h2 className="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary mb-md">Question Review</h2>
+          <h2 className="font-label-md text-label-md font-bold uppercase tracking-wider text-secondary mb-sp-md">Question Review</h2>
           <div className="space-y-3">
             {result.questions.map((q, qi) => {
               const userAns = result.answers[q.id];
               const isCorrect = userAns === q.correct;
               return (
-                <div key={q.id} className={`bg-white rounded-2xl p-md border-l-4 ${isCorrect ? 'border-tertiary' : 'border-error'}`}>
+                <div key={q.id} className={`bg-white rounded-2xl p-sp-md border-l-4 ${isCorrect ? 'border-tertiary' : 'border-error'}`}>
                   <p className="font-label-sm text-label-sm text-secondary uppercase mb-1">Q{qi + 1}</p>
                   <p className="font-body-md text-body-md text-on-surface mb-3">{q.stem}</p>
                   <div className="space-y-1">

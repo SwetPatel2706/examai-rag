@@ -6,7 +6,7 @@ export function RecentlyAccessedCard({ name, accessedAt, type, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="bg-white p-xs pr-sm rounded-lg ambient-shadow card-hover flex items-center gap-3 group cursor-pointer border border-outline-variant/10 text-left w-full"
+      className="bg-white p-sp-xs pr-sp-sm rounded-lg ambient-shadow card-hover flex items-center gap-3 group cursor-pointer border border-outline-variant/10 text-left w-full"
     >
       <MaterialTypeIcon type={type} variant="boxed" />
       <div className="min-w-0">

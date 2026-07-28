@@ -11,7 +11,7 @@ export default function TopAppBar({ searchPlaceholder = 'Search…', searchValue
   const initials = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface/80 backdrop-blur-md z-40 px-lg flex items-center justify-between border-b border-outline-variant/10">
+    <header className="fixed top-0 left-0 lg:left-64 right-0 w-full lg:w-[calc(100%-16rem)] h-16 bg-surface/80 backdrop-blur-md z-40 px-sp-lg flex items-center justify-between border-b border-outline-variant/10">
       <div className="flex-1 max-w-xl">
         <div className="relative group">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">

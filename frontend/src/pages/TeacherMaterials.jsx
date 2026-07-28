@@ -78,7 +78,7 @@ export default function TeacherMaterials() {
 
   return (
     <AppLayout role="teacher">
-      <header className="mb-xl">
+      <header className="mb-sp-xl">
         <h1 className="font-headline-lg text-headline-lg text-on-background">Resources & Materials</h1>
         <p className="font-body-md text-body-md text-secondary mt-1">
           Upload and manage materials. Co-teacher materials are visible but read-only.
@@ -86,19 +86,27 @@ export default function TeacherMaterials() {
       </header>
 
       {/* Upload Zone */}
-      <section className="mb-xl">
+      <section className="mb-sp-xl">
         <div
+          role="button"
+          tabIndex={0}
           onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
           onDragOver={(e) => e.preventDefault()}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
           className={cn(
-            'border-2 border-dashed rounded-3xl p-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 text-center',
+            'border-2 border-dashed rounded-3xl p-sp-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 text-center',
             dragging ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant bg-white hover:border-primary/50 hover:bg-primary-fixed/5'
           )}
         >
-          <span className={cn('material-symbols-outlined text-[48px] mb-md', dragging ? 'text-primary' : 'text-secondary')}>
+          <span className={cn('material-symbols-outlined text-[48px] mb-sp-md', dragging ? 'text-primary' : 'text-secondary')}>
             cloud_upload
           </span>
           {uploading ? (
@@ -129,7 +137,7 @@ export default function TeacherMaterials() {
               <thead>
                 <tr className="border-b border-surface-container-high bg-surface-container-low/50">
                   {['File', 'Subject', 'Owner', 'Size', 'Uploaded', ''].map((col) => (
-                    <th key={col} className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant">{col}</th>
+                    <th key={col} className="px-sp-md py-sp-sm font-label-sm text-label-sm text-on-surface-variant">{col}</th>
                   ))}
                 </tr>
               </thead>
@@ -140,7 +148,7 @@ export default function TeacherMaterials() {
                   return (
                     <tr key={mat.id} className="hover:bg-surface-container-low transition-colors group">
                       {/* File */}
-                      <td className="px-md py-md">
+                      <td className="px-sp-md py-sp-md">
                         <div className="flex items-center gap-3">
                           <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', typeConfig.bg)}>
                             <span className={cn('material-symbols-outlined text-[18px]', typeConfig.color)}>{typeConfig.icon}</span>
@@ -148,22 +156,22 @@ export default function TeacherMaterials() {
                           <span className="font-label-md text-label-md text-on-surface max-w-[200px] truncate">{mat.name}</span>
                         </div>
                       </td>
-                      <td className="px-md py-md font-body-md text-body-md text-on-surface-variant">{mat.subject}</td>
+                      <td className="px-sp-md py-sp-md font-body-md text-body-md text-on-surface-variant">{mat.subject}</td>
                       {/* Owner column — key for collaborative/co-teacher visibility */}
-                      <td className="px-md py-md">
+                      <td className="px-sp-md py-sp-md">
                         <span className={cn('font-label-md text-label-md', isOwn ? 'text-primary font-semibold' : 'text-on-surface-variant')}>
                           {mat.owner}
                         </span>
                       </td>
-                      <td className="px-md py-md font-label-sm text-label-sm text-secondary">{mat.size}</td>
-                      <td className="px-md py-md font-label-sm text-label-sm text-secondary">{mat.uploadedAt}</td>
-                      <td className="px-md py-md text-right">
+                      <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{mat.size}</td>
+                      <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{mat.uploadedAt}</td>
+                      <td className="px-sp-md py-sp-md text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {isOwn && (
                             <button
                               onClick={() => deleteMaterial(mat.id)}
                               title="Delete"
-                              className="p-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors"
+                              className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors"
                             >
                               <span className="material-symbols-outlined text-[18px]">delete</span>
                             </button>

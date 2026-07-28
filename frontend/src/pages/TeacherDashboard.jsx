@@ -39,10 +39,10 @@ export default function TeacherDashboard() {
   return (
     <AppLayout role="teacher">
       {/* Dashboard Header + Subject Tabs */}
-      <section className="mb-lg">
-        <div className="flex items-end justify-between mb-md">
+      <section className="mb-sp-lg">
+        <div className="flex items-end justify-between mb-sp-md">
           <div>
-            <p className="font-label-md text-label-md text-primary font-bold mb-xs">Welcome back, Professor</p>
+            <p className="font-label-md text-label-md text-primary font-bold mb-sp-xs">Welcome back, Professor</p>
             <h1 className="font-headline-lg text-headline-lg text-on-surface">Dashboard Overview</h1>
           </div>
           <button
@@ -55,12 +55,12 @@ export default function TeacherDashboard() {
         </div>
 
         {/* Subject Tabs */}
-        <div className="flex items-center gap-xs border-b border-surface-container-high">
+        <div className="flex items-center gap-sp-xs border-b border-surface-container-high">
           {SUBJECTS.map((subj) => (
             <button
               key={subj}
               onClick={() => setActiveSubject(subj)}
-              className={`px-md py-sm rounded-t-xl font-label-md text-label-md transition-all ${
+              className={`px-sp-md py-sp-sm rounded-t-xl font-label-md text-label-md transition-all ${
                 activeSubject === subj
                   ? 'text-primary bg-primary-fixed/30 border-b-4 border-primary -mb-px'
                   : 'text-on-surface-variant hover:bg-surface-container-low'
@@ -73,22 +73,22 @@ export default function TeacherDashboard() {
       </section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-sp-md mb-sp-lg">
         {STATS.map((stat) => (
-          <div key={stat.label} className="bg-white p-md rounded-2xl ambient-shadow card-hover">
-            <div className={`h-10 w-10 ${stat.iconBg} ${stat.iconColor} rounded-xl flex items-center justify-center mb-sm`}>
+          <div key={stat.label} className="bg-white p-sp-md rounded-2xl ambient-shadow card-hover">
+            <div className={`h-10 w-10 ${stat.iconBg} ${stat.iconColor} rounded-xl flex items-center justify-center mb-sp-sm`}>
               <span className="material-symbols-outlined">{stat.icon}</span>
             </div>
             <p className="font-label-md text-label-md text-on-surface-variant">{stat.label}</p>
-            <h3 className="font-display-lg text-display-lg text-on-surface mt-xs leading-none">{stat.value}</h3>
+            <h3 className="font-display-lg text-display-lg text-on-surface mt-sp-xs leading-none">{stat.value}</h3>
           </div>
         ))}
 
         {/* Avg Score card */}
-        <div className="bg-primary text-on-primary p-md rounded-2xl ambient-shadow card-hover relative overflow-hidden">
+        <div className="bg-primary text-on-primary p-sp-md rounded-2xl ambient-shadow card-hover relative overflow-hidden">
           <p className="font-label-md text-label-md opacity-80">Avg. Section Score</p>
-          <h3 className="font-display-lg text-display-lg mt-xs leading-none">84%</h3>
-          <div className="mt-md flex items-center gap-xs">
+          <h3 className="font-display-lg text-display-lg mt-sp-xs leading-none">84%</h3>
+          <div className="mt-sp-md flex items-center gap-sp-xs">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>trending_up</span>
             <span className="text-label-sm font-label-sm">Top 5% in department</span>
           </div>
@@ -99,7 +99,7 @@ export default function TeacherDashboard() {
       </section>
 
       {/* Activity + Side cards */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-sp-lg">
         {/* Activity Table — 2/3 */}
         <div className="lg:col-span-2">
           <SectionHeader
@@ -118,28 +118,28 @@ export default function TeacherDashboard() {
               <thead>
                 <tr className="border-b border-surface-container-high bg-surface-container-low/50">
                   {['Student', 'Quiz', 'Completed', 'Score', ''].map((col) => (
-                    <th key={col} className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant">{col}</th>
+                    <th key={col} className="px-sp-md py-sp-sm font-label-sm text-label-sm text-on-surface-variant">{col}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high">
                 {ACTIVITY.map((row) => (
                   <tr key={row.name} className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-md py-md">
-                      <div className="flex items-center gap-sm">
+                    <td className="px-sp-md py-sp-md">
+                      <div className="flex items-center gap-sp-sm">
                         <div className="h-8 w-8 rounded-full bg-primary-fixed/50 flex items-center justify-center font-bold text-primary text-xs flex-shrink-0">
                           {row.initials}
                         </div>
                         <span className="font-label-md text-label-md text-on-surface">{row.name}</span>
                       </div>
                     </td>
-                    <td className="px-md py-md font-body-md text-body-md text-on-surface-variant">{row.quiz}</td>
-                    <td className="px-md py-md font-body-md text-body-md text-on-surface-variant">{row.time}</td>
-                    <td className="px-md py-md"><ScoreBadge score={row.score} atRisk={row.atRisk} /></td>
-                    <td className="px-md py-md text-right">
+                    <td className="px-sp-md py-sp-md font-body-md text-body-md text-on-surface-variant">{row.quiz}</td>
+                    <td className="px-sp-md py-sp-md font-body-md text-body-md text-on-surface-variant">{row.time}</td>
+                    <td className="px-sp-md py-sp-md"><ScoreBadge score={row.score} atRisk={row.atRisk} /></td>
+                    <td className="px-sp-md py-sp-md text-right">
                       <button
                         onClick={() => navigate('/teacher/students')}
-                        className="p-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-sp-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
                       >
                         <span className="material-symbols-outlined">visibility</span>
                       </button>
@@ -152,14 +152,14 @@ export default function TeacherDashboard() {
         </div>
 
         {/* Side Cards — 1/3 */}
-        <div className="space-y-lg">
+        <div className="space-y-sp-lg">
           {/* Grade Distribution */}
-          <div className="bg-white p-md rounded-2xl ambient-shadow">
-            <h3 className="font-label-md text-label-md font-bold mb-md">Grade Distribution</h3>
-            <div className="space-y-sm">
+          <div className="bg-white p-sp-md rounded-2xl ambient-shadow">
+            <h3 className="font-label-md text-label-md font-bold mb-sp-md">Grade Distribution</h3>
+            <div className="space-y-sp-sm">
               {GRADE_DIST.map((g) => (
                 <div key={g.label}>
-                  <div className="flex justify-between text-label-sm font-label-sm mb-xs">
+                  <div className="flex justify-between text-label-sm font-label-sm mb-sp-xs">
                     <span className="text-on-surface-variant">{g.label}</span>
                     <span className={g.textColor}>{g.pct}%</span>
                   </div>
@@ -173,14 +173,14 @@ export default function TeacherDashboard() {
 
           {/* AI Insights CTA */}
           <div
-            className="rounded-2xl overflow-hidden p-md h-48 flex flex-col justify-end relative"
+            className="rounded-2xl overflow-hidden p-sp-md h-48 flex flex-col justify-end relative"
             style={{ background: 'linear-gradient(135deg, #3525cd 0%, #005338 100%)' }}
           >
-            <p className="font-label-sm text-label-sm uppercase tracking-wider mb-xs opacity-80 text-on-primary">AI Insights</p>
-            <h4 className="font-headline-md text-headline-md leading-tight mb-sm text-on-primary">Predictive Performance</h4>
+            <p className="font-label-sm text-label-sm uppercase tracking-wider mb-sp-xs opacity-80 text-on-primary">AI Insights</p>
+            <h4 className="font-headline-md text-headline-md leading-tight mb-sp-sm text-on-primary">Predictive Performance</h4>
             <button
               onClick={() => navigate('/teacher/analytics')}
-              className="bg-white/20 backdrop-blur-md px-md py-xs rounded-full text-label-sm font-bold border border-white/30 hover:bg-white/40 transition-colors text-on-primary w-fit"
+              className="bg-white/20 backdrop-blur-md px-sp-md py-sp-xs rounded-full text-label-sm font-bold border border-white/30 hover:bg-white/40 transition-colors text-on-primary w-fit"
             >
               Explore Insights
             </button>

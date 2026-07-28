@@ -9,7 +9,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, summary }) {
   const pages = buildPageNumbers(currentPage, totalPages);
 
   return (
-    <div className="bg-surface-container-low px-md py-2 border-t border-outline-variant/10 flex items-center justify-between">
+    <div className="bg-surface-container-low px-sp-md py-2 border-t border-outline-variant/10 flex items-center justify-between">
       {summary && (
         <span className="text-label-sm font-label-sm text-on-surface-variant">{summary}</span>
       )}

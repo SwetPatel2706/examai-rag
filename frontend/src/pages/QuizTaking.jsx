@@ -72,17 +72,18 @@ export default function QuizTaking() {
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          submitQuiz();
-          return 0;
-        }
-        return t - 1;
-      });
+      setTimeLeft(t => (t <= 1 ? 0 : t - 1));
     }, 1000);
+  
     return () => clearInterval(timerRef.current);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+  
+  useEffect(() => {
+    if (timeLeft !== 0) return;
+  
+    clearInterval(timerRef.current);   // stop timer
+    if (quiz) submitQuiz();            // latest answers
+  }, [timeLeft, quiz]);
 
   if (!quiz) {
     return (
@@ -113,12 +114,12 @@ export default function QuizTaking() {
       style={{ fontFamily: "'Geist Variable', sans-serif" }}
     >
       {/* Top bar */}
-      <header className="h-16 bg-white border-b border-outline-variant flex items-center justify-between px-xl shrink-0">
+      <header className="h-16 bg-white border-b border-outline-variant flex items-center justify-between px-sp-xl shrink-0">
         <div>
           <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">{quiz.subject}</p>
           <h1 className="font-headline-md text-headline-md text-on-background">{quiz.title}</h1>
         </div>
-        <div className="flex items-center gap-md">
+        <div className="flex items-center gap-sp-md">
           {/* Timer */}
           <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md font-bold ${isUrgent ? 'bg-error-container text-error' : 'bg-primary-fixed text-primary'}`}>
             <span className="material-symbols-outlined text-[18px]">timer</span>
@@ -137,12 +138,12 @@ export default function QuizTaking() {
       </div>
 
       {/* Question */}
-      <main className="flex-1 flex items-center justify-center p-lg">
+      <main className="flex-1 flex items-center justify-center p-sp-lg">
         <div className="w-full max-w-2xl">
-          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-md">
+          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sp-md">
             Question {current + 1} of {total}
           </p>
-          <h2 className="font-headline-md text-headline-md text-on-background mb-xl">
+          <h2 className="font-headline-md text-headline-md text-on-background mb-sp-xl">
             {question.stem}
           </h2>
 
@@ -153,7 +154,7 @@ export default function QuizTaking() {
                 <button
                   key={idx}
                   onClick={() => selectOption(idx)}
-                  className={`w-full text-left px-md py-md rounded-2xl border-2 transition-all duration-150 font-body-md text-body-md ${
+                  className={`w-full text-left px-sp-md py-sp-md rounded-2xl border-2 transition-all duration-150 font-body-md text-body-md ${
                     selected
                       ? 'border-primary bg-primary-fixed text-primary font-semibold'
                       : 'border-outline-variant bg-white text-on-surface hover:border-primary/40 hover:bg-primary-fixed/10'
@@ -171,7 +172,7 @@ export default function QuizTaking() {
       </main>
 
       {/* Navigation footer */}
-      <footer className="h-20 bg-white border-t border-outline-variant flex items-center justify-between px-xl shrink-0">
+      <footer className="h-20 bg-white border-t border-outline-variant flex items-center justify-between px-sp-xl shrink-0">
         <button
           disabled={current === 0}
           onClick={() => setCurrent((c) => c - 1)}

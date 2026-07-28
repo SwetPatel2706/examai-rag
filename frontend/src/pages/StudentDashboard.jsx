@@ -22,7 +22,7 @@ export default function StudentDashboard() {
   return (
     <AppLayout role="student">
       {/* Welcome header */}
-      <header className="flex justify-between items-center mb-xl">
+      <header className="flex justify-between items-center mb-sp-xl">
         <div>
           <h1 className="font-headline-lg text-headline-lg text-on-background">Welcome back</h1>
           <p className="font-body-md text-body-md text-secondary mt-1">
@@ -40,8 +40,8 @@ export default function StudentDashboard() {
       </header>
 
       {/* CTA Banner */}
-      <section className="mb-xl">
-        <div className="relative overflow-hidden rounded-3xl bg-primary text-on-primary p-lg flex flex-col md:flex-row items-start justify-between ambient-shadow">
+      <section className="mb-sp-xl">
+        <div className="relative overflow-hidden rounded-3xl bg-primary text-on-primary p-sp-lg flex flex-col md:flex-row items-start justify-between ambient-shadow">
           <div className="z-10 relative">
             <h2 className="font-headline-md text-headline-md mb-2">Have a study question?</h2>
             <p className="font-body-md text-body-md text-primary-fixed mb-6 max-w-md">
@@ -59,7 +59,7 @@ export default function StudentDashboard() {
       </section>
 
       {/* Quick Stats */}
-      <section className="mb-xl">
+      <section className="mb-sp-xl">
         <SectionHeader title="Quick Stats" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
           {QUICK_STATS.map((stat) => (
@@ -89,7 +89,7 @@ export default function StudentDashboard() {
               <div className="h-24 w-full bg-gradient-to-br from-primary-fixed to-secondary-container flex items-center justify-center">
                 <span className="material-symbols-outlined text-primary text-[40px]">menu_book</span>
               </div>
-              <div className="p-md">
+              <div className="p-sp-md">
                 <h3 className="font-headline-md text-[18px] text-on-background mb-1">{subject.name}</h3>
                 <p className="font-body-md text-body-md text-secondary mb-4">{subject.teacher}</p>
                 <div className="space-y-1">

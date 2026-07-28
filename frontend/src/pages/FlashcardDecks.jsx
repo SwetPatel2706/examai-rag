@@ -50,7 +50,7 @@ const ALL_MATERIALS_BY_TEACHER = [
 function DeckCard({ deck, onStudy }) {
   const masteredPct = Math.round((deck.mastered / deck.cardCount) * 100);
   return (
-    <div className="bg-white rounded-2xl ambient-shadow card-hover p-md flex flex-col gap-3">
+    <div className="bg-white rounded-2xl ambient-shadow card-hover p-sp-md flex flex-col gap-3">
       <div>
         <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-1">{deck.subject}</p>
         <h3 className="font-headline-md text-[18px] text-on-background">{deck.title}</h3>
@@ -106,7 +106,7 @@ export default function FlashcardDecks() {
 
   return (
     <AppLayout role="student">
-      <header className="flex items-center justify-between mb-xl">
+      <header className="flex items-center justify-between mb-sp-xl">
         <div>
           <h1 className="font-headline-lg text-headline-lg text-on-background">Flashcard Decks</h1>
           <p className="font-body-md text-body-md text-secondary mt-1">Your personal study decks, generated from approved materials.</p>

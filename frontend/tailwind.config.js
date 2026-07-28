@@ -90,15 +90,15 @@ export default {
         "full": "9999px"
       },
       spacing: {
-        "md": "24px",
-        "xl": "64px",
         "base": "4px",
-        "xs": "8px",
+        "sp-xs": "8px",
+        "sp-sm": "16px",
+        "sp-md": "24px",
+        "sp-lg": "40px",
+        "sp-xl": "64px",
         "margin-mobile": "16px",
-        "sm": "16px",
         "margin-desktop": "48px",
         "gutter": "24px",
-        "lg": "40px"
       },
       fontFamily: {
         "headline-lg": ["Geist", "sans-serif"],

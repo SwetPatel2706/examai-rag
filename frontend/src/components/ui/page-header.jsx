@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
  */
 export function PageHeader({ title, description, action, className }) {
   return (
-    <header className={cn('mb-lg flex items-end justify-between', className)}>
+    <header className={cn('mb-sp-lg flex items-end justify-between', className)}>
       <div>
         <h1 className="font-headline-lg text-headline-lg text-on-surface">{title}</h1>
         {description && (

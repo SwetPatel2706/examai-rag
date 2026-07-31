@@ -142,14 +142,17 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
+  const epochRef = useRef(0);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   function handleSubjectChange(id) {
+    epochRef.current += 1;
     setCurrentSubject(id);
     deselectAll();
+    setLoading(false);
     setMessages([{
       id: `init-${id}`,
       role: 'assistant',
@@ -162,6 +165,7 @@ export default function Chat() {
     const q = input.trim();
     if (!q || loading) return;
 
+    const currentEpoch = epochRef.current;
     const userMsg = { id: `u-${Date.now()}`, role: 'user', text: q, citations: [] };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
@@ -169,6 +173,7 @@ export default function Chat() {
 
     // Simulate network delay — replace with actual fetch to POST /api/chat
     setTimeout(() => {
+      if (currentEpoch !== epochRef.current) return;
       const response = buildMockResponse(q, activeSubjectId, selectedIds);
       setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', ...response }]);
       setLoading(false);

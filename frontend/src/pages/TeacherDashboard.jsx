@@ -139,7 +139,8 @@ export default function TeacherDashboard() {
                     <td className="px-sp-md py-sp-md text-right">
                       <button
                         onClick={() => navigate('/teacher/students')}
-                        className="p-sp-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                        title="View student progress"
+                        className="p-sp-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
                       >
                         <span className="material-symbols-outlined">visibility</span>
                       </button>

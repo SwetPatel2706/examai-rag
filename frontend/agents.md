@@ -5,7 +5,7 @@ Google Stitch exports — treat those as source of truth for markup/styling,
 this file only covers structure, routing, and state behavior.
 
 ## Roles & navigation
-Shared login/signup screen with a role selector (student/teacher toggle).
+Login screen with email/password only. Users are provisioned by an explicit seed operation; there is no signup, forgot-password/reset, OAuth, magic-link, MFA, or runtime user creation. The backend returns the user's role and the client uses it for redirects; users do not choose their role.
 
 **Student sidebar:** Home/Dashboard, Chat, Quizzes, Flashcards, Resources/Materials
 **Teacher sidebar:** Home/Dashboard, Resources/Materials, Analytics, Student Progress
@@ -16,7 +16,7 @@ per-student view across all quizzes/subjects, with at-risk flagging and a
 drill-down into per-student detail) are two distinct screens — do not merge.
 
 ## Screens (student)
-1. Login/Signup (shared, role selector)
+1. Login (email/password; role returned by backend)
 2. Home/Dashboard — enrolled subjects as cards, quick stats
 3. Subject Overview — landing screen when a subject card is clicked. Shows
    teacher avatars (multi-teacher aware), materials grouped by teacher,

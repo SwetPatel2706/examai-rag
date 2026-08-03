@@ -63,5 +63,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Include routers
 app.include_router(health.router)
-from app.routes import stubs
+from app.routes import auth, subjects, materials, stubs
+app.include_router(auth.router)
+app.include_router(subjects.router)
+app.include_router(materials.router)
 app.include_router(stubs.router)

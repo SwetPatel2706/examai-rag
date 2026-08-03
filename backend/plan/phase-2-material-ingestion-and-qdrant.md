@@ -22,15 +22,20 @@ Turn teacher uploads into searchable, attributable chunks while keeping source f
 ## Work items
 
 1. Create the ingestion package: parsers, common intermediate document format, chunker, embedder, pipeline, and explicit status transitions (`processing`, `ready`, `failed`).
-2. Implement PDF, PPTX, and DOCX validation and extraction. Preserve page/slide/paragraph metadata where available for future citations and debugging.
+2. Implement PDF, PPTX, and DOCX validation and extraction. Preserve stable source-location metadata for each chunk: **page number** (PDF), **slide index** (PPTX), or **paragraph index** (DOCX).  Store this as a `source_locator` object in the Qdrant payload (`{"type": "page"|"slide"|"paragraph", "value": <int>}`) so Phase 3 can surface precise citation locations without an additional Postgres lookup.  Add fixture tests asserting this field is present and non-null after ingestion.
 3. Sort PPTX shapes by visual position and prepend titles to sparse/title-only slides before chunking.
 4. Store the original file in a private Supabase Storage bucket. Persist only the controlled storage path and metadata in Postgres.
 5. Create/validate the single Qdrant collection at application setup or an explicit provisioning command. Validate vector dimension against the embedding model before upserting.
-6. Build each payload with `material_id`, `teacher_id`, `teacher_name`, `subject_id`, `filename`, `chunk_text`, and `chunk_index`. Add a deterministic point ID so retries are idempotent.
+6. Build each payload with `material_id`, `teacher_id`, `teacher_name`, `subject_id`, `filename`, `chunk_text`, `chunk_index`, and `source_locator`.  **Deterministic point ID formula**: `uuid5(NAMESPACE_URL, f"{material_id}:{chunk_index}")` — this ties each vector point uniquely to a (material, chunk position) pair.  On reprocess, upsert with the same IDs so Qdrant naturally replaces prior content.  When a material is reprocessed with fewer chunks (e.g. after editing), **explicitly delete points whose `chunk_index` is ≥ the new chunk count** before upserting the new batch — this prevents stale tail vectors from a previous run remaining discoverable after a content change.
 7. Upsert batches of 100 and record enough ingestion diagnostics to identify parser, embedding, storage, or Qdrant failures. Apply bounded retries only to transient external failures.
 8. Add status polling/detail endpoints and signed download URL generation after ownership/membership authorization.
 9. Replace the teacher upload timeout with multipart upload, subject selection, status polling, error display, and real material lists. Keep processing server-side.
-10. Add cleanup/retry behavior for partial failures: a failed material must not leave an apparently ready row or untraceable orphaned vector.
+10. Add cleanup/retry behavior for partial failures using a **defined ordering and versioning contract**:
+    - **Delete ordering**: when a material is deleted, mark Postgres status as `deleting` first, then delete from Supabase Storage, then delete from Qdrant.  This ordering ensures a late vector upsert from a concurrent ingestion worker will fail the Postgres status check and abort before writing orphaned vectors.
+    - **Ingestion versioning**: record an `ingestion_version` (monotonic integer or timestamp) on the `materials` row at the start of each ingestion/retry.  Workers must check that the version they hold matches the current row before upserting to Qdrant; a stale worker whose version is superseded must abort without writing.
+    - **Retry idempotency**: retries use the same deterministic point IDs (see item 6).  A new ingestion run always replaces prior points; it never creates duplicates.
+    - **Failure cleanup**: if any stage fails, the pipeline must not leave the Postgres row in `processing` or `ready` state.  Transition to `failed`, log the failed stage, and clean up any partial writes (partial Storage upload, partial Qdrant batch) where possible.
+    - **Integration tests required**: (a) delete-versus-ingestion race: start ingestion, delete the material mid-flight, verify no orphaned Qdrant points and Postgres row is `deleting`/gone; (b) retry-versus-ingestion race: start ingestion v1, start retry v2 before v1 finishes, verify only v2 content is in Qdrant and no duplicate points exist.
 
 ## Core API surface
 

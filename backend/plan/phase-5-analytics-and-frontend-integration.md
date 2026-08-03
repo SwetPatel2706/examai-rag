@@ -20,8 +20,8 @@ Provide the two distinct teacher reporting views and remove the remaining fronte
 
 ## Work items
 
-1. Implement per-quiz analytics: question accuracy, grade distribution, weak topics, attempt counts, and clearly defined denominator/empty-state behavior.
-2. Implement cross-quiz student progress: roster, average score, completion ratio, last active, at-risk flag, subject filtering, and drill-down detail.
+1. Implement per-quiz analytics: question accuracy, grade distribution, weak topics, attempt counts, and clearly defined denominator/empty-state behavior.  **Authorization**: before returning data for `GET /analytics?quiz_id={id}`, verify (a) the requesting teacher is a member of the subject that owns the quiz (`subject_teachers` check), and (b) the quiz belongs to that subject.  Return 403 for unauthorized teachers; do not return 404 (which leaks existence).  Add IDOR tests: an unauthorized teacher must not retrieve analytics for another teacher's quiz or another subject's quiz.
+2. Implement cross-quiz student progress: roster, average score, completion ratio, last active, at-risk flag, subject filtering, and drill-down detail.  **Authorization**: before returning data for `GET /student-progress?subject_id={id}` or `GET /student-progress/{student_id}`, verify the requesting teacher is a member of the queried subject.  Apply the same check to all related detail endpoints.  Add IDOR tests: an unauthorized teacher must not retrieve student records or drill-down data for students enrolled in a subject they do not teach.
 3. Define the at-risk rule as a documented, testable policy rather than a UI guess. Keep it configurable if the team expects to tune it after observing demo data.
 4. Add teacher dashboard stats and recent activity read models. Avoid N+1 queries; use aggregate SQL or explicit materialized/read-model queries where helpful.
 5. Add student dashboard stats, accessible subject cards, recent materials, and paginated/filterable student materials endpoints.

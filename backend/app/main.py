@@ -1,7 +1,10 @@
 import uuid
 import time
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, Request
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+# pyrefly: ignore [missing-import]
 from fastapi.responses import JSONResponse
 
 from app.config import settings
@@ -17,12 +20,16 @@ app = FastAPI(
 )
 
 # CORS middleware
+# Wildcards for allow_methods/allow_headers are intentionally avoided:
+# combining allow_credentials=True with wildcard methods/headers is a
+# security anti-pattern (browsers ignore the wildcard restriction for
+# credentialed cross-origin requests in some implementations).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
 
@@ -43,13 +50,10 @@ async def add_request_id_and_timing(request: Request, call_next):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
-    error_response = StandardResponse(
-        success=False,
-        error=ErrorDetail(
-            code="INTERNAL_SERVER_ERROR",
-            message=str(exc) if settings.APP_ENV == "local" else "An unexpected error occurred.",
-            request_id=request_id
-        )
+    error_response = StandardResponse.error_response(
+        code="INTERNAL_SERVER_ERROR",
+        message=str(exc) if settings.APP_ENV == "local" else "An unexpected error occurred.",
+        request_id=request_id
     )
     return JSONResponse(
         status_code=500,
@@ -61,4 +65,3 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(health.router)
 from app.routes import stubs
 app.include_router(stubs.router)
-

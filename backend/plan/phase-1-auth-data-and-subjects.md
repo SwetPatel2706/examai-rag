@@ -24,7 +24,7 @@ Implement the relational foundation and role-aware access rules that every featu
 3. Implement the seed-only profile flow: the explicit seed command creates the Supabase Auth account and matching `users` profile with name and role. Validate role against `student|teacher`; there is no signup endpoint or runtime user-creation path.
 4. Implement `get_current_user` and `require_role("teacher")` dependencies. Check subject membership and material ownership in services, not just in route handlers.
 5. Implement subject endpoints: list accessible subjects, subject overview, teacher roster, and subject membership checks. Support multiple teachers per subject.
-6. Implement the metadata portion of materials: create/list/detail/update status, teacher ownership, subject association, filename/type/storage path, and processing timestamps.
+6. Implement the metadata portion of materials: create/list/detail, teacher ownership, subject association, filename/type/storage path, and processing timestamps.  The `PATCH /materials/{material_id}` handler must accept **only teacher-editable metadata** (e.g. display name, notes).  Status (`processing`, `ready`, `failed`) is **server-owned**: transitions are enforced exclusively by the ingestion service.  The PATCH handler must reject or silently ignore any client-supplied `status` field.  The ingestion service must not allow a `failed` material to transition directly to `ready`; valid transitions are `processing → ready` and `processing → failed` only.
 7. Add pagination, stable sorting, filtering by subject/teacher/status, and safe search for materials. Keep response fields aligned with the frontend register.
 8. Add seed data tooling for password-authenticated teachers/students, a multi-teacher subject, and empty material records. The seed command must be explicit, idempotent where practical, and never run automatically at application startup or in production.
 9. Connect the first frontend slice: email/password login response → `authStore`, server-derived role-based redirects, subject list, subject overview, and real materials metadata lists. Remove signup, forgot-password, and client role-selection flows. Keep visual behavior from Stitch intact.
@@ -35,7 +35,7 @@ Implement the relational foundation and role-aware access rules that every featu
 - `GET /subjects`, `GET /subjects/{subject_id}`
 - `GET /subjects/{subject_id}/materials`
 - `GET /materials`, `GET /materials/{material_id}`
-- `PATCH /materials/{material_id}` for allowed metadata/status changes
+- `PATCH /materials/{material_id}` for allowed metadata changes only (no client-driven status changes)
 - `GET /students/me/subjects`, `GET /students/me/stats` as a thin read model or a clearly documented equivalent
 
 ## Verification

@@ -98,11 +98,12 @@ def update_material_metadata(
             detail="Access forbidden. You can only edit your own uploaded materials."
         )
 
-    # Apply updates (display_name, notes)
-    if updates.display_name is not None:
-        material.display_name = updates.display_name
-    if updates.notes is not None:
-        material.notes = updates.notes
+    # Apply updates (display_name, notes) using exclude_unset to support explicit nulls
+    update_data = updates.model_dump(exclude_unset=True)
+    if "display_name" in update_data:
+        material.display_name = update_data["display_name"]
+    if "notes" in update_data:
+        material.notes = update_data["notes"]
 
     db.add(material)
     db.commit()
@@ -129,15 +130,28 @@ def update_material_status(
             detail="Material not found"
         )
 
+    # Validate status first
+    if new_status not in ("processing", "ready", "failed"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid status: {new_status}"
+        )
+
     current_status = material.status
     if new_status == current_status:
         return material
 
     # Validate state transition rules
-    if current_status == "failed" and new_status == "ready":
-        raise ValueError("Cannot transition material status directly from failed to ready")
-    if new_status not in ("processing", "ready", "failed"):
-        raise ValueError(f"Invalid status: {new_status}")
+    invalid_transitions = [
+        ("ready", "processing"),
+        ("ready", "failed"),
+        ("failed", "ready"),
+    ]
+    if (current_status, new_status) in invalid_transitions:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot transition material status directly from {current_status} to {new_status}"
+        )
 
     material.status = new_status
     if new_status in ("ready", "failed"):

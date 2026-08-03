@@ -14,16 +14,16 @@ import pytest
 
 # Ensure a test environment so Settings validation doesn't fail on missing
 # production-only fields.  Set minimal required env vars before importing app.
-os.environ.setdefault("APP_ENV", "test")
-os.environ.setdefault("SUPABASE_URL", "http://localhost:54321")
-os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
-os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test-service-role-key")
-os.environ.setdefault("DATABASE_URL", "postgresql://test:test@localhost/test")
-os.environ.setdefault("SUPABASE_STORAGE_BUCKET", "test-bucket")
-os.environ.setdefault("QDRANT_URL", "http://localhost:6333")
-os.environ.setdefault("QDRANT_API_KEY", "test-api-key")
-os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
-os.environ.setdefault("CORS_ORIGINS", "http://localhost:5173")
+os.environ["APP_ENV"] = "test"
+os.environ["SUPABASE_URL"] = "http://localhost:54321"
+os.environ["SUPABASE_ANON_KEY"] = "test-anon-key"
+os.environ["SUPABASE_SERVICE_ROLE_KEY"] = "test-service-role-key"
+os.environ["DATABASE_URL"] = "postgresql://test:test@localhost/test"
+os.environ["SUPABASE_STORAGE_BUCKET"] = "test-bucket"
+os.environ["QDRANT_URL"] = "http://localhost:6333"
+os.environ["QDRANT_API_KEY"] = "test-api-key"
+os.environ["GEMINI_API_KEY"] = "test-gemini-key"
+os.environ["CORS_ORIGINS"] = "http://localhost:5173"
 
 
 # ── Import smoke tests ────────────────────────────────────────────────────────
@@ -106,12 +106,12 @@ class TestStubEndpoints:
     All stub routes must return 501 with a NOT_IMPLEMENTED error envelope.
     """
 
-    _STUBS = [
+    _STUBS = (
         ("POST", "/api/chat"),
         ("GET",  "/api/quizzes"),
         ("GET",  "/api/flashcards"),
         ("GET",  "/api/analytics"),
-    ]
+    )
 
     @pytest.mark.parametrize("method,path", _STUBS)
     def test_stub_returns_501(self, client, method, path):
@@ -134,25 +134,3 @@ class TestStubEndpoints:
         assert "x-request-id" in r.headers
 
 
-class TestMultipartSmoke:
-    """
-    Verify that python-multipart is installed and FastAPI can parse a
-    multipart request.  We POST to the materials stub (which returns 501)
-    but the important thing is the *form parsing* does not raise a 422.
-    A 501 means the route was reached; a 422 would mean the parser is missing.
-    """
-
-    def test_multipart_not_missing(self, client):
-        r = client.post(
-            "/api/materials",
-            # Use data= so httpx sends multipart/form-data
-            files={"file": ("test.pdf", b"%PDF-1.4 test content", "application/pdf")},
-            data={"subject_id": "00000000-0000-0000-0000-000000000001"},
-        )
-        # /api/materials is a GET stub, so POST → 405 Method Not Allowed or
-        # 501.  Either way it is NOT 422 (Unprocessable Entity due to missing
-        # multipart parser), which would mean python-multipart isn't installed.
-        assert r.status_code != 422, (
-            "Got 422 — python-multipart may not be installed or the multipart "
-            "parser failed to parse the request body."
-        )

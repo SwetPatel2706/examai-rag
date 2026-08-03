@@ -1,5 +1,6 @@
 import uuid
 import sys
+import asyncio
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
@@ -49,11 +50,13 @@ def seed_data():
             
             # Create user in Supabase Auth via admin API
             try:
-                sb_user = supabase_auth.admin_create_user(email_lower, u["password"])
+                sb_user = asyncio.run(supabase_auth._admin_get_user_by_email(email_lower))
+                if not sb_user:
+                    sb_user = asyncio.run(supabase_auth.admin_create_user(email_lower, u["password"]))
                 sb_uid = uuid.UUID(sb_user["id"])
             except Exception as e:
                 print(f"Error provisioning {email_lower} in Supabase: {e}")
-                continue
+                raise e
 
             # Create or update profile in local DB
             db_user = db.query(User).filter(User.id == sb_uid).first()

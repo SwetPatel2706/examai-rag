@@ -8,6 +8,8 @@ from app.auth.supabase_client import supabase_auth
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, UserProfileResponse
 from app.schemas.common import StandardResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+security = HTTPBearer()
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -15,16 +17,24 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 async def login(request_body: LoginRequest, db: Session = Depends(get_db)):
     """Log in a seeded user using email and password."""
     try:
-        auth_data = supabase_auth.login(request_body.email, request_body.password)
+        auth_data = await supabase_auth.login(request_body.email, request_body.password)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
         )
 
+    import uuid
     # Fetch corresponding database profile
-    email_str = request_body.email.lower().strip()
-    db_user = db.query(User).filter(User.email.ilike(email_str)).first()
+    try:
+        user_uuid = uuid.UUID(auth_data["user"]["id"])
+    except (KeyError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user id in auth data"
+        )
+    
+    db_user = db.query(User).filter(User.id == user_uuid).first()
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -42,8 +52,15 @@ async def login(request_body: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/logout", response_model=StandardResponse)
-async def logout():
+async def logout(
+    current_user: User = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
     """Logout endpoint. Client deletes JWT token; server returns OK."""
+    try:
+        await supabase_auth.logout(credentials.credentials)
+    except Exception:
+        pass
     return StandardResponse.ok(data={"message": "Logged out successfully"})
 
 

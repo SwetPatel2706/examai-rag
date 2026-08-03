@@ -17,7 +17,7 @@ class Quiz(Base):
     topic = Column(String, nullable=False)
     source = Column(String, nullable=False)  # "manual" | "ai_generated"
     status = Column(String, default="draft", nullable=False)  # "draft" | "published"
-    created_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
 
     # Relationships
     subject = relationship("Subject", backref="quizzes")
@@ -45,7 +45,7 @@ class QuizAttempt(Base):
     answers = Column(JSON, nullable=False)  # JSON answers dict/list
     score = Column(Integer, nullable=False)
     weak_topics = Column(JSON, nullable=True)
-    submitted_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
 
     quiz = relationship("Quiz", backref="attempts")
     student = relationship("User", backref="quiz_attempts")

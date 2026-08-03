@@ -12,4 +12,4 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     role = Column(String, nullable=False)  # "student" | "teacher"
     name = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)

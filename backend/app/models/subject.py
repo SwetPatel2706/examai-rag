@@ -13,7 +13,7 @@ class Subject(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String, nullable=False, unique=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
 
     # Relationships
     teachers = relationship("User", secondary="subject_teachers", backref="subjects_taught")
@@ -24,7 +24,7 @@ class SubjectTeacher(Base):
 
     subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), primary_key=True)
     teacher_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    assigned_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    assigned_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
 
     __table_args__ = (
         UniqueConstraint("subject_id", "teacher_id", name="uq_subject_teacher"),
@@ -35,7 +35,7 @@ class StudentSubject(Base):
 
     subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), primary_key=True)
     student_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    enrolled_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    enrolled_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
 
     __table_args__ = (
         UniqueConstraint("subject_id", "student_id", name="uq_student_subject"),

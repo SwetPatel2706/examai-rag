@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user
@@ -10,7 +10,7 @@ from app.models.user import User
 from app.services.subject_service import get_user_subjects, check_subject_access, get_subject_teachers
 from app.services.material_service import get_materials
 from app.schemas.subject import SubjectResponse, SubjectDetailResponse, TeacherRosterResponse
-from app.schemas.material import MaterialResponse
+from app.schemas.material import MaterialResponse, MaterialsListResponse
 from app.schemas.common import StandardResponse
 
 router = APIRouter(prefix="/api/subjects", tags=["Subjects"])
@@ -49,9 +49,9 @@ async def get_subject_detail(
 @router.get("/{subject_id}/materials", response_model=StandardResponse)
 async def list_subject_materials(
     subject_id: UUID,
-    teacher_id: UUID = Query(None),
-    status: str = Query(None),
-    search: str = Query(None),
+    teacher_id: Optional[UUID] = Query(None),
+    status: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),
@@ -70,11 +70,12 @@ async def list_subject_materials(
     )
 
     pages = (total + size - 1) // size
-    items_data = [MaterialResponse.model_validate(m).model_dump() for m in items]
-    return StandardResponse.ok(data={
-        "items": items_data,
-        "total": total,
-        "page": page,
-        "pages": pages,
-        "size": size
-    })
+    items_data = [MaterialResponse.model_validate(m) for m in items]
+    resp = MaterialsListResponse(
+        items=items_data,
+        total=total,
+        page=page,
+        pages=pages,
+        size=size
+    )
+    return StandardResponse.ok(data=resp.model_dump(mode="json"))

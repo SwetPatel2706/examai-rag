@@ -31,12 +31,7 @@ def check_subject_access(db: Session, subject_id: UUID, user: User) -> Subject:
     Returns the subject if access is authorized.
     """
     subject = db.query(Subject).filter(Subject.id == subject_id).first()
-    if not subject:
-        # Check if they are enrolled first to raise 403 vs 404.
-        # But wait, if subject doesn't exist at all, raising 404 is correct,
-        # UNLESS the rule says: "A student with no row in student_subjects for the requested subject must receive 403"
-        # Let's check enrollment first.
-        pass
+    # Membership is checked before existence so non-members receive 403 without probing existence.
 
     if user.role == "teacher":
         membership = (
@@ -66,6 +61,11 @@ def check_subject_access(db: Session, subject_id: UUID, user: User) -> Subject:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access forbidden. You are not enrolled in this subject."
             )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden. Unknown role."
+        )
     
     if not subject:
         raise HTTPException(

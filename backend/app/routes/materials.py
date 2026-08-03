@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, Query, HTTPException, status
+from typing import Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -14,10 +15,10 @@ router = APIRouter(prefix="/api/materials", tags=["Materials"])
 
 @router.get("", response_model=StandardResponse)
 async def list_all_materials(
-    subject_id: UUID = Query(None),
-    teacher_id: UUID = Query(None),
-    status: str = Query(None),
-    search: str = Query(None),
+    subject_id: Optional[UUID] = Query(None),
+    teacher_id: Optional[UUID] = Query(None),
+    material_status: Optional[str] = Query(None, alias="status"),
+    search: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),
@@ -29,21 +30,22 @@ async def list_all_materials(
         user=current_user,
         subject_id=subject_id,
         teacher_id=teacher_id,
-        material_status=status,
+        material_status=material_status,
         search=search,
         page=page,
         size=size
     )
 
     pages = (total + size - 1) // size
-    items_data = [MaterialResponse.model_validate(m).model_dump() for m in items]
-    return StandardResponse.ok(data={
-        "items": items_data,
-        "total": total,
-        "page": page,
-        "pages": pages,
-        "size": size
-    })
+    items_data = [MaterialResponse.model_validate(m) for m in items]
+    resp = MaterialsListResponse(
+        items=items_data,
+        total=total,
+        page=page,
+        pages=pages,
+        size=size
+    )
+    return StandardResponse.ok(data=resp.model_dump(mode="json"))
 
 
 @router.get("/{material_id}", response_model=StandardResponse)

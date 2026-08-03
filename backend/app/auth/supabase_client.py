@@ -12,8 +12,9 @@ class SupabaseAuthClient:
         self.auth_url = f"{base_url}/auth/v1"
         self.anon_key = settings.SUPABASE_ANON_KEY
         self.service_key = settings.SUPABASE_SERVICE_ROLE_KEY
+        self.client = httpx.AsyncClient()
 
-    def login(self, email: str, password: str) -> Dict[str, Any]:
+    async def login(self, email: str, password: str) -> Dict[str, Any]:
         """Authenticate user with email and password."""
         url = f"{self.auth_url}/token?grant_type=password"
         headers = {
@@ -24,27 +25,28 @@ class SupabaseAuthClient:
             "email": email,
             "password": password
         }
-        with httpx.Client() as client:
-            response = client.post(url, headers=headers, json=data)
-            if response.status_code != 200:
+        response = await self.client.post(url, headers=headers, json=data)
+        if response.status_code != 200:
+            try:
                 error_detail = response.json().get("error_description", "Invalid login credentials")
-                raise ValueError(error_detail)
-            return response.json()
+            except Exception:
+                error_detail = "Invalid login credentials"
+            raise ValueError(error_detail)
+        return response.json()
 
-    def verify_token(self, token: str) -> Dict[str, Any]:
+    async def verify_token(self, token: str) -> Dict[str, Any]:
         """Verify token and get user info."""
         url = f"{self.auth_url}/user"
         headers = {
             "apikey": self.anon_key,
             "Authorization": f"Bearer {token}"
         }
-        with httpx.Client() as client:
-            response = client.get(url, headers=headers)
-            if response.status_code != 200:
-                raise ValueError("Invalid or expired session token")
-            return response.json()
+        response = await self.client.get(url, headers=headers)
+        if response.status_code != 200:
+            raise ValueError("Invalid or expired session token")
+        return response.json()
 
-    def admin_create_user(self, email: str, password: str) -> Dict[str, Any]:
+    async def admin_create_user(self, email: str, password: str) -> Dict[str, Any]:
         """Create a user with the service role key (for seeding)."""
         url = f"{self.auth_url}/admin/users"
         headers = {
@@ -57,39 +59,51 @@ class SupabaseAuthClient:
             "password": password,
             "email_confirm": True
         }
-        with httpx.Client() as client:
-            response = client.post(url, headers=headers, json=data)
-            if response.status_code not in (200, 201):
-                # Check if user already exists
+        response = await self.client.post(url, headers=headers, json=data)
+        if response.status_code not in (200, 201):
+            # Check if user already exists
+            try:
                 error_info = response.json()
-                msg = error_info.get("msg") or error_info.get("error", "Failed to create user")
-                if "already registered" in msg.lower() or "already exists" in msg.lower():
-                    # Attempt to look up the user by email
-                    user = self._admin_get_user_by_email(email)
-                    if user:
-                        return user
-                raise ValueError(msg)
-            return response.json()
+            except Exception:
+                error_info = {}
+            msg = error_info.get("msg") or error_info.get("error", "Failed to create user")
+            if isinstance(msg, str) and ("already registered" in msg.lower() or "already exists" in msg.lower()):
+                # Attempt to look up the user by email
+                user = await self._admin_get_user_by_email(email)
+                if user:
+                    return user
+            raise ValueError(msg)
+        return response.json()
 
-    def _admin_get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+    async def _admin_get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """List users to find one by email (admin helper)."""
         url = f"{self.auth_url}/admin/users"
         headers = {
             "apikey": self.service_key,
             "Authorization": f"Bearer {self.service_key}"
         }
-        with httpx.Client() as client:
-            response = client.get(url, headers=headers)
-            if response.status_code == 200:
+        response = await self.client.get(url, headers=headers)
+        if response.status_code == 200:
+            try:
                 users_list = response.json()
-                if isinstance(users_list, list):
-                    for u in users_list:
-                        if u.get("email") == email:
-                            return u
-                elif isinstance(users_list, dict) and "users" in users_list:
-                    for u in users_list["users"]:
-                        if u.get("email") == email:
-                            return u
+            except Exception:
+                return None
+            if isinstance(users_list, list):
+                for u in users_list:
+                    if u.get("email") == email:
+                        return u
+            elif isinstance(users_list, dict) and "users" in users_list:
+                for u in users_list["users"]:
+                    if u.get("email") == email:
+                        return u
         return None
+
+    async def logout(self, token: str) -> None:
+        url = f"{self.auth_url}/logout"
+        headers = {
+            "apikey": self.anon_key,
+            "Authorization": f"Bearer {token}"
+        }
+        await self.client.post(url, headers=headers)
 
 supabase_auth = SupabaseAuthClient()

@@ -21,7 +21,7 @@ async def get_current_user(
     """
     token = credentials.credentials
     try:
-        supabase_user = supabase_auth.verify_token(token)
+        supabase_user = await supabase_auth.verify_token(token)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -16,7 +16,7 @@ class FlashcardDeck(Base):
     subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     source_material_ids = Column(JSON, nullable=True)  # List of material IDs used to generate this deck
     title = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
 
     # Relationships
     student = relationship("User", backref="flashcard_decks")

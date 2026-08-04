@@ -1,0 +1,3 @@
+backend/.env.prod
+backend/.env.local
+frontend/.env.prod

@@ -38,7 +38,7 @@ materials — no fairness constraint applies (not graded/comparative), so no
 teacher-authoring step needed here.
 
 ## Roles
-Two roles: `student`, `teacher`. Shared login/signup with a role selector.
+Two roles: `student`, `teacher`. Users are provisioned only through an explicit seed operation. Runtime auth supports email/password login and logout; there is no signup, forgot-password/reset, OAuth, magic-link, MFA, or client role selector. The backend derives the role from the seeded user profile.
 No admin role in scope yet.
 
 ## Data entities (cross-cutting, see backend/agents.md for schema detail)

@@ -131,7 +131,7 @@ def update_material_status(
         raise MaterialNotFoundError(f"Material {material_id} not found")
 
     # Validate status first
-    if new_status not in ("processing", "ready", "failed"):
+    if new_status not in ("processing", "ready", "failed", "deleting"):
         raise ValueError(f"Invalid status: {new_status}")
 
     current_status = material.status

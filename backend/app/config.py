@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     def reject_blank_or_placeholder(cls, v: str, info) -> str:
         val = _reject_blank_or_placeholder(info.field_name, v)
         if info.field_name == "SUPABASE_URL":
+            # Supabase dashboard/project-ref values are commonly supplied
+            # without a scheme; normalize them before enforcing HTTPS.
+            if "://" not in val and "." not in val and "/" not in val:
+                val = f"https://{val}.supabase.co"
             if not _is_local_url(val) and not val.startswith("https://"):
                 raise ValueError(
                     f"{info.field_name} must use https:// for non-local hosts. "

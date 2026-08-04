@@ -11,11 +11,18 @@ class MaterialResponse(BaseModel):
     teacher_id: UUID
     filename: str
     file_type: str
-    storage_path: str
     status: str
+    ingestion_version: int = 0
     display_name: Optional[str] = None
     notes: Optional[str] = None
     uploaded_at: datetime.datetime
+    processed_at: Optional[datetime.datetime] = None
+
+class MaterialStatusResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    status: str
+    ingestion_version: int
     processed_at: Optional[datetime.datetime] = None
 
 class MaterialUpdateRequest(BaseModel):

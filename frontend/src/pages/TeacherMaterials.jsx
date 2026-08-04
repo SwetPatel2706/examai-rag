@@ -39,6 +39,8 @@ const INITIAL_MATERIALS = [
 ];
 
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'pptx', 'doc', 'ppt'];
+const SUPPORTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
+const ACCEPTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 
 export default function TeacherMaterials() {
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
@@ -62,7 +64,7 @@ export default function TeacherMaterials() {
 
     if (rejectedFiles.length > 0) {
       const names = rejectedFiles.map((f) => f.name).join(', ');
-      setRejectionMsg(`Unsupported file(s) not accepted: ${names}. Only PDF, DOCX, and PPTX are supported.`);
+      setRejectionMsg(`Unsupported file(s) not accepted: ${names}. Only ${SUPPORTED_FORMATS} are supported.`);
     }
 
     if (!validFiles.length) return;
@@ -107,13 +109,13 @@ export default function TeacherMaterials() {
       </header>
 
       {rejectionMsg && (
-        <div className="mb-sp-md p-sp-md bg-error-container text-error rounded-2xl flex items-center justify-between font-label-md">
+        <div role="alert" className="mb-sp-md p-sp-md bg-error-container text-error rounded-2xl flex items-center justify-between font-label-md">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[20px]">error</span>
             <span>{rejectionMsg}</span>
           </div>
-          <button onClick={() => setRejectionMsg(null)} className="hover:opacity-75">
-            <span className="material-symbols-outlined text-[18px]">close</span>
+          <button type="button" onClick={() => setRejectionMsg(null)} aria-label="Dismiss upload error" className="hover:opacity-75">
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
           </button>
         </div>
       )}
@@ -149,14 +151,14 @@ export default function TeacherMaterials() {
           ) : (
             <>
               <p className="font-headline-md text-headline-md text-on-background mb-1">Drop files here to upload</p>
-              <p className="font-body-md text-body-md text-secondary">or click to browse — PDF, DOCX, PPTX supported</p>
+              <p className="font-body-md text-body-md text-secondary">or click to browse — {SUPPORTED_FORMATS} supported</p>
             </>
           )}
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".pdf,.doc,.docx,.ppt,.pptx"
+            accept={ACCEPTED_FORMATS}
             className="hidden"
             onChange={(e) => handleFiles(e.target.files)}
           />

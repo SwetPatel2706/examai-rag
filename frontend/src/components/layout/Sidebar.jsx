@@ -5,9 +5,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import useAuthStore from '@/store/authStore';
 
 /**
- * @param {{ items: Array<{icon: string, label: string, to: string}>, bottomItems?: Array<{icon: string, label: string, to?: string, onClick?: fn}>, open?: boolean, onOpenChange?: (open: boolean) => void }} props
+ * @param {{ items: Array<{icon: string, label: string, to: string}>, bottomItems?: Array<{icon: string, label: string, to?: string, onClick?: fn}>, open?: boolean, onOpenChange?: (open: boolean) => void, mobileMenuButtonRef?: React.RefObject<HTMLButtonElement> }} props
  */
-export default function Sidebar({ items, bottomItems = [], open = false, onOpenChange }) {
+export default function Sidebar({ items, bottomItems = [], open = false, onOpenChange, mobileMenuButtonRef }) {
   const navigate = useNavigate();
   const { user, role, clearAuth } = useAuthStore();
   const [isDesktop, setIsDesktop] = React.useState(false);
@@ -36,6 +36,7 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
 
   function closeDrawer() {
     onOpenChange?.(false);
+    if (!isDesktop) mobileMenuButtonRef?.current?.focus();
   }
 
   return (

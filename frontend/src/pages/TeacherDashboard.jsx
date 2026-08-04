@@ -140,9 +140,10 @@ export default function TeacherDashboard() {
                       <button
                         onClick={() => navigate('/teacher/students')}
                         title="View student progress"
+                        aria-label="View student progress"
                         className="p-sp-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
                       >
-                        <span className="material-symbols-outlined">visibility</span>
+                        <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
                       </button>
                     </td>
                   </tr>

@@ -41,10 +41,10 @@ class StorageClient:
     async def delete(self, path: str) -> None:
         """Delete an object from Supabase Storage.
 
-        Uses POST /storage/v1/object/{bucket} with bucket-relative prefixes,
+        Uses DELETE /storage/v1/object/{bucket} with bucket-relative prefixes,
         which is the correct Supabase Storage API endpoint."""
         url = f"{self.base}/storage/v1/object/{self.bucket}"
-        response = await self.client.delete(url, json={"prefixes": [path]}, headers={**self.headers, "Content-Type": "application/json"})
+        response = await self.client.request("DELETE", url, json={"prefixes": [path]}, headers={**self.headers, "Content-Type": "application/json"})
         response.raise_for_status()
 
     async def download(self, path: str) -> bytes:

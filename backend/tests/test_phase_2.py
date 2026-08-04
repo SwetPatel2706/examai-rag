@@ -54,6 +54,7 @@ def test_real_pdf_pptx_docx_fixtures_preserve_source_locations():
     pdf_canvas.save()
     pdf_docs = PARSERS["pdf"](pdf.getvalue())
     assert pdf_docs[0]["metadata"]["source_locator"] == {"type": "page", "value": 1}
+    assert "PDF page one" in pdf_docs[0]["text"]
 
     from pptx import Presentation
     from pptx.util import Inches
@@ -68,6 +69,7 @@ def test_real_pdf_pptx_docx_fixtures_preserve_source_locations():
     pptx_docs = PARSERS["pptx"](pptx.getvalue())
     assert pptx_docs[0]["metadata"]["source_locator"] == {"type": "slide", "value": 1}
     assert "Sparse title" in pptx_docs[0]["text"]
+    assert "Body text" in pptx_docs[0]["text"]
 
     from docx import Document
     document = Document()
@@ -76,6 +78,7 @@ def test_real_pdf_pptx_docx_fixtures_preserve_source_locations():
     document.save(docx)
     docx_docs = PARSERS["docx"](docx.getvalue())
     assert docx_docs[0]["metadata"]["source_locator"] == {"type": "paragraph", "value": 1}
+    assert "DOCX paragraph" in docx_docs[0]["text"]
 
 class FakeEmbedder:
     def embed(self, texts):
@@ -87,7 +90,10 @@ class FakeQdrant:
         self.deleted_tails = []
     def ensure_collection(self, dimension): assert dimension == 1
     def delete_material_tail(self, material_id, chunk_count): self.deleted_tails.append((material_id, chunk_count))
-    def upsert(self, vectors, payloads, ids): self.points.update(dict(zip(ids, payloads)))
+    def upsert(self, vectors, payloads, ids):
+        if not len(vectors) == len(payloads) == len(ids):
+            raise ValueError("vectors, payloads, and ids must have identical lengths")
+        self.points.update(dict(zip(ids, payloads)))
 
 def test_pipeline_payload_is_attributable_and_ready(db, monkeypatch):
     teacher = User(id=uuid.uuid4(), email="teacher@example.com", role="teacher", name="Dr. Smith")
@@ -120,3 +126,4 @@ def test_stale_worker_aborts_without_qdrant_write(db):
     with pytest.raises(RuntimeError, match="stale"):
         IngestionPipeline(qdrant=fake, embedder=FakeEmbedder()).process(db, material.id, b"ignored", version=1)
     assert fake.points == {}
+    assert fake.deleted_tails == []

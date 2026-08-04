@@ -4,8 +4,9 @@ import time
 from fastapi import FastAPI, Request
 # pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
-# pyrefly: ignore [missing-import]
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.routes import health
@@ -57,6 +58,36 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
     return JSONResponse(
         status_code=500,
+        content=error_response.model_dump()
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+    error_response = StandardResponse.error_response(
+        code="HTTP_ERROR",
+        message=str(exc.detail),
+        request_id=request_id
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        headers=exc.headers,
+        content=error_response.model_dump()
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+    error_response = StandardResponse.error_response(
+        code="VALIDATION_ERROR",
+        message="Request validation failed.",
+        details=exc.errors(),
+        request_id=request_id
+    )
+    return JSONResponse(
+        status_code=422,
         content=error_response.model_dump()
     )
 

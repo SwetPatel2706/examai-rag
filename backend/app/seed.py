@@ -10,7 +10,7 @@ from app.models.subject import Subject, SubjectTeacher, StudentSubject
 from app.models.material import Material
 from app.auth.supabase_client import supabase_auth
 
-def seed_data():
+async def seed_data():
     db: Session = SessionLocal()
     try:
         print("Starting seeding process...")
@@ -50,9 +50,9 @@ def seed_data():
             
             # Create user in Supabase Auth via admin API
             try:
-                sb_user = asyncio.run(supabase_auth._admin_get_user_by_email(email_lower))
+                sb_user = await supabase_auth._admin_get_user_by_email(email_lower)
                 if not sb_user:
-                    sb_user = asyncio.run(supabase_auth.admin_create_user(email_lower, u["password"]))
+                    sb_user = await supabase_auth.admin_create_user(email_lower, u["password"])
                 sb_uid = uuid.UUID(sb_user["id"])
             except Exception as e:
                 print(f"Error provisioning {email_lower} in Supabase: {e}")
@@ -184,8 +184,13 @@ def seed_data():
 
     except Exception as e:
         print(f"Fatal error during seeding: {e}", file=sys.stderr)
+        if db:
+            db.rollback()
+        raise e
     finally:
         db.close()
+        if supabase_auth.client:
+            await supabase_auth.client.aclose()
 
 if __name__ == "__main__":
-    seed_data()
+    asyncio.run(seed_data())

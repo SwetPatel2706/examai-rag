@@ -11,6 +11,9 @@ from app.models.material import Material
 from app.services.subject_service import check_subject_access, get_user_subjects
 from app.schemas.material import MaterialUpdateRequest
 
+class MaterialNotFoundError(Exception):
+    pass
+
 def get_materials(
     db: Session,
     user: User,
@@ -125,17 +128,11 @@ def update_material_status(
     """
     material = db.query(Material).filter(Material.id == material_id).first()
     if not material:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Material not found"
-        )
+        raise MaterialNotFoundError(f"Material {material_id} not found")
 
     # Validate status first
     if new_status not in ("processing", "ready", "failed"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid status: {new_status}"
-        )
+        raise ValueError(f"Invalid status: {new_status}")
 
     current_status = material.status
     if new_status == current_status:
@@ -148,10 +145,7 @@ def update_material_status(
         ("failed", "ready"),
     ]
     if (current_status, new_status) in invalid_transitions:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Cannot transition material status directly from {current_status} to {new_status}"
-        )
+        raise ValueError(f"Cannot transition material status directly from {current_status} to {new_status}")
 
     material.status = new_status
     if new_status in ("ready", "failed"):

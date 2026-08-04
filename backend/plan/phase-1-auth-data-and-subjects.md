@@ -31,12 +31,12 @@ Implement the relational foundation and role-aware access rules that every featu
 
 ## Minimum API surface
 
-- `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
-- `GET /subjects`, `GET /subjects/{subject_id}`
-- `GET /subjects/{subject_id}/materials`
-- `GET /materials`, `GET /materials/{material_id}`
-- `PATCH /materials/{material_id}` for allowed metadata changes only (no client-driven status changes)
-- `GET /students/me/subjects`, `GET /students/me/stats` as a thin read model or a clearly documented equivalent
+- `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+- `GET /api/subjects`, `GET /api/subjects/{subject_id}`
+- `GET /api/subjects/{subject_id}/materials`
+- `GET /api/materials`, `GET /api/materials/{material_id}`
+- `PATCH /api/materials/{material_id}` for allowed metadata changes only (no client-driven status changes)
+- `GET /api/students/me/subjects`, `GET /api/students/me/stats` as a thin read model or a clearly documented equivalent
 
 ## Verification
 

@@ -21,7 +21,7 @@ Deliver the first student value loop: select approved materials by teacher, ask 
 
 ## Work items
 
-1. Implement `retriever.py` with question embedding and a Qdrant `material_id IN selected_material_ids` filter. Enforce that selected materials belong to the requested subject and are ready.
+1. Implement `retriever.py` with question embedding. Before retrieval, authorize the authenticated user’s membership in the requested subject using the Phase 1 subject-access service, then apply the `material_id IN selected_material_ids` filter only after authorization succeeds. Enforce that selected materials belong to the requested subject and are ready. Reuse this same subject-access check in flashcard generation, rather than relying on client-controlled material IDs or only validating material ownership and readiness.
 2. Implement the context builder with numbered chunks and bounded context size. Preserve the mapping from context number to complete Qdrant payload.
 3. Define a Pydantic structured output schema before prompting Gemini. Require answer text and source markers; validate markers against retrieved context.
 4. Implement error-aware structured-output retries with the verbatim error, bad response, and schema included. Log raw model output in development with sensitive data controls.
@@ -33,10 +33,10 @@ Deliver the first student value loop: select approved materials by teacher, ask 
 
 ## Core API surface
 
-- `POST /chat` with `{subject_id, selected_material_ids, question}`
-- `POST /flashcard-decks` with `{subject_id, material_ids, title?}`
-- `GET /flashcard-decks`, `GET /flashcard-decks/{deck_id}`, `GET /flashcard-decks/{deck_id}/cards`
-- `PATCH /flashcards/{flashcard_id}` for mastery state
+- `POST /api/chat` with `{subject_id, selected_material_ids, question}`
+- `POST /api/flashcard-decks` with `{subject_id, material_ids, title?}`
+- `GET /api/flashcard-decks`, `GET /api/flashcard-decks/{deck_id}`, `GET /api/flashcard-decks/{deck_id}/cards`
+- `PATCH /api/flashcards/{flashcard_id}` for mastery state
 
 The exact frontend key names may be adapted at the API boundary, but the semantic contract must preserve the required citation fields and per-request selection.
 

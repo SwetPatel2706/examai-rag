@@ -171,6 +171,7 @@ def test_material_status_transitions(db_session):
     # Valid transition: processing -> ready
     m = update_material_status(db_session, m.id, "ready")
     assert m.status == "ready"
+    assert m.processed_at is not None
 
     # Invalid transition: failed -> ready
     m.status = "failed"

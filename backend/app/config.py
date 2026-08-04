@@ -58,7 +58,14 @@ class Settings(BaseSettings):
                      "DATABASE_URL", "SUPABASE_STORAGE_BUCKET", mode="before")
     @classmethod
     def reject_blank_or_placeholder(cls, v: str, info) -> str:
-        return _reject_blank_or_placeholder(info.field_name, v)
+        val = _reject_blank_or_placeholder(info.field_name, v)
+        if info.field_name == "SUPABASE_URL":
+            if not _is_local_url(val) and not val.startswith("https://"):
+                raise ValueError(
+                    f"{info.field_name} must use https:// for non-local hosts. "
+                    "HTTP is only permitted for localhost/127.0.0.1 during local development."
+                )
+        return val
 
     # ── Qdrant ────────────────────────────────────────────────────────────
     QDRANT_URL: str

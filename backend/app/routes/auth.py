@@ -59,8 +59,13 @@ async def logout(
     """Logout endpoint. Client deletes JWT token; server returns OK."""
     try:
         await supabase_auth.logout(credentials.credentials)
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.error(f"Logout failed on remote server: {type(e).__name__} {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to log out from remote authentication server."
+        )
     return StandardResponse.ok(data={"message": "Logged out successfully"})
 
 

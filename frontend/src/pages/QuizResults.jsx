@@ -7,7 +7,7 @@ const MOCK_RESULTS = {
   q1: {
     quizTitle: 'Arrays & Complexity',
     subject: 'Data Structures',
-    score: 80,
+    score: 67,
     total: 3,
     correct: 2,   // 2 out of 3
     weakTopics: [
@@ -119,9 +119,8 @@ export default function QuizResults() {
                       return (
                         <div
                           key={oi}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-label-md ${
-                            isAns ? 'bg-tertiary-fixed/30 text-tertiary font-bold' : isUser && !isAns ? 'bg-error-container text-error' : 'text-on-surface-variant'
-                          }`}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-label-md ${isAns ? 'bg-tertiary-fixed/30 text-tertiary font-bold' : isUser && !isAns ? 'bg-error-container text-error' : 'text-on-surface-variant'
+                            }`}
                         >
                           <span className="material-symbols-outlined text-[16px]">
                             {isAns ? 'check_circle' : isUser ? 'cancel' : 'radio_button_unchecked'}

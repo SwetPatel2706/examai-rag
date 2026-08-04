@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Sidebar from './Sidebar';
 
 const STUDENT_NAV = [
@@ -24,11 +24,18 @@ const TEACHER_NAV = [
 export default function AppLayout({ role, children }) {
   const navItems = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const mobileMenuButtonRef = useRef(null);
 
   return (
     <div className="flex min-h-screen bg-surface text-on-surface" style={{ fontFamily: "'Geist Variable', sans-serif" }}>
-      <Sidebar items={navItems} open={sidebarOpen} onOpenChange={setSidebarOpen} />
+      <Sidebar
+        items={navItems}
+        open={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+        mobileMenuButtonRef={mobileMenuButtonRef}
+      />
       <button
+        ref={mobileMenuButtonRef}
         type="button"
         className="lg:hidden fixed top-4 left-4 z-[60] p-2 rounded-xl bg-white border border-outline-variant shadow-sm"
         onClick={() => setSidebarOpen(true)}

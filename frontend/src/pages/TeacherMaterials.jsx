@@ -38,18 +38,41 @@ const INITIAL_MATERIALS = [
   },
 ];
 
+const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'pptx', 'doc', 'ppt'];
+const SUPPORTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
+const ACCEPTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+
 export default function TeacherMaterials() {
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [rejectionMsg, setRejectionMsg] = useState(null);
   const fileInputRef = useRef(null);
+
+  function isFileSupported(file) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ALLOWED_EXTENSIONS.includes(ext);
+  }
 
   function handleFiles(files) {
     if (!files?.length) return;
+    setRejectionMsg(null);
+
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(isFileSupported);
+    const rejectedFiles = fileArray.filter((f) => !isFileSupported(f));
+
+    if (rejectedFiles.length > 0) {
+      const names = rejectedFiles.map((f) => f.name).join(', ');
+      setRejectionMsg(`Unsupported file(s) not accepted: ${names}. Only ${SUPPORTED_FORMATS} are supported.`);
+    }
+
+    if (!validFiles.length) return;
+
     setUploading(true);
     // Simulate upload delay — replace with POST /materials (multipart) when backend is ready
     setTimeout(() => {
-      const newMats = Array.from(files).map((f, i) => ({
+      const newMats = validFiles.map((f, i) => ({
         id: `upload-${Date.now()}-${i}`,
         name: f.name,
         subject: 'Unassigned', // TODO: subject picker after upload
@@ -85,6 +108,20 @@ export default function TeacherMaterials() {
         </p>
       </header>
 
+      {rejectionMsg && (
+        <div role="alert" className="mb-sp-md p-sp-md bg-error-container text-error rounded-2xl flex items-center justify-between font-label-md">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px]">error</span>
+            <span>{rejectionMsg}</span>
+          </div>
+          <button type="button" onClick={() => setRejectionMsg(null)} aria-label="Dismiss upload error" className="hover:opacity-75">
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+          </button>
+        </div>
+      )}
+
+      {/* Upload Zone */}
+
       {/* Upload Zone */}
       <section className="mb-sp-xl">
         <div
@@ -114,14 +151,14 @@ export default function TeacherMaterials() {
           ) : (
             <>
               <p className="font-headline-md text-headline-md text-on-background mb-1">Drop files here to upload</p>
-              <p className="font-body-md text-body-md text-secondary">or click to browse — PDF, DOCX, PPTX supported</p>
+              <p className="font-body-md text-body-md text-secondary">or click to browse — {SUPPORTED_FORMATS} supported</p>
             </>
           )}
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".pdf,.doc,.docx,.ppt,.pptx"
+            accept={ACCEPTED_FORMATS}
             className="hidden"
             onChange={(e) => handleFiles(e.target.files)}
           />
@@ -166,7 +203,7 @@ export default function TeacherMaterials() {
                       <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{mat.size}</td>
                       <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{mat.uploadedAt}</td>
                       <td className="px-sp-md py-sp-md text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                           {isOwn && (
                             <button
                               onClick={() => deleteMaterial(mat.id)}

@@ -15,6 +15,7 @@ const STUDENTS = [
     completion: 92,
     lastActive: '2026-07-23',
     atRisk: false,
+    subjects: ['Data Structures', 'Linear Algebra'],
     quizHistory: [
       { quizTitle: 'Arrays & Complexity', score: 92, date: '2026-07-20' },
       { quizTitle: 'Graph Algorithms', score: 84, date: '2026-07-22' },
@@ -28,6 +29,7 @@ const STUDENTS = [
     completion: 65,
     lastActive: '2026-07-21',
     atRisk: true,
+    subjects: ['Data Structures'],
     quizHistory: [
       { quizTitle: 'Arrays & Complexity', score: 64, date: '2026-07-20' },
       { quizTitle: 'Linked Lists', score: 52, date: '2026-07-21' },
@@ -41,6 +43,7 @@ const STUDENTS = [
     completion: 80,
     lastActive: '2026-07-23',
     atRisk: false,
+    subjects: ['Macroeconomics'],
     quizHistory: [
       { quizTitle: 'Supply & Demand', score: 79, date: '2026-07-22' },
     ],
@@ -53,6 +56,7 @@ const STUDENTS = [
     completion: 40,
     lastActive: '2026-07-18',
     atRisk: true,
+    subjects: ['Data Structures', 'Macroeconomics'],
     quizHistory: [
       { quizTitle: 'Arrays & Complexity', score: 48, date: '2026-07-18' },
     ],
@@ -74,9 +78,11 @@ export default function StudentProgress() {
 
   const filtered = STUDENTS.filter((s) => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    // Subject filter is UI-only in mock; real impl would filter by quiz subjects from API
-    return matchSearch;
+    const matchSubject = subjectFilter === 'All Subjects' || s.subjects?.includes(subjectFilter);
+    return matchSearch && matchSubject;
   });
+
+  const atRiskCount = filtered.filter((s) => s.atRisk).length;
 
   return (
     <AppLayout role="teacher">
@@ -111,7 +117,7 @@ export default function StudentProgress() {
         <div className="ml-auto flex items-center gap-2 bg-error-container px-3 py-2 rounded-xl">
           <span className="material-symbols-outlined text-error text-[18px]">warning</span>
           <span className="font-label-md text-label-md text-error font-bold">
-            {STUDENTS.filter((s) => s.atRisk).length} at-risk
+            {atRiskCount} at-risk
           </span>
         </div>
       </div>

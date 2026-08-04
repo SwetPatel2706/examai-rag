@@ -1,3 +1,13 @@
-backend/.env.prod
-backend/.env.local
-frontend/.env.prod
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+coverage/
+

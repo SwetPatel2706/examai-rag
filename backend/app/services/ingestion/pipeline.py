@@ -11,12 +11,21 @@ from app.services.ingestion.embedder import LocalEmbedder
 from app.utils.qdrant_client import QdrantStore, point_id
 
 logger = logging.getLogger(__name__)
-_MATERIAL_LOCKS: dict[UUID, threading.RLock] = {}
-_LOCKS_GUARD = threading.Lock()
+
+# Fixed-size striped locks — bounds memory to exactly _NUM_STRIPES RLock
+# objects regardless of how many distinct material UUIDs are processed.
+_NUM_STRIPES = 64
+_STRIPES = [threading.RLock() for _ in range(_NUM_STRIPES)]
 
 def _material_lock(material_id: UUID) -> threading.RLock:
-    with _LOCKS_GUARD:
-        return _MATERIAL_LOCKS.setdefault(material_id, threading.RLock())
+    return _STRIPES[hash(material_id) % _NUM_STRIPES]
+
+
+def _supports_for_update(db: Session) -> bool:
+    """Return False for SQLite (used in tests) which lacks SELECT FOR UPDATE."""
+    dialect = db.bind.dialect.name if db.bind else ""
+    return dialect != "sqlite"
+
 
 class IngestionPipeline:
     def __init__(self, qdrant=None, embedder=None):
@@ -24,7 +33,14 @@ class IngestionPipeline:
         self.embedder = embedder or LocalEmbedder(settings.EMBEDDING_MODEL)
 
     def _guard(self, db: Session, material_id: UUID, version: int) -> Material:
-        material = db.query(Material).filter(Material.id == material_id).first()
+        """Check that the material still exists, is not being deleted, and
+        matches the expected ingestion version.  Uses SELECT … FOR UPDATE
+        on Postgres to take a row-level lock, preventing concurrent
+        deletion from committing until this transaction completes."""
+        query = db.query(Material).filter(Material.id == material_id)
+        if _supports_for_update(db):
+            query = query.with_for_update()
+        material = query.first()
         if not material or material.status == "deleting" or material.ingestion_version != version:
             raise RuntimeError("Ingestion worker is stale or material is deleting")
         return material
@@ -56,15 +72,39 @@ class IngestionPipeline:
                 self._guard(db, material_id, version)
                 self.qdrant.upsert(vectors, payloads, ids)
                 material = self._guard(db, material_id, version)
-            material.status = "ready"
+            # Conditional UPDATE: only set ready if the version still matches
+            # and the row has not been moved to deleting in the meantime.
+            # This prevents stale workers from resurrecting a deleted row.
             import datetime
-            material.processed_at = datetime.datetime.now(datetime.timezone.utc)
-            db.commit(); db.refresh(material)
+            rows = db.execute(
+                update(Material)
+                .where(
+                    Material.id == material_id,
+                    Material.ingestion_version == version,
+                    Material.status != "deleting",
+                )
+                .values(
+                    status="ready",
+                    processed_at=datetime.datetime.now(datetime.timezone.utc),
+                )
+            )
+            db.commit()
+            if rows.rowcount == 0:
+                raise RuntimeError("Ingestion worker is stale or material is deleting")
+            db.refresh(material)
             return material
         except Exception:
             logger.exception("Material ingestion failed", extra={"material_id": str(material_id), "stage": stage, "version": version})
-            current = db.query(Material).filter(Material.id == material_id).first()
-            if current and current.status != "deleting" and current.ingestion_version == version:
-                current.status = "failed"
-                db.commit()
+            # Conditional failure update — only mark failed if version still
+            # matches and the row hasn't been moved to deleting.
+            db.execute(
+                update(Material)
+                .where(
+                    Material.id == material_id,
+                    Material.ingestion_version == version,
+                    Material.status != "deleting",
+                )
+                .values(status="failed")
+            )
+            db.commit()
             raise

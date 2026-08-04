@@ -138,6 +138,9 @@ def update_material_status(
     if new_status == current_status:
         return material
 
+    if current_status == "deleting":
+        raise ValueError("Cannot transition a deleting material to another status")
+
     # Validate state transition rules
     invalid_transitions = [
         ("ready", "processing"),

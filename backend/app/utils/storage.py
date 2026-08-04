@@ -2,9 +2,25 @@ from pathlib import PurePosixPath
 import httpx
 from app.config import settings
 
+# Module-level shared client.  FastAPI shutdown hook (registered in main.py)
+# calls close_shared_client() so the connection pool is released cleanly.
+_shared_client: httpx.AsyncClient | None = None
+
+def _get_shared_client() -> httpx.AsyncClient:
+    global _shared_client
+    if _shared_client is None or _shared_client.is_closed:
+        _shared_client = httpx.AsyncClient(timeout=60)
+    return _shared_client
+
+async def close_shared_client() -> None:
+    global _shared_client
+    if _shared_client is not None and not _shared_client.is_closed:
+        await _shared_client.aclose()
+        _shared_client = None
+
 class StorageClient:
-    def __init__(self, client=None):
-        self.client = client or httpx.AsyncClient(timeout=60)
+    def __init__(self, client: httpx.AsyncClient | None = None):
+        self.client = client or _get_shared_client()
         self.base = settings.SUPABASE_URL.rstrip("/")
         self.bucket = settings.SUPABASE_STORAGE_BUCKET
         self.headers = {"Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}", "apikey": settings.SUPABASE_SERVICE_ROLE_KEY}
@@ -23,8 +39,12 @@ class StorageClient:
         return f"{self.base}/storage/v1{signed}" if signed and signed.startswith("/") else signed
 
     async def delete(self, path: str) -> None:
-        url = f"{self.base}/storage/v1/object/remove"
-        response = await self.client.post(url, json={"prefixes": [f"{self.bucket}/{path}"]}, headers={**self.headers, "Content-Type": "application/json"})
+        """Delete an object from Supabase Storage.
+
+        Uses POST /storage/v1/object/{bucket} with bucket-relative prefixes,
+        which is the correct Supabase Storage API endpoint."""
+        url = f"{self.base}/storage/v1/object/{self.bucket}"
+        response = await self.client.delete(url, json={"prefixes": [path]}, headers={**self.headers, "Content-Type": "application/json"})
         response.raise_for_status()
 
     async def download(self, path: str) -> bytes:

@@ -92,6 +92,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+# Shutdown hook — close shared httpx client used by StorageClient
+@app.on_event("shutdown")
+async def _shutdown_storage_client():
+    from app.utils.storage import close_shared_client
+    await close_shared_client()
+
 # Include routers
 app.include_router(health.router)
 from app.routes import auth, subjects, materials, stubs

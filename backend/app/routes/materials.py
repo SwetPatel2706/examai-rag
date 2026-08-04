@@ -13,6 +13,7 @@ from app.services.ingestion.pipeline import IngestionPipeline
 from app.utils.storage import StorageClient
 from app.schemas.material import MaterialResponse, MaterialUpdateRequest, MaterialsListResponse, MaterialStatusResponse
 from app.schemas.common import StandardResponse
+from app.services.material_ingestion_service import MAX_BYTES
 
 router = APIRouter(prefix="/api/materials", tags=["Materials"])
 
@@ -21,7 +22,10 @@ async def create_material(
     subject_id: UUID = Form(...), file: UploadFile = File(...),
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    data = await file.read()
+    # Bounded read: reject oversized files without materializing the full body.
+    data = await file.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
     material = await upload_material(db, current_user, subject_id, file.filename or "upload", file.content_type or "", data)
     return StandardResponse.ok(data=MaterialResponse.model_validate(material).model_dump(mode="json"))
 
@@ -102,7 +106,8 @@ async def delete_material(material_id: UUID, current_user: User = Depends(get_cu
     try:
         await StorageClient().delete(material.storage_path)
         IngestionPipeline().qdrant.delete_material(material.id)
-        db.delete(material); db.commit()
+        db.delete(material)
+        db.commit()
     except Exception as exc:
         # Keep the row in deleting state for an operator/retry job; never resurrect it.
         raise HTTPException(status_code=502, detail=f"Material cleanup incomplete: {exc}") from exc

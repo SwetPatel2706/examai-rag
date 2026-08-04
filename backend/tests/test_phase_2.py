@@ -47,22 +47,33 @@ def test_parser_registry_rejects_unknown_extension():
 
 def test_real_pdf_pptx_docx_fixtures_preserve_source_locations():
     from reportlab.pdfgen import canvas
-    pdf = BytesIO(); pdf_canvas = canvas.Canvas(pdf); pdf_canvas.drawString(72, 720, "PDF page one"); pdf_canvas.showPage(); pdf_canvas.save()
+    pdf = BytesIO()
+    pdf_canvas = canvas.Canvas(pdf)
+    pdf_canvas.drawString(72, 720, "PDF page one")
+    pdf_canvas.showPage()
+    pdf_canvas.save()
     pdf_docs = PARSERS["pdf"](pdf.getvalue())
     assert pdf_docs[0]["metadata"]["source_locator"] == {"type": "page", "value": 1}
 
     from pptx import Presentation
     from pptx.util import Inches
-    presentation = Presentation(); slide = presentation.slides.add_slide(presentation.slide_layouts[6])
-    title = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(5), Inches(1)); title.text = "Sparse title"
-    body = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(5), Inches(1)); body.text = "Body text"
-    pptx = BytesIO(); presentation.save(pptx)
+    presentation = Presentation()
+    slide = presentation.slides.add_slide(presentation.slide_layouts[6])
+    title = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(5), Inches(1))
+    title.text = "Sparse title"
+    body = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(5), Inches(1))
+    body.text = "Body text"
+    pptx = BytesIO()
+    presentation.save(pptx)
     pptx_docs = PARSERS["pptx"](pptx.getvalue())
     assert pptx_docs[0]["metadata"]["source_locator"] == {"type": "slide", "value": 1}
     assert "Sparse title" in pptx_docs[0]["text"]
 
     from docx import Document
-    document = Document(); document.add_paragraph("DOCX paragraph"); docx = BytesIO(); document.save(docx)
+    document = Document()
+    document.add_paragraph("DOCX paragraph")
+    docx = BytesIO()
+    document.save(docx)
     docx_docs = PARSERS["docx"](docx.getvalue())
     assert docx_docs[0]["metadata"]["source_locator"] == {"type": "paragraph", "value": 1}
 
@@ -71,7 +82,9 @@ class FakeEmbedder:
         return [[float(len(texts[0]))]]
 
 class FakeQdrant:
-    def __init__(self): self.points = {}; self.deleted_tails = []
+    def __init__(self):
+        self.points = {}
+        self.deleted_tails = []
     def ensure_collection(self, dimension): assert dimension == 1
     def delete_material_tail(self, material_id, chunk_count): self.deleted_tails.append((material_id, chunk_count))
     def upsert(self, vectors, payloads, ids): self.points.update(dict(zip(ids, payloads)))
@@ -79,9 +92,11 @@ class FakeQdrant:
 def test_pipeline_payload_is_attributable_and_ready(db, monkeypatch):
     teacher = User(id=uuid.uuid4(), email="teacher@example.com", role="teacher", name="Dr. Smith")
     subject = Subject(id=uuid.uuid4(), name="Physics")
-    db.add_all([teacher, subject]); db.commit()
+    db.add_all([teacher, subject])
+    db.commit()
     material = Material(id=uuid.uuid4(), subject_id=subject.id, teacher_id=teacher.id, filename="notes.docx", file_type="docx", storage_path="x", status="processing", ingestion_version=1)
-    db.add(material); db.commit()
+    db.add(material)
+    db.commit()
     fake = FakeQdrant()
     monkeypatch.setitem(PARSERS, "docx", lambda data: [{"text": "A paragraph", "metadata": {"source_locator": {"type": "paragraph", "value": 1}}}])
     pipeline = IngestionPipeline(qdrant=fake, embedder=FakeEmbedder())
@@ -96,9 +111,11 @@ def test_pipeline_payload_is_attributable_and_ready(db, monkeypatch):
 def test_stale_worker_aborts_without_qdrant_write(db):
     teacher = User(id=uuid.uuid4(), email="teacher@example.com", role="teacher", name="Dr. Smith")
     subject = Subject(id=uuid.uuid4(), name="Physics")
-    db.add_all([teacher, subject]); db.commit()
+    db.add_all([teacher, subject])
+    db.commit()
     material = Material(id=uuid.uuid4(), subject_id=subject.id, teacher_id=teacher.id, filename="notes.docx", file_type="docx", storage_path="x", status="deleting", ingestion_version=2)
-    db.add(material); db.commit()
+    db.add(material)
+    db.commit()
     fake = FakeQdrant()
     with pytest.raises(RuntimeError, match="stale"):
         IngestionPipeline(qdrant=fake, embedder=FakeEmbedder()).process(db, material.id, b"ignored", version=1)

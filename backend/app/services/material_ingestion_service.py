@@ -22,7 +22,9 @@ async def upload_material(db: Session, user: User, subject_id: UUID, filename: s
         raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
     material = Material(subject_id=subject_id, teacher_id=user.id, filename=filename, file_type=extension,
                         storage_path="pending", status="processing", ingestion_version=1)
-    db.add(material); db.commit(); db.refresh(material)
+    db.add(material)
+    db.commit()
+    db.refresh(material)
     material.storage_path = safe_storage_path(material.id, filename)
     db.commit()
     try:
@@ -39,7 +41,8 @@ async def upload_material(db: Session, user: User, subject_id: UUID, filename: s
             pass
         current = db.query(Material).filter(Material.id == material.id).first()
         if current and current.status != "deleting":
-            current.status = "failed"; db.commit()
+            current.status = "failed"
+            db.commit()
         raise HTTPException(status_code=502, detail=f"Material ingestion failed: {exc}") from exc
 
 def start_retry(db: Session, material: Material, user: User) -> int:
@@ -47,10 +50,16 @@ def start_retry(db: Session, material: Material, user: User) -> int:
         raise HTTPException(status_code=403, detail="Only the owning teacher can retry ingestion")
     if material.status != "failed":
         raise HTTPException(status_code=409, detail="Only failed materials can be retried")
-    material.ingestion_version += 1; material.status = "processing"; material.processed_at = None
-    db.commit(); return material.ingestion_version
+    material.ingestion_version += 1
+    material.status = "processing"
+    material.processed_at = None
+    db.commit()
+    return material.ingestion_version
 
 def mark_deleting(db: Session, material: Material, user: User) -> int:
     if user.role != "teacher" or material.teacher_id != user.id:
         raise HTTPException(status_code=403, detail="Only the owning teacher can delete this material")
-    material.ingestion_version += 1; material.status = "deleting"; db.commit(); return material.ingestion_version
+    material.ingestion_version += 1
+    material.status = "deleting"
+    db.commit()
+    return material.ingestion_version

@@ -63,6 +63,34 @@ not persisted as permanent scope) · `quizzes` (teacher-authored, subject-scoped
   and citation-attribution features, not just a nice-to-have.
 - Decide whether hybrid (dense+sparse) search is Phase 1 or deferred.
 
+## Walkthroughs (required after every completed task)
+At the end of every implementation, refactoring, bug-fix, review-response, or
+configuration task, create a concise learning/reference walkthrough for the
+completed conversation/session. Store it in `backend/Walkthrough/` as a Markdown
+file before handing the task back to the user. The walkthrough is part of the
+task deliverable, not an optional progress note.
+
+Use the phase and sequence already present in `backend/Walkthrough/`:
+
+- The main task that builds or implements a phase uses `.0` and a descriptive
+  scope: `Phase 1.0 Walkthrough — Authentication, Data Model, and Subject Access.md`.
+- Later fixes, refactors, or CodeRabbit/review follow-ups for that phase use the
+  next available sequence: `Phase 1.1 fixes Walkthrough.md`, then
+  `Phase 1.2 fixes Walkthrough.md`, and so on.
+- A new phase starts at `.0` (for example, `Phase 2.0 Walkthrough — <scope>.md`).
+- Before choosing a number, inspect the directory and continue the next
+  available sequence for the relevant phase. Do not overwrite an existing
+  walkthrough; retain existing historical naming even if it predates this `.0`
+  convention.
+
+Each walkthrough should help the user learn, revisit, or teach the work to
+someone else. At minimum, cover the task goal and outcome, important design or
+implementation decisions, the files/modules changed and why, tests or checks
+run with their results, notable pitfalls or lessons, and any follow-up work or
+known limitations. Link to relevant repository files with repository-relative
+paths when useful. Keep the explanation accurate to the work actually completed
+in that session; do not claim checks or changes that were not performed.
+
 ## Repo/monorepo conventions
 - `/frontend` — React + Vite
 - `/backend` — FastAPI, routes thin, logic in `app/services/`

@@ -59,6 +59,7 @@ def upgrade() -> None:
     sa.Column('file_type', sa.String(), nullable=False),
     sa.Column('storage_path', sa.String(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
+    sa.Column('ingestion_version', sa.Integer(), nullable=False, server_default=sa.text('0')),
     sa.Column('display_name', sa.String(), nullable=True),
     sa.Column('notes', sa.String(), nullable=True),
     sa.Column('uploaded_at', sa.DateTime(timezone=True), nullable=False),

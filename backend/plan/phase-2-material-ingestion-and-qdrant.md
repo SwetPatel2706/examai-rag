@@ -58,3 +58,15 @@ Turn teacher uploads into searchable, attributable chunks while keeping source f
 ## Exit criteria
 
 A teacher can upload approved material to a subject, see processing status, download the source securely, and obtain ready Qdrant chunks whose metadata can identify the source teacher and material. This phase is the minimum prerequisite for useful chat, AI quiz generation, and flashcards.
+
+## Implementation status
+
+Implemented in `app/services/ingestion/`, `app/services/material_ingestion_service.py`,
+`app/utils/storage.py`, `app/utils/qdrant_client.py`, and
+`app/routes/materials.py`. The manual verification account matrix and Swagger/
+curl walkthrough are maintained in [`backend/README.md`](../README.md).
+
+Automated verification currently covers real generated PDF, PPTX, and DOCX
+fixtures, source locators, chunk overlap, deterministic IDs, attribution,
+authorization boundaries, and stale-worker behavior. Run `cd backend &&
+PYTHONPATH=. ./venv/bin/pytest -q` before manual testing.

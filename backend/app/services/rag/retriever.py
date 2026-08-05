@@ -61,9 +61,13 @@ def build_context(chunks: list[RetrievedChunk], max_chars: int | None = None) ->
         if not text:
             continue
         item = f"[{chunk.number}] {text}"
-        remaining = max_chars - used
+        
+        separator_len = 2 if parts else 0
+        remaining = max_chars - used - separator_len
+        
         if remaining <= 0:
             break
+            
         parts.append(item[:remaining])
-        used += min(len(item), remaining)
+        used += separator_len + min(len(item), remaining)
     return "\n\n".join(parts)

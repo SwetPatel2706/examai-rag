@@ -23,7 +23,11 @@ class GeminiClient:
         self.model = model or settings.GEMINI_MODEL
         if client is None:
             from google import genai
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            from google.genai import types
+            client = genai.Client(
+                api_key=settings.GEMINI_API_KEY,
+                http_options=types.HttpOptions(timeout=settings.GEMINI_TIMEOUT_MS)
+            )
         self.client = client
 
     def generate_json(self, prompt: str, schema: type[T]) -> T:

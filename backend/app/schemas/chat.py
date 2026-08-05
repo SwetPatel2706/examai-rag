@@ -12,8 +12,8 @@ class ChatRequest(BaseModel):
     @classmethod
     def question_must_contain_text(cls, value: str) -> str:
         value = value.strip()
-        if not value:
-            raise ValueError("question must not be blank")
+        if len(value) < 3:
+            raise ValueError("question must be at least 3 characters long after trimming")
         return value
 
 

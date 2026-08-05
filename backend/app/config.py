@@ -100,6 +100,7 @@ class Settings(BaseSettings):
     # ── Gemini ────────────────────────────────────────────────────────────
     GEMINI_API_KEY: str
     GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_TIMEOUT_MS: int = Field(default=30000, ge=1000)
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":

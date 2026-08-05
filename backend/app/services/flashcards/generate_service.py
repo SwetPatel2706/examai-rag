@@ -7,7 +7,7 @@ from app.models.flashcard import Flashcard, FlashcardDeck
 from app.models.user import User
 from app.schemas.flashcard import FlashcardGenerationRequest, FlashcardLLMOutput
 from app.services.rag.retriever import MaterialRetriever, build_context
-from app.utils.gemini_client import GeminiClient
+from app.utils.gemini_client import GeminiClient, StructuredOutputError
 
 
 class FlashcardService:
@@ -24,19 +24,29 @@ class FlashcardService:
                   "Do not invent facts. Return JSON matching the schema.\n\nCONTEXT:\n" + context)
         try:
             output = self.llm.generate_json(prompt, FlashcardLLMOutput)
-        except Exception as exc:
+            if len(output.cards) != request.card_count:
+                raise StructuredOutputError(
+                    f"Expected {request.card_count} cards, got {len(output.cards)}",
+                    output.model_dump_json()
+                )
+        except StructuredOutputError as exc:
             bad_response = getattr(exc, "raw_response", "<response unavailable>")
             retry = prompt + (f"\n\nPrevious response validation error: {exc}\n"
                               f"Previous full response:\n{bad_response}\nReturn only valid JSON.")
             try:
                 output = self.llm.generate_json(retry, FlashcardLLMOutput)
-            except Exception as retry_exc:
+                if len(output.cards) != request.card_count:
+                    raise StructuredOutputError(
+                        f"Expected {request.card_count} cards, got {len(output.cards)}",
+                        output.model_dump_json()
+                    )
+            except StructuredOutputError as retry_exc:
                 raise HTTPException(status_code=502, detail="The flashcard service returned an invalid response.") from retry_exc
 
         deck = FlashcardDeck(student_id=user.id, subject_id=request.subject_id,
                              source_material_ids=[str(value) for value in request.material_ids],
                              title=request.title or "Generated flashcards")
-        deck.cards = [Flashcard(front=card.front, back=card.back, mastery_state="new") for card in output.cards[:request.card_count]]
+        deck.cards = [Flashcard(front=card.front, back=card.back, mastery_state="new") for card in output.cards]
         db.add(deck)
         db.commit()
         db.refresh(deck)

@@ -8,7 +8,7 @@ from app.models.user import User
 from app.schemas.chat import ChatLLMOutput, ChatResponse
 from app.services.rag.citation import resolve_citations
 from app.services.rag.retriever import MaterialRetriever, build_context
-from app.utils.gemini_client import GeminiClient
+from app.utils.gemini_client import GeminiClient, StructuredOutputError
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,16 @@ class ChatService:
         for attempt in range(2):
             try:
                 output = self.llm.generate_json(prompt, ChatLLMOutput)
-                markers = [marker for marker in output.source_markers if marker in {c.number for c in chunks}]
-                citations = resolve_citations(markers, chunks)
+                valid_markers = {c.number for c in chunks}
+                invalid_markers = [m for m in output.source_markers if m not in valid_markers]
+                if invalid_markers:
+                    raise StructuredOutputError(
+                        f"Output contains invalid source markers: {invalid_markers}",
+                        output.model_dump_json()
+                    )
+                citations = resolve_citations(output.source_markers, chunks)
                 return ChatResponse(answer_text=output.answer_text, citations=citations)
-            except Exception as exc:
+            except StructuredOutputError as exc:
                 last_error = exc
                 prompt = self._retry_prompt(question, context, exc)
                 logger.warning("RAG structured output attempt %s failed (%s)", attempt + 1, type(exc).__name__)

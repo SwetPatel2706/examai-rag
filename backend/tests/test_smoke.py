@@ -107,7 +107,6 @@ class TestStubEndpoints:
     """
 
     _STUBS = (
-        ("POST", "/api/chat"),
         ("GET",  "/api/quizzes"),
         ("GET",  "/api/flashcards"),
         ("GET",  "/api/analytics"),

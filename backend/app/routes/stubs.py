@@ -10,15 +10,6 @@ _NOT_IMPLEMENTED = "Not implemented yet in Phase 0"
 
 
 
-@router.post("/api/chat", response_model=StandardResponse, status_code=501)
-async def chat_stub(request: Request):
-    return StandardResponse.error_response(
-        code="NOT_IMPLEMENTED",
-        message=f"Chat endpoint — {_NOT_IMPLEMENTED}",
-        request_id=request.state.request_id,
-    )
-
-
 @router.get("/api/quizzes", response_model=StandardResponse, status_code=501)
 async def quizzes_stub(request: Request):
     return StandardResponse.error_response(

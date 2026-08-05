@@ -50,3 +50,23 @@ Implement one comparable quiz per topic/subject: teachers author questions manua
 ## Exit criteria
 
 A teacher can create a manual quiz, optionally generate and edit a draft, publish it, and see students take the same quiz. Students receive a server-calculated personal result; all attempt records are ready for Phase 5 analytics.
+
+# The following things were not created during planning but instead during implementation of Phase 4
+
+## Implementation status
+
+Implemented in `app/models/quiz.py`, `app/schemas/quiz.py`,
+`app/services/quiz/` (`manual_service.py`, `ai_generate_service.py`,
+`grading_service.py`), `app/routes/quizzes.py`, and the migration
+`migrations/versions/b8f4a1d9c2e7_phase_4_quiz_time_limit_and_unique_attempts.py`.
+The manual verification account matrix and curl/Swagger walkthrough are
+maintained in [`backend/README.md`](../README.md).
+
+Automated verification covers teacher create/update/delete/publish, malformed
+option validation, role and subject-membership authorization, student
+visibility (no `correct_option` leak), server-side grading, idempotent
+submission (service-level and DB-level), post-attempt immutability (409), and
+the AI draft-generation retry machinery. Run `cd backend && PYTHONPATH=.`
+`./venv/bin/pytest -q` before manual testing — 58 tests pass. A walkthrough of
+this phase lives in
+[`backend/Walkthrough/Phase 4.0 Walkthrough — Shared Teacher-Authored Quizzes.md`](../Walkthrough/Phase%204.0%20Walkthrough%20—%20Shared%20Teacher-Authored%20Quizzes.md).

@@ -83,13 +83,31 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     error_response = StandardResponse.error_response(
         code="VALIDATION_ERROR",
         message="Request validation failed.",
-        details=exc.errors(),
+        details=_json_safe_validation_errors(exc.errors()),
         request_id=request_id
     )
     return JSONResponse(
         status_code=422,
         content=error_response.model_dump()
     )
+
+
+def _json_safe_validation_errors(errors: list) -> list:
+    """Pydantic v2 embeds the original exception in each error's ``ctx``
+    (e.g. a ValueError raised by a model_validator). That object is not
+    JSON-serializable, so convert non-scalar ctx values to strings before
+    returning them in the 422 envelope."""
+    safe = []
+    for error in errors:
+        error = dict(error)
+        ctx = error.get("ctx")
+        if isinstance(ctx, dict):
+            error["ctx"] = {
+                key: (value if value is None or isinstance(value, (str, int, float, bool)) else str(value))
+                for key, value in ctx.items()
+            }
+        safe.append(error)
+    return safe
 
 
 # Shutdown hook — close shared httpx client used by StorageClient
@@ -100,10 +118,11 @@ async def _shutdown_storage_client():
 
 # Include routers
 app.include_router(health.router)
-from app.routes import auth, subjects, materials, stubs, chat, flashcards
+from app.routes import auth, subjects, materials, stubs, chat, flashcards, quizzes
 app.include_router(auth.router)
 app.include_router(subjects.router)
 app.include_router(materials.router)
 app.include_router(chat.router)
 app.include_router(flashcards.router)
+app.include_router(quizzes.router)
 app.include_router(stubs.router)

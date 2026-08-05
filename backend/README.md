@@ -89,3 +89,26 @@ To provision the Qdrant collection before the first upload, run:
 The source file remains in the private Supabase Storage bucket. Qdrant payloads
 contain the teacher, filename, material ID, chunk index, and page/slide/
 paragraph locator needed for later citations.
+
+# The following things were not created during planning but instead during implementation of Phase 4
+
+## Phase 4 manual verification
+
+The seed accounts above also drive the shared-quiz flow. With the API running,
+use a teacher account (`teacher1@examai.com`) to verify:
+
+1. `POST /api/quizzes` creates a manual draft quiz (with `questions`, each with
+   a `correct_option` that must match one of its `options`).
+2. `POST /api/quiz/generate` with a `subject_id`, ready `material_ids`, and
+   `topic` returns a draft question set **without inserting** it; malformed AI
+   output is retried once then rejected with a 502.
+3. `POST /api/quizzes/{quiz_id}/publish` transitions `draft` → `published`;
+   publishing again is idempotent.
+4. A student account sees only published quizzes for enrolled subjects, and
+   `GET /api/quizzes/{quiz_id}` never includes `correct_option` in the
+   student response.
+5. `POST /api/quiz-attempts` with `{quiz_id, answers}` grades server-side
+   (score, per-question feedback, weak topics); retrying the same payload
+   returns the same attempt (200, no duplicate row).
+6. After the first attempt, the teacher's `PATCH`/`DELETE` on that quiz return
+   409 (immutability guard).

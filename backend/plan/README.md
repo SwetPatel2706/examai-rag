@@ -1,6 +1,6 @@
 # ExamAI Backend Development Plan
 
-This folder is the implementation sequence for ExamAI. It is intentionally backend-led, but each phase includes the frontend contract work needed to replace the existing mock data safely.
+This folder is the implementation sequence for ExamAI. It is intentionally backend-led: feature phases publish and verify stable API contracts, while a dedicated phase performs the frontend-backend integration and replaces mock data.
 
 ## Current baseline
 
@@ -18,8 +18,9 @@ This folder is the implementation sequence for ExamAI. It is intentionally backe
 | 2 | `phase-2-material-ingestion-and-qdrant.md` | Teacher uploads, parsing/chunking/embedding, durable storage, and metadata-filtered Qdrant retrieval foundation |
 | 3 | `phase-3-rag-chat-and-flashcards.md` | Scoped RAG chat with attributable citations and student-owned flashcard generation/study APIs |
 | 4 | `phase-4-shared-quizzes.md` | Manual and AI-assisted teacher quiz authoring, publishing, attempts, grading, and student results |
-| 5 | `phase-5-analytics-and-frontend-integration.md` | Teacher analytics/progress and systematic replacement of frontend placeholders with real API calls |
-| 6 | `phase-6-hardening-deployment-and-demo-readiness.md` | End-to-end verification, security/performance hardening, deployment, backups, and demo-safe release |
+| 5 | `phase-5-analytics.md` | Teacher analytics and student progress read models from shared quiz attempts |
+| 6 | `phase-6-frontend-backend-integration.md` | Standalone replacement of frontend mocks with real API calls and end-to-end user journeys |
+| 7 | `phase-7-hardening-deployment-and-demo-readiness.md` | End-to-end verification, security/performance hardening, deployment, backups, and demo-safe release |
 
 The prerequisite checklist is in [`requirement.md`](requirement.md), ordered from implementation blockers to optional tools.
 
@@ -27,7 +28,7 @@ The prerequisite checklist is in [`requirement.md`](requirement.md), ordered fro
 
 Keep a stable conservative build ahead of each capstone deadline. The first usable vertical slice should be: login → subject/material visibility → teacher upload → ingestion status → student scoped chat with teacher/material citations. Quizzes and analytics follow as separate vertical slices so a failure in generative AI does not block the core platform demo.
 
-The phase documents use the same structure: what is already present, what is explicitly excluded from that phase, implementation work, contracts, verification, and exit criteria.
+The phase documents use the same structure: what is already present, what is explicitly excluded from that phase, implementation work, contracts, verification, and exit criteria. Feature phases may include their own frontend slices; Phase 6 owns the remaining cross-application integration and mock replacement work.
 
 ## Cross-phase non-negotiables
 

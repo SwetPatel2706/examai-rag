@@ -28,7 +28,7 @@ Implement one comparable quiz per topic/subject: teachers author questions manua
 5. Implement student list/detail of published quizzes for accessible subjects. Hide drafts and quizzes outside subject membership.  **Use separate response schemas for teachers and students**: the teacher/internal schema includes `correct_option`; the student-facing `GET /quizzes/{quiz_id}` response includes `question_text` and `options` but **must never include `correct_option`**.  Define a `QuizQuestionStudentOut` Pydantic model that omits `correct_option` and use it exclusively in student-facing serialisation paths.
 6. Implement attempt creation, answer validation, idempotent submit behavior, score calculation, weak-topic calculation, and own-result retrieval. Do not trust a client-supplied score.  **Idempotency contract**: enforce a `UNIQUE (quiz_id, student_id)` database constraint on `quiz_attempts` so a second insert from a client retry raises a conflict that the service catches and maps to the existing attempt (return 200 with the existing attempt rather than 409 or a duplicate row).  **Atomicity**: score calculation and the `submitted_at` update must occur within a single database transaction — a mid-flight crash must not leave a row with answers but no score, or a score without a submitted timestamp.
 7. Add duplicate-attempt policy (enforced by the uniqueness constraint above), timeout policy if a quiz has a time limit, and safe handling for submitted/expired attempts.  Add test coverage for: repeated submissions (same client, same answers), client retries after a simulated timeout (same idempotency semantics), and score recalculation if the endpoint is called twice.
-8. Replace quiz mocks with thin frontend API modules and wire create/edit, generation, publish, take, submit, and results flows.
+8. Finalize and contract-test the quiz API boundary for create/edit, generation, publish, take, submit, and results flows. Defer replacing quiz mocks and wiring screens to the standalone frontend-backend integration phase.
 
 ## Core API surface
 
@@ -45,7 +45,7 @@ Implement one comparable quiz per topic/subject: teachers author questions manua
 - Scores, correct answers, and weak topics are computed server-side.
 - AI-generated questions validate against the schema; malformed output is retried or rejected as a draft-generation error.
 - A student result contains only that student's score, answers/result feedback, and weak topics.
-- Teacher and student frontend flows work without the mock arrays or navigation-state-only result shortcut.
+- The quiz APIs support complete teacher and student flows with stable response/error contracts. Frontend wiring and removal of mock arrays/navigation shortcuts are verified in the standalone integration phase.
 
 ## Exit criteria
 

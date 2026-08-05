@@ -6,3 +6,4 @@
 backend/requirements.txt: Pinned constraints file / pip-audit CI workflow
 Deferred. This requires a full dependency audit and pinning exercise plus CI workflow creation — not a minimal code fix. No .github/ or CI files exist to update yet. Will document as a note.
 
+Server-side time_limit enforcement — Requires a new started_at model field, a new migration, and a "start quiz" endpoint. This is a structural addition that belongs in its own task, not a minimal fix.

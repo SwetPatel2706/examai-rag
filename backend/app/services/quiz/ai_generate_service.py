@@ -40,7 +40,13 @@ class AIQuizGenerateService:
         prompt = self._prompt(request, context)
         for attempt in range(2):
             try:
-                output = self.llm.generate_json(prompt, QuizQuestionLLMOutput)
+                try:
+                    output = self.llm.generate_json(prompt, QuizQuestionLLMOutput)
+                except Exception as exc:
+                    if isinstance(exc, StructuredOutputError):
+                        raise
+                    raise StructuredOutputError(f"API Error: {exc}", "") from exc
+                
                 if len(output.questions) != request.question_count:
                     raise StructuredOutputError(
                         f"Expected {request.question_count} questions, got {len(output.questions)}",

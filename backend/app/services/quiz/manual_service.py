@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.quiz import Quiz, QuizAttempt, QuizQuestion
 from app.models.user import User
@@ -52,6 +52,7 @@ def list_teacher_quizzes(db: Session, user: User) -> list[Quiz]:
         return []
     return (
         db.query(Quiz)
+        .options(joinedload(Quiz.questions), joinedload(Quiz.teacher))
         .filter(Quiz.subject_id.in_(subject_ids))
         .order_by(Quiz.created_at.desc())
         .all()
@@ -64,6 +65,7 @@ def list_student_quizzes(db: Session, user: User) -> list[Quiz]:
         return []
     return (
         db.query(Quiz)
+        .options(joinedload(Quiz.questions), joinedload(Quiz.teacher))
         .filter(Quiz.subject_id.in_(subject_ids), Quiz.status == "published")
         .order_by(Quiz.created_at.desc())
         .all()
@@ -115,7 +117,7 @@ def update_draft(db: Session, user: User, quiz_id: UUID, request: QuizUpdateRequ
         quiz.topic = update_data["topic"]
     if "time_limit_seconds" in update_data:
         quiz.time_limit_seconds = update_data["time_limit_seconds"]
-    if "questions" in update_data:
+    if "questions" in update_data and request.questions is not None:
         quiz.questions.clear()
         quiz.questions = [QuizQuestion(**question.model_dump()) for question in request.questions]
     db.add(quiz)

@@ -28,6 +28,14 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     op.add_column('quizzes', sa.Column('time_limit_seconds', sa.Integer(), nullable=True))
+    op.execute("""
+        DELETE FROM quiz_attempts
+        WHERE id NOT IN (
+            SELECT DISTINCT ON (quiz_id, student_id) id
+            FROM quiz_attempts
+            ORDER BY quiz_id, student_id, submitted_at DESC
+        )
+    """)
     op.create_unique_constraint(
         'uq_quiz_attempt_student', 'quiz_attempts', ['quiz_id', 'student_id']
     )

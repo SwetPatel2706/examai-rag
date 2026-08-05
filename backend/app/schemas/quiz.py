@@ -13,18 +13,23 @@ MIN_OPTIONS = 2
 MAX_OPTIONS = 8
 
 
-def validate_question_shape(options: list[str], correct_option: str) -> None:
-    """Shared validation for manual input and AI structured output."""
-    if len(options) < MIN_OPTIONS:
+def validate_question_shape(options: list[str], correct_option: str) -> tuple[list[str], str]:
+    """Shared validation for manual input and AI structured output.
+    Returns (normalized_options, normalized_correct_option) with whitespace
+    stripped so downstream storage and grading use clean values."""
+    normalized_options = [str(option).strip() for option in options]
+    normalized_correct = correct_option.strip()
+    if len(normalized_options) < MIN_OPTIONS:
         raise ValueError(f"Each question must have at least {MIN_OPTIONS} options")
-    if len(options) > MAX_OPTIONS:
+    if len(normalized_options) > MAX_OPTIONS:
         raise ValueError(f"Each question can have at most {MAX_OPTIONS} options")
-    if any(not str(option).strip() for option in options):
+    if any(not option for option in normalized_options):
         raise ValueError("Options cannot be blank")
-    if len({str(option).strip() for option in options}) != len(options):
+    if len(set(normalized_options)) != len(normalized_options):
         raise ValueError("Options must be unique")
-    if correct_option not in options:
+    if normalized_correct not in normalized_options:
         raise ValueError("correct_option must be one of the options")
+    return normalized_options, normalized_correct
 
 
 class QuizQuestionInput(BaseModel):
@@ -39,7 +44,7 @@ class QuizQuestionInput(BaseModel):
 
     @model_validator(mode="after")
     def validate_correct_option_in_options(self) -> "QuizQuestionInput":
-        validate_question_shape(self.options, self.correct_option)
+        self.options, self.correct_option = validate_question_shape(self.options, self.correct_option)
         return self
 
 
@@ -75,7 +80,7 @@ class QuizQuestionLLMItem(BaseModel):
 
     @model_validator(mode="after")
     def validate_correct_option_in_options(self) -> "QuizQuestionLLMItem":
-        validate_question_shape(self.options, self.correct_option)
+        self.options, self.correct_option = validate_question_shape(self.options, self.correct_option)
         return self
 
 

@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
@@ -14,7 +15,7 @@ from app.main import app
 from app.models.user import User
 from app.models.subject import Subject, SubjectTeacher, StudentSubject
 from app.models.quiz import Quiz, QuizAttempt, QuizQuestion
-from app.schemas.quiz import QuizQuestionLLMItem, QuizQuestionLLMOutput
+from app.schemas.quiz import QuizGenerateRequest, QuizQuestionLLMItem, QuizQuestionLLMOutput
 from app.services.quiz.ai_generate_service import AIQuizGenerateService
 from app.services.rag.retriever import RetrievedChunk, authorize_materials
 
@@ -577,7 +578,7 @@ def test_ai_generate_returns_draft_without_inserting(ctx):
         llm=FakeLLM([_llm_items(3)]),
     )
 
-    request = type("Req", (), {"subject_id": users["subject"].id, "material_ids": [uuid.uuid4()], "topic": "Kinematics", "question_count": 3})()
+    request = QuizGenerateRequest(subject_id=users["subject"].id, material_ids=[uuid.uuid4()], topic="Kinematics", question_count=3)
     questions = service.generate_draft(db, users["teacher"], request)
 
     assert len(questions) == 3
@@ -594,7 +595,7 @@ def test_ai_generate_retries_on_malformed_output(ctx):
     llm = FakeLLM([_llm_items(1), _llm_items(3)])  # first call wrong count
     service = AIQuizGenerateService(retriever=FakeRetriever(chunks), llm=llm)
 
-    request = type("Req", (), {"subject_id": users["subject"].id, "material_ids": [uuid.uuid4()], "topic": "Kinematics", "question_count": 3})()
+    request = QuizGenerateRequest(subject_id=users["subject"].id, material_ids=[uuid.uuid4()], topic="Kinematics", question_count=3)
     questions = service.generate_draft(db, users["teacher"], request)
 
     assert llm.calls == 2  # error-aware retry fired
@@ -609,8 +610,8 @@ def test_ai_generate_rejects_invalid_output_after_retries(ctx):
     llm = FakeLLM([_llm_items(1), _llm_items(2)])
     service = AIQuizGenerateService(retriever=FakeRetriever(chunks), llm=llm)
 
-    request = type("Req", (), {"subject_id": users["subject"].id, "material_ids": [uuid.uuid4()], "topic": "Kinematics", "question_count": 3})()
-    with pytest.raises(Exception) as excinfo:
+    request = QuizGenerateRequest(subject_id=users["subject"].id, material_ids=[uuid.uuid4()], topic="Kinematics", question_count=3)
+    with pytest.raises(HTTPException) as excinfo:
         service.generate_draft(db, users["teacher"], request)
     assert excinfo.value.status_code == 502
 

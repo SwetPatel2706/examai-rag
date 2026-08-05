@@ -41,10 +41,11 @@ def compute_weak_topics(question_map: dict[str, QuizQuestion], answers: dict[str
     for question_id, question in question_map.items():
         if not question.topic_tag:
             continue
-        stats = by_topic.setdefault(question.topic_tag, {"correct": 0, "total": 0})
-        stats["total"] += 1
-        if answers.get(question_id) == question.correct_option:
-            stats["correct"] += 1
+        if question_id in answers:
+            stats = by_topic.setdefault(question.topic_tag, {"correct": 0, "total": 0})
+            stats["total"] += 1
+            if answers[question_id] == question.correct_option:
+                stats["correct"] += 1
 
     weak_topics = []
     for topic, stats in by_topic.items():

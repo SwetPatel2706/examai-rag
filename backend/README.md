@@ -112,3 +112,37 @@ use a teacher account (`teacher1@examai.com`) to verify:
    returns the same attempt (200, no duplicate row).
 6. After the first attempt, the teacher's `PATCH`/`DELETE` on that quiz return
    409 (immutability guard).
+
+# Phase 5 manual verification (Teacher Analytics and Student Progress)
+
+Phase 5 adds teacher reporting read models on top of real shared-quiz attempts
+(no schema changes). It does **not** wire the frontend — Phase 6 owns that.
+
+With the API running, verify with the seed accounts:
+
+1. `GET /api/analytics?quiz_id={published_quiz_id}` returns question accuracy,
+   grade distribution (A/B/C/D/F with counts + percentages), weak topics below
+   the configured threshold, `class_size`, `completion_pct`, and `avg_score`.
+   With zero attempts the payload has `empty: true`, `avg_score: null`, and all
+   band counts at 0.
+2. `GET /api/student-progress` returns the per-student roster (avg score,
+   completion ratio, last active, `assessed`, `at_risk`). Filter with
+   `?subject_id={id}`.
+3. `GET /api/student-progress/{student_id}` returns drill-down including the
+   per-quiz history. A teacher who does not teach the student's subjects gets
+   403, not 404.
+4. `GET /api/teacher/dashboard-stats` returns `active_students`,
+   `subject_materials` (ready only), `quizzes_created` (draft + published),
+   `avg_section_score`, grade distribution, and the 10 most recent attempts
+   with per-student `at_risk` flags.
+5. `GET /api/students/me/stats`, `GET /api/students/me/subjects` (teachers +
+   progress per subject card), and `GET /api/teachers/me/subjects` (subject
+   tabs) return the dashboard contracts.
+6. `GET /api/students/me/materials` supports `page`/`size`/`subject_id`/
+   `teacher_id`/`search`, returns only `ready` materials from enrolled
+   subjects, and attaches `teacher_name` so a student knows who to contact.
+
+At-risk policy (configurable via env): `at_risk = assessed AND (avg_score <
+AT_RISK_MIN_AVG_SCORE OR completion_pct < AT_RISK_MIN_COMPLETION_PCT)`, where
+`assessed` requires at least one attempt in scope; zero-attempt students are
+never flagged. Weak-topic threshold: `WEAK_TOPIC_ACCURACY_THRESHOLD` (default 70).

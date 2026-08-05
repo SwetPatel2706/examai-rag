@@ -97,6 +97,17 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = Field(default=5, ge=1, le=20)
     RAG_MAX_CONTEXT_CHARS: int = Field(default=18000, ge=1000, le=100000)
 
+    # ── Analytics policies (documented, tunable after demo data) ───────────
+    # At-risk rule: a student is assessed once they have at least one attempt
+    # in scope; at-risk = assessed AND (avg_score < AT_RISK_MIN_AVG_SCORE OR
+    # completion_pct < AT_RISK_MIN_COMPLETION_PCT). Zero-attempt students are
+    # never flagged.
+    AT_RISK_MIN_AVG_SCORE: int = Field(default=60, ge=0, le=100)
+    AT_RISK_MIN_COMPLETION_PCT: int = Field(default=50, ge=0, le=100)
+    # Class-level weak-topic rule: a topic is "weak" when its aggregate
+    # accuracy across attempts is below this threshold.
+    WEAK_TOPIC_ACCURACY_THRESHOLD: int = Field(default=70, ge=0, le=100)
+
     # ── Gemini ────────────────────────────────────────────────────────────
     GEMINI_API_KEY: str
     GEMINI_MODEL: str = "gemini-2.5-flash"

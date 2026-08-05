@@ -17,12 +17,3 @@ async def flashcards_stub(request: Request):
         message=f"Flashcards endpoint — {_NOT_IMPLEMENTED}",
         request_id=request.state.request_id,
     )
-
-
-@router.get("/api/analytics", response_model=StandardResponse, status_code=501)
-async def analytics_stub(request: Request):
-    return StandardResponse.error_response(
-        code="NOT_IMPLEMENTED",
-        message=f"Analytics endpoint — {_NOT_IMPLEMENTED}",
-        request_id=request.state.request_id,
-    )

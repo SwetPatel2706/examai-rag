@@ -9,10 +9,17 @@ from typing import Optional, Tuple, List
 from app.models.user import User
 from app.models.material import Material
 from app.services.subject_service import check_subject_access, get_user_subjects
-from app.schemas.material import MaterialUpdateRequest
+from app.schemas.material import MaterialResponse, MaterialUpdateRequest
 
 class MaterialNotFoundError(Exception):
     pass
+
+def serialize_material(material: Material) -> MaterialResponse:
+    """Serialize a material including owner attribution (`teacher_name`)."""
+    data = MaterialResponse.model_validate(material)
+    if getattr(material, "teacher", None) is not None and material.teacher.name:
+        data.teacher_name = material.teacher.name
+    return data
 
 def get_materials(
     db: Session,

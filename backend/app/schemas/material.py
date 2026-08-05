@@ -9,6 +9,10 @@ class MaterialResponse(BaseModel):
     id: UUID
     subject_id: UUID
     teacher_id: UUID
+    # Owner attribution: populated when the serialiser has access to the
+    # material's teacher (used by student-facing list endpoints so a student
+    # knows who to contact with doubts).
+    teacher_name: Optional[str] = None
     filename: str
     file_type: str
     status: str

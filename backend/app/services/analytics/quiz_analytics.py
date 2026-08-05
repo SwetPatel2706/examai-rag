@@ -38,7 +38,7 @@ def _grade_band(score: int) -> str:
     return "F"
 
 
-def _grade_distribution(scores: list[int]) -> list[GradeBandOut]:
+def get_grade_distribution(scores: list[int]) -> list[GradeBandOut]:
     total = len(scores)
     counts = Counter(_grade_band(score) for score in scores)
     bands = []
@@ -114,7 +114,7 @@ def get_quiz_analytics(db: Session, user: User, quiz_id: UUID) -> QuizAnalyticsO
         attempt_count=attempt_count,
         completion_pct=completion_pct,
         avg_score=avg_score,
-        grade_distribution=_grade_distribution(scores),
+        grade_distribution=get_grade_distribution(scores),
         question_accuracy=question_accuracy,
         weak_topics=weak_topics,
         empty=empty,

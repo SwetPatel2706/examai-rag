@@ -19,7 +19,7 @@ from app.schemas.analytics import (
     TeacherDashboardStatsOut,
     TeacherSubjectOut,
 )
-from app.services.analytics.quiz_analytics import GRADE_BANDS, _grade_distribution
+from app.services.analytics.quiz_analytics import GRADE_BANDS, get_grade_distribution
 from app.services.analytics.student_progress import at_risk_map
 from app.services.material_service import serialize_material
 from app.services.subject_service import get_user_subjects
@@ -27,16 +27,17 @@ from app.services.subject_service import get_user_subjects
 _RECENT_ACTIVITY_LIMIT = 10
 
 _BAND_CASE = case(
-    (QuizAttempt.score >= 90, "A"),
-    (QuizAttempt.score >= 80, "B"),
-    (QuizAttempt.score >= 70, "C"),
-    (QuizAttempt.score >= 60, "D"),
+    *[
+        (QuizAttempt.score >= low, band)
+        for band, low, high in GRADE_BANDS
+        if band != "F"
+    ],
     else_="F",
 )
 
 
 def _empty_bands() -> list[GradeBandOut]:
-    return _grade_distribution([])
+    return get_grade_distribution([])
 
 
 def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStatsOut:
@@ -113,16 +114,17 @@ def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStat
             student_id=attempt.student_id,
             student_name=attempt.student.name if attempt.student else "Unknown",
             quiz_id=attempt.quiz_id,
-            quiz_title=attempt.quiz.topic if attempt.quiz else "Unknown",
-            subject_id=attempt.quiz.subject_id if attempt.quiz else attempt.quiz_id,
+            quiz_title=attempt.quiz.topic,
+            subject_id=attempt.quiz.subject_id,
             subject_name=(
-                attempt.quiz.subject.name if attempt.quiz and attempt.quiz.subject else None
+                attempt.quiz.subject.name if attempt.quiz.subject else None
             ),
             score=attempt.score,
             submitted_at=attempt.submitted_at,
             at_risk=at_risk_flags.get(attempt.student_id, False),
         )
         for attempt in recent
+        if attempt.quiz is not None
     ]
 
     return TeacherDashboardStatsOut(

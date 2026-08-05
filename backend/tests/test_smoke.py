@@ -108,7 +108,6 @@ class TestStubEndpoints:
 
     _STUBS = (
         ("GET",  "/api/flashcards"),
-        ("GET",  "/api/analytics"),
     )
 
     @pytest.mark.parametrize("method,path", _STUBS)

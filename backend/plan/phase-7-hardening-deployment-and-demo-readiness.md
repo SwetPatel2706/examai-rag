@@ -1,4 +1,4 @@
-# Phase 6 — Hardening, Deployment, and Demo Readiness
+# Phase 7 — Hardening, Deployment, and Demo Readiness
 
 ## Goal
 
@@ -7,12 +7,12 @@ Turn the integrated build into a repeatable, safe release for the capstone demos
 ## Already done
 
 - The target deployment platform is Render.com and the core external services are selected.
-- Earlier phases define ownership, role gates, source attribution, error envelopes, and service boundaries that can now be tested end to end.
+- Earlier phases define ownership, role gates, source attribution, error envelopes, service boundaries, and frontend integration behavior.
 - The root guide provides milestone dates and requires a conservative stable version ahead of each deadline.
 
 ## Not to be done in this phase
 
-- Do not expand Phase 1–3 scope with student-generated quizzes, messaging, planner, PYQ analysis, admin, or telemetry.
+- Do not expand scope with student-generated quizzes, messaging, planner, PYQ analysis, admin, or telemetry.
 - Do not make destructive schema/vector changes on the demo environment without a backup and rollback plan.
 - Do not log access tokens, service keys, raw private files, or unrestricted personal data in production.
 - Do not rely on a live internet demo with no seeded fallback data or documented recovery path.

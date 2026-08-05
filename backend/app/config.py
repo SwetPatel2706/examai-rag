@@ -95,6 +95,7 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     # ge=1: at least one result; le=20: avoid runaway context windows.
     RAG_TOP_K: int = Field(default=5, ge=1, le=20)
+    RAG_MAX_CONTEXT_CHARS: int = Field(default=18000, ge=1000, le=100000)
 
     # ── Gemini ────────────────────────────────────────────────────────────
     GEMINI_API_KEY: str

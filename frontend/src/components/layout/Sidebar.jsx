@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import useAuthStore from '@/store/authStore';
+import { logout } from '@/api/auth';
 
 /**
  * @param {{ items: Array<{icon: string, label: string, to: string}>, bottomItems?: Array<{icon: string, label: string, to?: string, onClick?: fn}>, open?: boolean, onOpenChange?: (open: boolean) => void, mobileMenuButtonRef?: React.RefObject<HTMLButtonElement> }} props
@@ -29,7 +30,12 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
   const displayRole = role === 'teacher' ? 'Professor View' : 'Student View';
   const initials = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await logout(); // best-effort remote revocation
+    } catch {
+      // ignore — local session is cleared regardless
+    }
     clearAuth();
     navigate('/login', { replace: true });
   }

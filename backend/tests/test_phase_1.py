@@ -154,6 +154,45 @@ def test_materials_query_and_metadata_editing(db_session):
     assert res.json()["data"]["notes"] == "New Notes"
 
 
+def test_materials_include_teacher_attribution(db_session):
+    client = TestClient(app)
+
+    teacher = User(id=uuid.uuid4(), email="owner@examai.com", role="teacher", name="Dr. Owner")
+    student = User(id=uuid.uuid4(), email="s@examai.com", role="student", name="Student")
+    db_session.add_all([teacher, student])
+    db_session.commit()
+
+    subject = Subject(name="Physics")
+    db_session.add(subject)
+    db_session.commit()
+    db_session.add(SubjectTeacher(subject_id=subject.id, teacher_id=teacher.id))
+    db_session.add(StudentSubject(subject_id=subject.id, student_id=student.id))
+    db_session.commit()
+
+    m1 = Material(
+        id=uuid.uuid4(),
+        subject_id=subject.id,
+        teacher_id=teacher.id,
+        filename="notes.pdf",
+        file_type="pdf",
+        storage_path="path/notes.pdf",
+        status="ready",
+    )
+    db_session.add(m1)
+    db_session.commit()
+
+    # Student sees the owner's name on both the list and detail endpoints.
+    mock_auth(student)
+    res = client.get(f"/api/materials?subject_id={subject.id}")
+    assert res.status_code == 200
+    items = res.json()["data"]["items"]
+    assert items[0]["teacher_name"] == "Dr. Owner"
+
+    res = client.get(f"/api/materials/{m1.id}")
+    assert res.status_code == 200
+    assert res.json()["data"]["teacher_name"] == "Dr. Owner"
+
+
 def test_material_status_transitions(db_session):
     # 1. Create a processing material
     m = Material(

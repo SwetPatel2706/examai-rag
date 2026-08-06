@@ -1,50 +1,53 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-
-// --- Mock data (replace with GET /flashcard-decks/:id/cards when backend is ready) ---
-const MOCK_DECKS = {
-  fd1: {
-    title: 'Data Structures Essentials',
-    cards: [
-      { id: 'c1', front: 'What is Big-O notation?', back: 'A mathematical notation describing the upper bound of an algorithm\'s time or space complexity as input grows.' },
-      { id: 'c2', front: 'Define a Stack.', back: 'A linear data structure following LIFO (Last In, First Out) order. Push adds to top, Pop removes from top.' },
-      { id: 'c3', front: 'What is a Binary Search Tree (BST)?', back: 'A tree where each node has at most two children, left subtree values < node, right subtree values > node. Search: O(log n) average.' },
-    ],
-  },
-  fd2: {
-    title: 'Macroeconomics Key Terms',
-    cards: [
-      { id: 'c4', front: 'What is GDP?', back: 'Gross Domestic Product — the total monetary value of all goods and services produced within a country\'s borders in a specific time period.' },
-      { id: 'c5', front: 'Define Inflation.', back: 'The rate at which the general level of prices for goods and services rises, eroding purchasing power.' },
-    ],
-  },
-};
+import { LoadingState, ErrorState } from '@/components/ui/states';
+import { getDeck, updateCardMastery } from '@/api/flashcards';
+import { useApi } from '@/lib/useApi';
 
 // No sidebar — minimal chrome per agents.md spec for flashcard study focus
 export default function FlashcardStudy() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const deck = MOCK_DECKS[id];
+
+  const { data: deck, loading, error, reload } = useApi(() => getDeck(id), [id]);
 
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [results, setResults] = useState([]); // 'got_it' | 'still_learning'
 
-  if (!deck) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <p className="text-on-surface-variant">Deck not found.</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <LoadingState label="Loading deck…" />
       </div>
     );
   }
 
-  const cards = deck.cards;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center px-sp-md">
+        <ErrorState message={error.message} onRetry={reload} />
+      </div>
+    );
+  }
+
+  const cards = deck?.cards || [];
   const card = cards[index];
   const isDone = index >= cards.length;
   const gotItCount = results.filter((r) => r === 'got_it').length;
 
+  // Self-assessment → backend mastery_state; best-effort, never blocks the session.
+  async function persistMastery(cardId, result) {
+    try {
+      await updateCardMastery(cardId, result === 'got_it' ? 'mastered' : 'learning');
+    } catch {
+      // ignore — mastery is advisory, the local session still advances
+    }
+  }
+
   function grade(result) {
+    if (card) persistMastery(card.id, result);
     setResults((prev) => [...prev, result]);
     setFlipped(false);
     setIndex((i) => i + 1);
@@ -65,7 +68,7 @@ export default function FlashcardStudy() {
           className="flex items-center gap-2 text-secondary font-label-md text-label-md hover:text-primary transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          {deck.title}
+          {deck?.title}
         </button>
         <span className="font-label-md text-label-md text-secondary">
           {isDone ? `${cards.length} / ${cards.length}` : `${index + 1} / ${cards.length}`}
@@ -80,7 +83,18 @@ export default function FlashcardStudy() {
         />
       </div>
 
-      {isDone ? (
+      {cards.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center p-sp-lg">
+          <h2 className="font-headline-md text-headline-md text-on-background">This deck has no cards</h2>
+          <p className="font-body-md text-body-md text-secondary">Try generating a new deck from your selected materials.</p>
+          <button
+            onClick={() => navigate('/student/flashcards')}
+            className="mt-2 h-12 px-8 rounded-2xl bg-primary text-on-primary font-label-md text-label-md"
+          >
+            Back to Decks
+          </button>
+        </div>
+      ) : isDone ? (
         /* Session complete */
         <div className="flex-1 flex flex-col items-center justify-center gap-sp-xl text-center p-sp-lg">
           <div className="w-24 h-24 rounded-full bg-tertiary-fixed/30 flex items-center justify-center">

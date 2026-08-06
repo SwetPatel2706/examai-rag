@@ -1,128 +1,147 @@
 # Frontend Placeholder & Mock Data Register
 
-All mock data is clearly marked with `// --- Mock data (replace with ...)` comments inline.
-This file gives a central view of every placeholder, what it stands in for, and the expected backend contract.
+Status legend:
+
+- **Resolved** — the placeholder was removed; the screen now calls the real backend API listed.
+- **Design-only** — intentional constraint per `agents.md`, not a placeholder to build later.
+- **Deferred** — acknowledged gap kept as-is for a specific reason (usually an API limitation).
+
+The old inline `// --- Mock data (replace with ...)` blocks have been removed from every
+connected screen. All real calls go through `src/api/` thin wrappers that unwrap the
+`StandardResponse` envelope and map snake_case → camelCase.
 
 ---
 
 ## Authentication
 
-| File | Placeholder | Why | Backend replacement |
-|------|-------------|-----|---------------------|
-| `Login.jsx` | Static role toggle + hardcoded redirect | Auth not yet integrated | `POST /auth/login` → JWT → set `authStore` |
-| `Sidebar.jsx` | `user.name` falls back to `"Student"/"Professor"` if store is empty | `authStore` not populated pre-login | Populate `authStore.setAuth()` after login response |
+| File | Placeholder | Status | Backend replacement |
+|------|-------------|--------|---------------------|
+| `Login.jsx` | Static role toggle + hardcoded redirect | **Resolved** | `POST /api/auth/login` → `{ access_token, user }` → `authStore.setAuth()`; role-based redirect honoring `location.state.from` |
+| `Sidebar.jsx` | `user.name` fallback to "Student"/"Professor" | **Resolved** | Populated from `authStore.user.name` after login; logout calls `POST /api/auth/logout` (best-effort) then clears local state |
+| `App.jsx` | No route guards | **Resolved** | `RequireAuth` + `RequireRole` guards, `SessionBootstrap` revalidates via `GET /api/auth/me`, `/login` redirects already-authenticated users |
 
 ---
 
 ## Student Pages
 
 ### StudentDashboard
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `QUICK_STATS` (12 quizzes, 4 weak topics, 85%) | No attempt data yet | `GET /students/me/stats` |
-| `SUBJECTS` (3 hardcoded subjects) | No enrollment API yet | `GET /students/me/subjects` |
-| Subject card banners use a gradient + icon (no image) | External AIDA images removed (privacy/stability) | Could use subject thumbnail from backend or keep gradient |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `QUICK_STATS` | **Resolved** | `GET /api/students/me/stats` |
+| `SUBJECTS` (hardcoded) | **Resolved** | `GET /api/students/me/subjects` |
+| Subject card gradient + icon (no image) | **Design-only** | AIDA images removed for privacy/stability; gradient is the final design |
 
 ### SubjectOverview
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `MOCK_SUBJECT['s1']` object | No `/subjects/:id` endpoint yet | `GET /subjects/:id` (teachers, materials by teacher, quizzes) |
-| Only `s1` has data; other IDs get a fallback | Multi-subject mock was too verbose | Will resolve once real API is wired |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `MOCK_SUBJECT['s1']` object | **Resolved** | `GET /api/subjects/:id` + `GET /api/subjects/:id/materials` + `GET /api/quizzes` + `GET /api/students/me/attempts` (per-quiz status/score) |
 
 ### Chat
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `SUBJECTS_LIST` + `MATERIALS_BY_SUBJECT` | No API | `GET /subjects` + `GET /subjects/:id/materials` |
-| `buildMockResponse()` — simulated AI reply with ~900ms delay | Backend RAG not connected | `POST /api/chat` `{ subject_id, message, material_ids: [...] }` → `{ text, citations: [{num, teacherName, materialFilename, materialId}] }` |
-| Citation objects are **fully wired** into the UI — tooltip, numbered markers, citation list below message — will work as-is once real API returns them | — | — |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `SUBJECTS_LIST` + `MATERIALS_BY_SUBJECT` | **Resolved** | `GET /api/subjects` + `GET /api/subjects/:id/materials?status=ready` |
+| `buildMockResponse()` (~900ms delay) | **Resolved** | `POST /api/chat` `{ subject_id, selected_material_ids, question }` → `{ answer_text, citations:[{num, teacher_name, material_filename, material_id, source_locator}] }` |
+| Citation tooltip/numbered-marker UI | **Resolved** | Consumes real citations as-is (client maps to `{num, teacherName, materialFilename}`) |
 
 ### Quizzes
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `QUIZZES` array (4 quizzes, mixed statuses) | No quiz API | `GET /quizzes?role=student` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `QUIZZES` array | **Resolved** | `GET /api/quizzes` (role-aware; student sees published only) + `GET /api/students/me/subjects` for names + `GET /api/students/me/attempts` for per-quiz status/score |
 
 ### QuizTaking
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `MOCK_QUIZZES` with question arrays | No quiz API | `GET /quizzes/:id` (questions, time limit) |
-| Timer submits to `QuizResults` via `useNavigate(state)` — this is real behaviour, not mock | — | On submit: `POST /quiz-attempts { quiz_id, answers }` then navigate to results |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `MOCK_QUIZZES` | **Resolved** | `GET /api/quizzes/:id` (student variant — no correct answers leak) |
+| Timer → navigate results | **Resolved** | `POST /api/quiz-attempts` (answers as option **text** keyed by question id; idempotent) → navigate with graded attempt in `location.state` |
 
 ### QuizResults
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `MOCK_RESULTS['q1']` | No attempts API | `GET /quiz-attempts/:id` or compute from `POST /quiz-attempts` response |
-| Prefers `location.state` (live answers from QuizTaking) over mock — so once QuizTaking POSTs to backend, results can come from the API response directly | — | — |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `MOCK_RESULTS['q1']` | **Resolved** | Graded attempt from `POST /api/quiz-attempts` response, or `GET /api/students/me/attempts?quiz_id=X` fallback when arriving via deep link |
 
 ### FlashcardDecks
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `DECKS` array | No flashcard API | `GET /flashcard-decks` |
-| `ALL_MATERIALS_BY_TEACHER` | Co-located with page for now | `GET /subjects/:id/materials` (same as Chat) |
-| `handleGenerate()` sets a 1s timeout and navigates to `fd1` | Backend deck generation not wired | `POST /flashcard-decks { material_ids }` → `{ deck_id }` → navigate to `/student/flashcards/:deck_id/study` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `DECKS` array | **Resolved** | `GET /api/flashcard-decks` (cards included; mastered count computed client-side) |
+| `ALL_MATERIALS_BY_TEACHER` | **Resolved** | `GET /api/students/me/subjects` + `GET /api/subjects/:id/materials` in the generate dialog, grouped by teacher |
+| 1s timeout + navigate to `fd1` | **Resolved** | `POST /api/flashcard-decks` `{ subject_id, material_ids, title, card_count }` → navigate to returned deck |
 
 ### FlashcardStudy
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `MOCK_DECKS` with hardcoded cards | No flashcard card API | `GET /flashcard-decks/:id/cards` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `MOCK_DECKS` hardcoded cards | **Resolved** | `GET /api/flashcard-decks/:id` (includes cards) |
+| Self-assessment is UI-only | **Resolved** | `PATCH /api/flashcards/:id` `{ mastery_state }` (best-effort, never blocks the session) |
 
 ### StudentMaterials (Resources)
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `COURSE_FILTERS` (All + 4 courses) | No cross-subject materials API | Derived from `GET /students/me/subjects` |
-| `TEACHERS` (3 teachers) | No teacher roster per student | `GET /students/me/subjects` → teachers per subject |
-| `RECENTLY_ACCESSED` (4 items) | No access-history API | `GET /students/me/materials/recent` |
-| `ALL_MATERIALS` (10 rows; `TOTAL_MATERIALS = 24`) | No paginated materials API | `GET /students/me/materials?page=X&course=Y&teacher=Z&q=…` |
-| Search / course / teacher filters are client-side only | Backend filtering not wired | Same query params on materials endpoint |
-| Download / more-actions buttons are UI-only | No signed download URLs yet | `GET /materials/:id/download` |
-| One row uses external avatar URL (`ownerAvatarUrl`) | Demo co-teacher/student attribution | Owner avatar from `GET /users/:id` or omit |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `COURSE_FILTERS` | **Resolved** | Derived from `GET /api/students/me/subjects` |
+| `TEACHERS` | **Resolved** | Distinct teachers across `GET /api/students/me/subjects` |
+| `RECENTLY_ACCESSED` | **Resolved** | `GET /api/students/me/stats` → `recent_materials` (rename: no access-history API; shows "Recently Added") |
+| `ALL_MATERIALS` + `TOTAL_MATERIALS` | **Resolved** | `GET /api/students/me/materials?subject_id&search&size=100` |
+| Search / course filters client-side | **Deferred** | Subject + search are server-side; teacher filter is client-side because the API accepts a single `teacher_id` and multi-teacher selection can't be expressed. Pagination is client-side (size capped at 100). |
+| Download / more-actions UI-only | **Resolved** | `GET /api/materials/:id/download` → presigned URL → `window.open` |
+| External avatar URL (`ownerAvatarUrl`) | **Resolved** | Omitted; owner shown as text. |
+| Size column | **Deferred** | Backend `MaterialResponse` has no file-size field; the column shows `—`. |
 
 ---
 
 ## Teacher Pages
 
 ### TeacherDashboard
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `STATS`, `ACTIVITY`, `GRADE_DIST` | No API | `GET /teacher/dashboard-stats`, `GET /quiz-attempts?subject=X&limit=10` |
-| Subject tabs are static strings | No subjects API | `GET /teachers/me/subjects` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `STATS`, `ACTIVITY`, `GRADE_DIST` | **Resolved** | `GET /api/teacher/dashboard-stats` |
+| Subject tabs (static) | **Resolved** | `GET /api/teachers/me/subjects` (tabs link to Analytics) |
 
 ### TeacherMaterials
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `INITIAL_MATERIALS` | No API | `GET /materials?owned=me` (own) + `GET /materials?subject=X` (co-teacher) |
-| Upload uses a `setTimeout(1000)` simulation | Backend ingestion pipeline not wired | `POST /materials` (multipart, `file`, `subject_id`) — triggers parser → chunker → embedder pipeline |
-| Qdrant ingestion is **not triggered** from frontend in mock | Ingestion happens server-side | No frontend change needed; happens server-side after upload |
-| Subject is set to `"Unassigned"` on upload | No subject picker modal yet | Add a post-upload modal: `PATCH /materials/:id { subject_id }` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `INITIAL_MATERIALS` | **Resolved** | `GET /api/materials?subject_id=X` — own vs co-teacher derived from `teacher_id === user.id` (no `owned=me` param exists) |
+| Upload `setTimeout(1000)` simulation | **Resolved** | `POST /api/materials` (multipart `file` + `subject_id`) via a subject-picker dialog (no post-upload `PATCH` needed — subject chosen before upload) |
+| Status never tracked | **Resolved** | Status column (`processing`/`ready`/`failed`/`deleting`); polling every 4s via `GET /api/materials/:id/status` while processing |
+| No retry | **Resolved** | `POST /api/materials/:id/retry` for failed ingestion |
+| Delete UI-only | **Resolved** | `DELETE /api/materials/:id` (own only) |
+| Download | **Resolved** | `GET /api/materials/:id/download` |
 
 ### QuizCreateEdit
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `MATERIALS_FOR_GENERATION` | No API | `GET /materials?owned=me` |
-| `AI_DRAFT_QUESTIONS` + 1.5s delay | AI generation not wired | `POST /quiz/generate { material_ids, subject_id }` → `{ questions: [...] }` |
-| `publish()` just navigates — no POST | No quiz API | `POST /quizzes { title, subject_id, questions }` → `{ quiz_id }` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `MATERIALS_FOR_GENERATION` | **Resolved** | `GET /api/materials?subject_id=X` filtered to `status=ready` |
+| `AI_DRAFT_QUESTIONS` + 1.5s delay | **Resolved** | `POST /api/quiz/generate` `{ subject_id, material_ids, topic, question_count }` → drafts appended to editor for review |
+| `publish()` just navigates | **Resolved** | `POST /api/quizzes` → `PATCH /api/quizzes/:id` → `POST /api/quizzes/:id/publish`; teacher quiz list (`GET /api/quizzes`) with Edit/Publish/Delete |
+| Subject select mock options | **Resolved** | `GET /api/teachers/me/subjects` |
 
 ### Analytics
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `ANALYTICS_DATA` (question accuracy, grade dist, weak topics) | No analytics API | `GET /analytics?quiz_id=X` |
-| Quiz selector is populated from `QUIZZES_LIST` mock | No quiz list API | `GET /quizzes?teacher=me` |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `ANALYTICS_DATA` | **Resolved** | `GET /api/analytics?quiz_id=X` (heatmap, grade distribution, weak topics) |
+| Quiz selector from `QUIZZES_LIST` | **Resolved** | `GET /api/quizzes` filtered to published |
 
 ### StudentProgress
-| Mock | Why | Replacement |
-|------|-----|-------------|
-| `STUDENTS` array (4 students, 2 at-risk) | No student roster API | `GET /students?subject=X` |
-| At-risk computed server-side; mock flags `atRisk: true` manually | No scoring pipeline yet | `GET /students?subject=X` should return `at_risk` field from backend |
-| Subject filter is UI-only in mock (all students shown regardless) | Can't filter by subject without real data | Add `?subject_id=X` query param to API call |
+| Mock | Status | Replacement |
+|------|--------|-------------|
+| `STUDENTS` array | **Resolved** | `GET /api/student-progress` (roster with `at_risk`, `completion_pct`, `last_active`) |
+| At-risk manually flagged | **Resolved** | Computed server-side (`at_risk` field) |
+| Subject filter UI-only | **Resolved** | `GET /api/student-progress?subject_id=X` |
+| Drill-down mock quiz history | **Resolved** | `GET /api/student-progress/:student_id` |
 
 ---
 
 ## Intentional Design Constraints (not placeholders)
 
-These are **intentional omissions** per `agents.md`, not things to add later:
-
 | What is absent | Why |
 |----------------|-----|
-| No "Generate Custom Quiz" button on student Quizzes page | Out of scope Phase 1–3 per agents.md |
-| No messaging UI in StudentProgress at-risk panel | Explicitly out of scope; panel only surfaces *who*, not a comms channel |
+| No "Generate Custom Quiz" button on student Quizzes page | Out of scope Phase 1–3 per `agents.md` |
+| No messaging UI in StudentProgress at-risk panel | Explicitly out of scope; panel only surfaces *who* |
 | No per-student score comparison on QuizResults | Students see own data only (fairness constraint for shared quizzes) |
 | No student-owned materials upload | Materials are teacher-owned per core architecture decision |
+
+## Known limitations (Deferred, recorded)
+
+| Limitation | Reason |
+|------------|--------|
+| Student materials teacher filter is client-side (single `teacher_id` on the API) | API accepts one teacher id; multi-select cannot be expressed server-side |
+| Student materials pagination is client-side over the first 100 rows | Keeps multi-teacher OR semantics; dataset is bounded in practice |
+| Material "Size" column shows `—` | No file-size field in `MaterialResponse` |
+| Flashcard deck card count comes from the deck's embedded cards | `FlashcardDeckResponse` includes `cards`; no separate count field |

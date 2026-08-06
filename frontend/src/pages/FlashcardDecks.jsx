@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
+import useSubjectStore from '@/store/subjectStore';
 import { SectionHeader } from '@/components/ui/shared';
+import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
 import {
   Dialog,
   DialogContent,
@@ -11,59 +13,47 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { useApi } from '@/lib/useApi';
+import { listDecks, generateDeck } from '@/api/flashcards';
+import { getStudentSubjects } from '@/api/analytics';
+import { listSubjectMaterials } from '@/api/subjects';
+import { cn } from '@/lib/utils';
 
-// --- Mock data (replace with GET /flashcard-decks when backend is ready) ---
-const DECKS = [
-  {
-    id: 'fd1',
-    title: 'Data Structures Essentials',
-    subject: 'Data Structures',
-    cardCount: 24,
-    lastStudied: '2026-07-22',
-    mastered: 18,
-  },
-  {
-    id: 'fd2',
-    title: 'Macroeconomics Key Terms',
-    subject: 'Macroeconomics',
-    cardCount: 16,
-    lastStudied: '2026-07-20',
-    mastered: 10,
-  },
-];
-
-// Materials available for deck generation (replace with GET /subjects/:id/materials)
-const ALL_MATERIALS_BY_TEACHER = [
-  {
-    teacher: { id: 't1', name: 'Dr. Eleanor Vance' },
-    materials: [
-      { id: 'm1', name: 'Week 1 — Arrays & Complexity.pdf', type: 'PDF' },
-      { id: 'm2', name: 'Week 2 — Linked Lists.pdf', type: 'PDF' },
-    ],
-  },
-  {
-    teacher: { id: 't2', name: 'Dr. Priya Nair' },
-    materials: [{ id: 'm3', name: 'Graph Algorithms.pdf', type: 'PDF' }],
-  },
-];
+function groupByTeacher(items) {
+  const groups = [];
+  const byTeacher = new Map();
+  for (const mat of items || []) {
+    const key = mat.teacherId;
+    if (!byTeacher.has(key)) {
+      const group = { teacher: { id: key, name: mat.teacherName || 'Unknown' }, materials: [] };
+      byTeacher.set(key, group);
+      groups.push(group);
+    }
+    byTeacher.get(key).materials.push({ id: mat.id, name: mat.name, type: mat.fileType });
+  }
+  return groups;
+}
 
 function DeckCard({ deck, onStudy }) {
-  const masteredPct = Math.round((deck.mastered / deck.cardCount) * 100);
+  const cardCount = deck.cards.length;
+  const mastered = deck.cards.filter((c) => c.masteryState === 'mastered').length;
+  const masteredPct = cardCount ? Math.round((mastered / cardCount) * 100) : 0;
+
   return (
     <div className="bg-white rounded-2xl ambient-shadow card-hover p-sp-md flex flex-col gap-3">
       <div>
-        <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-1">{deck.subject}</p>
+        <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-1">{deck.subject || 'Flashcards'}</p>
         <h3 className="font-headline-md text-[18px] text-on-background">{deck.title}</h3>
       </div>
 
       <div className="flex items-center gap-4 text-secondary font-label-sm text-label-sm">
         <span className="flex items-center gap-1">
           <span className="material-symbols-outlined text-[16px]">style</span>
-          {deck.cardCount} cards
+          {cardCount} cards
         </span>
         <span className="flex items-center gap-1">
           <span className="material-symbols-outlined text-[16px]">check_circle</span>
-          {deck.mastered} mastered
+          {mastered} mastered
         </span>
       </div>
 
@@ -77,8 +67,6 @@ function DeckCard({ deck, onStudy }) {
         </div>
       </div>
 
-      <p className="text-[11px] text-secondary">Last studied: {deck.lastStudied}</p>
-
       <button
         onClick={() => onStudy(deck.id)}
         className="mt-auto h-10 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:scale-[0.98] transition-all"
@@ -91,18 +79,73 @@ function DeckCard({ deck, onStudy }) {
 
 export default function FlashcardDecks() {
   const navigate = useNavigate();
-  const [generateOpen, setGenerateOpen] = useState(false);
+  const { currentSubjectId, setCurrentSubject } = useSubjectStore();
   const { getSelectedArray, reset } = useMaterialScopeStore();
 
-  function handleGenerate() {
+  const [generateOpen, setGenerateOpen] = useState(false);
+  const [genSubjectId, setGenSubjectId] = useState(null);
+  const [genLoading, setGenLoading] = useState(false);
+  const [genError, setGenError] = useState(null);
+
+  const decksApi = useApi(listDecks, []);
+  const subjectsApi = useApi(getStudentSubjects, []);
+
+  const subjects = subjectsApi.data || [];
+  const activeGenSubjectId = genSubjectId ?? currentSubjectId ?? subjects[0]?.subjectId;
+
+  const materialsApi = useApi(
+    () => (activeGenSubjectId ? listSubjectMaterials(activeGenSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
+    [activeGenSubjectId]
+  );
+  const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
+
+  // Default generation subject to the store's current subject once subjects load.
+  useEffect(() => {
+    if (!currentSubjectId && subjects.length > 0) {
+      setCurrentSubject(subjects[0].subjectId);
+    }
+  }, [currentSubjectId, subjects, setCurrentSubject]);
+
+  async function handleGenerate() {
     const selected = getSelectedArray();
-    if (!selected.length) return;
-    // TODO: POST /flashcard-decks { material_ids: selected } when backend is ready
-    setGenerateOpen(false);
-    reset();
-    // For now navigate to study with first deck as preview
-    navigate('/student/flashcards/fd1/study');
+    if (!selected.length || genLoading) return;
+    setGenLoading(true);
+    setGenError(null);
+    try {
+      const subject = subjects.find((s) => s.subjectId === activeGenSubjectId);
+      const deck = await generateDeck({
+        subjectId: activeGenSubjectId,
+        materialIds: selected,
+        title: `Flashcards — ${subject?.name || 'Study Deck'}`,
+        cardCount: 10,
+      });
+      setGenerateOpen(false);
+      reset();
+      decksApi.reload();
+      navigate(`/student/flashcards/${deck.id}/study`);
+    } catch (err) {
+      setGenError(err);
+      setGenLoading(false);
+    }
   }
+
+  if (decksApi.loading) {
+    return (
+      <AppLayout role="student">
+        <LoadingState label="Loading your decks…" />
+      </AppLayout>
+    );
+  }
+
+  if (decksApi.error) {
+    return (
+      <AppLayout role="student">
+        <ErrorState message={decksApi.error.message} onRetry={decksApi.reload} />
+      </AppLayout>
+    );
+  }
+
+  const decks = decksApi.data || [];
 
   return (
     <AppLayout role="student">
@@ -112,7 +155,7 @@ export default function FlashcardDecks() {
           <p className="font-body-md text-body-md text-secondary mt-1">Your personal study decks, generated from approved materials.</p>
         </div>
         <button
-          onClick={() => { reset(); setGenerateOpen(true); }}
+          onClick={() => { reset(); setGenError(null); setGenerateOpen(true); }}
           className="h-12 px-6 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center gap-2 hover:scale-95 transition-all shadow-md"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
@@ -120,12 +163,20 @@ export default function FlashcardDecks() {
         </button>
       </header>
 
-      <SectionHeader title={`Your Decks (${DECKS.length})`} />
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
-        {DECKS.map((deck) => (
-          <DeckCard key={deck.id} deck={deck} onStudy={(id) => navigate(`/student/flashcards/${id}/study`)} />
-        ))}
-      </div>
+      <SectionHeader title={`Your Decks (${decks.length})`} />
+      {decks.length === 0 ? (
+        <EmptyState
+          icon="style"
+          title="No decks yet"
+          description="Generate your first deck from approved subject materials."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+          {decks.map((deck) => (
+            <DeckCard key={deck.id} deck={deck} onStudy={(id) => navigate(`/student/flashcards/${id}/study`)} />
+          ))}
+        </div>
+      )}
 
       {/* Generate New Deck dialog — reuses MaterialScopePanel */}
       <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
@@ -134,11 +185,45 @@ export default function FlashcardDecks() {
             <DialogTitle>Generate Flashcard Deck</DialogTitle>
           </DialogHeader>
           <p className="font-body-md text-body-md text-secondary">
-            Select the materials you want ExamAI to generate flashcards from.
+            Pick a subject, then select the materials ExamAI should generate flashcards from.
           </p>
-          <div className="max-h-80 overflow-y-auto custom-scrollbar mt-2">
-            <MaterialScopePanel materialsByTeacher={ALL_MATERIALS_BY_TEACHER} />
-          </div>
+
+          {subjectsApi.error ? (
+            <ErrorState message={subjectsApi.error.message} onRetry={subjectsApi.reload} />
+          ) : (
+            <>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Subject:</span>
+                {subjects.map((s) => (
+                  <button
+                    key={s.subjectId}
+                    onClick={() => setGenSubjectId(s.subjectId)}
+                    className={cn(
+                      'px-3 py-1 rounded-full font-label-md text-label-md transition-all',
+                      s.subjectId === activeGenSubjectId
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-surface-container-low text-secondary hover:bg-primary-fixed'
+                    )}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+
+              {materialsApi.loading ? (
+                <div className="py-6"><LoadingState label="Loading materials…" /></div>
+              ) : materialsApi.error ? (
+                <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} />
+              ) : (
+                <div className="max-h-80 overflow-y-auto custom-scrollbar mt-2">
+                  <MaterialScopePanel materialsByTeacher={materialsByTeacher} />
+                </div>
+              )}
+            </>
+          )}
+
+          {genError && <p className="text-error font-label-sm text-label-sm">Failed to generate: {genError.message}</p>}
+
           <DialogFooter>
             <button
               onClick={() => setGenerateOpen(false)}
@@ -148,9 +233,10 @@ export default function FlashcardDecks() {
             </button>
             <button
               onClick={handleGenerate}
+              disabled={!getSelectedArray().length || genLoading}
               className="h-9 px-6 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:scale-[0.98] transition-all disabled:opacity-40"
             >
-              Generate
+              {genLoading ? 'Generating…' : 'Generate'}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -70,7 +70,8 @@ pyrefly checker.)
 Frontend (all in `frontend/`):
 - Requires Node 20.19+ or 22.12+ (repo currently runs on v25).
 - `npm install` → `npm run dev` (HMR on :5173) · `npm run lint` (oxlint) ·
-  `npm run build` (dist/) · `npm run preview`. No automated test suite yet.
+  `npm run build` (dist/) · `npm run preview` · `npm run test` (Vitest +
+  Testing Library, 24 tests).
 - The Vite dev server has **no proxy** — it calls the API directly at
   `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
   `frontend/.env.local`). Keep the backend running and ports in sync.

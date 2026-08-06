@@ -2,22 +2,65 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { StatCard, SectionHeader, ProgressBar } from '@/components/ui/shared';
-
-// --- Mock data (replace with API calls when backend is ready) ---
-const QUICK_STATS = [
-  { icon: 'assignment', iconBg: 'bg-primary-fixed', iconColor: 'text-primary', value: '12', label: 'Quizzes Taken' },
-  { icon: 'trending_down', iconBg: 'bg-error-container', iconColor: 'text-error', value: '4', label: 'Weak Topics' },
-  { icon: 'bolt', iconBg: 'bg-tertiary-fixed', iconColor: 'text-tertiary', value: '85%', label: 'Average Score' },
-];
-
-const SUBJECTS = [
-  { id: 's1', name: 'Data Structures', teacher: 'Dr. Eleanor Vance', progress: 75 },
-  { id: 's2', name: 'Macroeconomics', teacher: 'Prof. Julian Thorne', progress: 42 },
-  { id: 's3', name: 'Linear Algebra', teacher: 'Dr. Sarah Chen', progress: 90 },
-];
+import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { useApi } from '@/lib/useApi';
+import useSubjectStore from '@/store/subjectStore';
+import { getStudentStats, getStudentSubjects } from '@/api/analytics';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
+  const setSubjects = useSubjectStore((s) => s.setSubjects);
+
+  const stats = useApi(() => getStudentStats(), []);
+  const subjects = useApi(async () => {
+    const list = await getStudentSubjects();
+    setSubjects(list);
+    return list;
+  }, []);
+
+  if (stats.loading || subjects.loading) {
+    return (
+      <AppLayout role="student">
+        <LoadingState label="Loading your dashboard…" />
+      </AppLayout>
+    );
+  }
+
+  if (stats.error || subjects.error) {
+    const message = stats.error?.message || subjects.error?.message;
+    const retry = stats.error ? stats.reload : subjects.reload;
+    return (
+      <AppLayout role="student">
+        <ErrorState message={message} onRetry={retry} />
+      </AppLayout>
+    );
+  }
+
+  const quickStats = [
+    {
+      icon: 'assignment',
+      iconBg: 'bg-primary-fixed',
+      iconColor: 'text-primary',
+      value: String(stats.data.quizzesTaken),
+      label: 'Quizzes Taken',
+    },
+    {
+      icon: 'trending_down',
+      iconBg: 'bg-error-container',
+      iconColor: 'text-error',
+      value: String(stats.data.weakTopicsCount),
+      label: 'Weak Topics',
+    },
+    {
+      icon: 'bolt',
+      iconBg: 'bg-tertiary-fixed',
+      iconColor: 'text-tertiary',
+      value: stats.data.avgScore === null || stats.data.avgScore === undefined ? '—' : `${stats.data.avgScore}%`,
+      label: 'Average Score',
+    },
+  ];
+
+  const subjectList = subjects.data || [];
 
   return (
     <AppLayout role="student">
@@ -62,7 +105,7 @@ export default function StudentDashboard() {
       <section className="mb-sp-xl">
         <SectionHeader title="Quick Stats" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          {QUICK_STATS.map((stat) => (
+          {quickStats.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
         </div>
@@ -78,31 +121,43 @@ export default function StudentDashboard() {
             </button>
           }
         />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          {SUBJECTS.map((subject) => (
-            <button
-              key={subject.id}
-              onClick={() => navigate(`/student/subject/${subject.id}`)}
-              className="bg-white rounded-2xl ambient-shadow card-hover overflow-hidden text-left group"
-            >
-              {/* Color banner instead of external image */}
-              <div className="h-24 w-full bg-gradient-to-br from-primary-fixed to-secondary-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary text-[40px]">menu_book</span>
-              </div>
-              <div className="p-sp-md">
-                <h3 className="font-headline-md text-[18px] text-on-background mb-1">{subject.name}</h3>
-                <p className="font-body-md text-body-md text-secondary mb-4">{subject.teacher}</p>
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center text-[12px] font-label-md">
-                    <span className="text-secondary">Progress</span>
-                    <span className="text-on-background font-bold">{subject.progress}%</span>
+        {subjectList.length === 0 ? (
+          <EmptyState
+            icon="school"
+            title="No subjects yet"
+            description="You are not enrolled in any subjects. Contact a teacher to get enrolled."
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            {subjectList.map((subject) => {
+              const teacherNames = (subject.teachers || []).map((t) => t.name).join(', ');
+              const progress = subject.progress ?? 0;
+              return (
+                <button
+                  key={subject.subjectId}
+                  onClick={() => navigate(`/student/subject/${subject.subjectId}`)}
+                  className="bg-white rounded-2xl ambient-shadow card-hover overflow-hidden text-left group"
+                >
+                  {/* Color banner instead of external image */}
+                  <div className="h-24 w-full bg-gradient-to-br from-primary-fixed to-secondary-container flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-[40px]">menu_book</span>
                   </div>
-                  <ProgressBar value={subject.progress} />
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+                  <div className="p-sp-md">
+                    <h3 className="font-headline-md text-[18px] text-on-background mb-1">{subject.name}</h3>
+                    <p className="font-body-md text-body-md text-secondary mb-4">{teacherNames || '—'}</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[12px] font-label-md">
+                        <span className="text-secondary">Progress</span>
+                        <span className="text-on-background font-bold">{progress}%</span>
+                      </div>
+                      <ProgressBar value={progress} />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
     </AppLayout>
   );

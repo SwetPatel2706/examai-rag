@@ -111,6 +111,19 @@ def submit_attempt(db: Session, student: User, quiz_id: UUID, answers: dict[str,
     return attempt
 
 
+def list_own_attempts(
+    db: Session,
+    student: User,
+    quiz_id: UUID | None = None,
+) -> list[QuizAttempt]:
+    """The student's own attempts, newest first. Optional quiz_id filter.
+    Never returns another student's rows."""
+    query = db.query(QuizAttempt).filter(QuizAttempt.student_id == student.id)
+    if quiz_id is not None:
+        query = query.filter(QuizAttempt.quiz_id == quiz_id)
+    return query.order_by(QuizAttempt.submitted_at.desc(), QuizAttempt.id.desc()).all()
+
+
 def get_own_attempt(db: Session, student: User, attempt_id: UUID) -> QuizAttempt:
     attempt = (
         db.query(QuizAttempt)

@@ -76,27 +76,42 @@ class SupabaseAuthClient:
         return response.json()
 
     async def _admin_get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
-        """List users to find one by email (admin helper)."""
-        url = f"{self.auth_url}/admin/users"
+        """List users with pagination to find one by email (admin helper)."""
         headers = {
             "apikey": self.service_key,
             "Authorization": f"Bearer {self.service_key}"
         }
-        response = await self.client.get(url, headers=headers)
-        if response.status_code == 200:
+        page = 1
+        per_page = 50
+        while True:
+            url = f"{self.auth_url}/admin/users?page={page}&per_page={per_page}"
+            response = await self.client.get(url, headers=headers)
+            if response.status_code != 200:
+                break
             try:
                 users_list = response.json()
             except Exception:
-                return None
+                break
+
+            batch = []
             if isinstance(users_list, list):
-                for u in users_list:
-                    if u.get("email") == email:
-                        return u
+                batch = users_list
             elif isinstance(users_list, dict) and "users" in users_list:
-                for u in users_list["users"]:
-                    if u.get("email") == email:
-                        return u
+                batch = users_list["users"]
+
+            if not batch:
+                break
+
+            for u in batch:
+                if u.get("email") == email:
+                    return u
+
+            if len(batch) < per_page:
+                break
+            page += 1
+
         return None
+
 
     async def logout(self, token: str) -> None:
         url = f"{self.auth_url}/logout"

@@ -45,14 +45,17 @@ To run the test suite:
 
 ## Seed data (integration testing)
 
-The seed script provisions **30 users, 4 subjects, 14 materials, 12 quizzes,
-~90 quiz attempts, and 14 flashcard decks** across the demo project. Content
-lives in `app/seed_data.py`; `app/seed.py` turns it into rows. Run it with:
+The default seed command (`./venv/bin/python -m app.seed`) creates the full
+relational dataset (**30 users, 4 subjects, 14 materials, 12 quizzes, ~90 quiz
+attempts, and 14 flashcard decks**) across the demo project. The 14 materials are
+dataset records defined in `app/seed_data.py`, distinct from legacy database
+rows or environment totals. Content lives in `app/seed_data.py`; `app/seed.py`
+turns it into rows. Run it with:
 
 ```bash
-./venv/bin/python -m app.seed            # metadata + users (fast, no Qdrant)
-./venv/bin/python -m app.seed --with-rag # also embeds synthetic material
-                                         # content so Chat + Flashcard
+./venv/bin/python -m app.seed            # full relational dataset (fast, no Qdrant)
+./venv/bin/python -m app.seed --with-rag # relational dataset + embeds synthetic
+                                         # material content so Chat + Flashcard
                                          # generation resolve real citations
 ```
 

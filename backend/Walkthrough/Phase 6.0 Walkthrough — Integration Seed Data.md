@@ -7,10 +7,11 @@ real, coherent data — across all four roles/views (student dashboard, chat,
 quizzes, flashcards, teacher analytics).
 
 Outcome: `./venv/bin/python -m app.seed --with-rag` provisions 30 users,
-4 subjects, 17 materials (12 ready with real Qdrant chunks), 12 quizzes
-(8 published), 106 quiz attempts, and 14 flashcard decks (114 cards). The run
-is fully idempotent (a re-run adds 0 rows). Verified end-to-end against the
-running API for teacher1 and student1, including RAG chat with citations.
+4 subjects, 14 materials in clean-database dataset (17 materials environment total
+including 3 legacy rows), 12 quizzes (8 published), ~90 quiz attempts in clean dataset
+(106 environment total), and 14 flashcard decks (114 cards). The run is fully
+idempotent (a re-run adds 0 rows). Verified end-to-end against the running API
+for teacher1 and student1, including RAG chat with citations.
 
 ## Decisions
 - **Subject set**: keep and expand the existing CS demo set — Software
@@ -77,8 +78,8 @@ running API for teacher1 and student1, including RAG chat with citations.
 - Dataset self-checks (cross-references, statuses, counts): passed.
 - `py_compile` on seed.py/seed_data.py: OK.
 - Seed re-run: `Seeded 0 quiz attempt(s)`, `Seeded 0 flashcard deck(s)`,
-  summary stable (`users: 30, subjects: 4, materials: 17, quizzes: 12,
-  attempts: 106, decks: 14, flashcards: 114`).
+  summary stable (`users: 30, subjects: 4, materials: 14 dataset records (17 environment total), quizzes: 12,
+  attempts: ~90 clean dataset (106 environment total), decks: 14, flashcards: 114`).
 - Qdrant: collection green, 72 points, payloads carry `material_id`,
   `teacher_id`, `teacher_name`, `subject_id`, `filename`, `chunk_text`,
   `chunk_index`, `source_locator`.

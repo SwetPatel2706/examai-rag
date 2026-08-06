@@ -15,7 +15,13 @@ class QdrantStore:
         try:
             info = self.client.get_collection(self.collection)
             vectors = info.config.params.vectors
-            size = next(iter(vectors.values())).size if isinstance(vectors, dict) else vectors.size
+            if isinstance(vectors, dict):
+                if len(vectors) == 1 and "" in vectors:
+                    size = vectors[""].size
+                else:
+                    raise ValueError(f"Qdrant collection '{self.collection}' uses multiple or named vectors which are incompatible with single unnamed vector operations")
+            else:
+                size = vectors.size
             if size != dimension:
                 raise ValueError(f"Qdrant collection dimension {size} does not match embedding dimension {dimension}")
         except Exception as exc:
@@ -24,6 +30,8 @@ class QdrantStore:
             self.client.create_collection(self.collection, vectors_config=models.VectorParams(size=dimension, distance=models.Distance.COSINE))
 
     def upsert(self, vectors: list[list[float]], payloads: list[dict], ids: list[str]) -> None:
+        if vectors:
+            self.ensure_collection(len(vectors[0]))
         for start in range(0, len(ids), 100):
             end = start + 100
             self.client.upsert(self.collection, points=[models.PointStruct(id=ids[i], vector=vectors[i], payload=payloads[i]) for i in range(start, min(end, len(ids)))])
@@ -39,6 +47,8 @@ class QdrantStore:
 
     def query(self, vector: list[float], subject_id: uuid.UUID, material_ids: list[uuid.UUID], limit: int = 5):
         """Metadata-filtered query used by Phase 3; authorization must precede this call."""
+        if vector:
+            self.ensure_collection(len(vector))
         return self.client.query_points(
             collection_name=self.collection,
             query=vector,
@@ -49,3 +59,4 @@ class QdrantStore:
             limit=limit,
             with_payload=True,
         ).points
+

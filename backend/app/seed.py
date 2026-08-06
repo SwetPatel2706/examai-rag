@@ -14,6 +14,7 @@ from app.models.material import Material
 from app.models.quiz import Quiz, QuizQuestion, QuizAttempt
 from app.models.flashcard import FlashcardDeck, Flashcard
 from app.auth.supabase_client import supabase_auth
+from app.services.quiz.grading_service import compute_weak_topics
 from app.seed_data import (
     TEACHERS,
     STUDENTS,
@@ -59,26 +60,6 @@ def get_or_create_subject(db: Session, name: str) -> Subject:
         db.refresh(subject)
         print(f"Created subject: {name}")
     return subject
-
-
-def compute_weak_topics(question_map: dict[str, QuizQuestion], answers: dict[str, str]) -> list[dict]:
-    """Mirror grading_service.compute_weak_topics: any tagged topic answered
-    with less than 100% accuracy is a weak topic."""
-    by_topic: dict[str, dict] = {}
-    for question_id, question in question_map.items():
-        if not question.topic_tag:
-            continue
-        if question_id in answers:
-            stats = by_topic.setdefault(question.topic_tag, {"correct": 0, "total": 0})
-            stats["total"] += 1
-            if answers[question_id] == question.correct_option:
-                stats["correct"] += 1
-    weak_topics = []
-    for topic, stats in by_topic.items():
-        accuracy = round(stats["correct"] / stats["total"] * 100)
-        if accuracy < 100:
-            weak_topics.append({"topic": topic, "accuracy": accuracy})
-    return weak_topics
 
 
 def seed_rag_content(db: Session, materials_by_filename: dict[str, tuple[Material, dict]]) -> None:
@@ -198,6 +179,9 @@ async def seed_data(with_rag: bool = False):
             else:
                 material.display_name = mat["display_name"]
                 material.notes = mat["notes"]
+                material.status = mat["status"]
+                material.file_type = mat["file_type"]
+                material.storage_path = f"materials/{mat['filename']}"
             materials_by_filename[mat["filename"]] = (material, mat)
         db.commit()
 
@@ -224,9 +208,12 @@ async def seed_data(with_rag: bool = False):
                 db.commit()
                 db.refresh(quiz)
                 print(f"Created quiz: {quiz_data['topic']} ({quiz_data['status']}, {len(quiz.questions)} questions)")
-            elif quiz_data["status"] == "published" and quiz.status == "draft":
-                quiz.status = "published"
-                db.commit()
+            else:
+                if quiz_data["status"] == "published" and quiz.status == "draft":
+                    quiz.status = "published"
+                quiz.time_limit_seconds = quiz_data["time_limit_seconds"]
+                quiz.source = quiz_data["source"]
+                quiz.questions = [QuizQuestion(**q) for q in quiz_data["questions"]]
             quizzes_by_subject[quiz_data["subject"]].append(quiz)
         db.commit()
 

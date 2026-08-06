@@ -12,6 +12,7 @@ from app.models.material import Material
 from app.models.quiz import Quiz, QuizQuestion
 from app.auth.supabase_client import SupabaseAuthClient
 from app.utils.qdrant_client import QdrantStore
+from app.seed import apply_material_updates, apply_quiz_updates
 
 
 @pytest.mark.asyncio
@@ -52,11 +53,20 @@ def test_qdrant_ensure_collection_single_unnamed_vector():
 
 def test_qdrant_ensure_collection_rejects_named_or_multiple_vectors():
     store = QdrantStore(client=MagicMock())
-    mock_vectors = {"dense": MagicMock(size=384), "sparse": MagicMock(size=384)}
+    
+    # Test multiple named vectors
+    mock_vectors_multiple = {"dense": MagicMock(size=384), "sparse": MagicMock(size=384)}
     mock_info = MagicMock()
-    mock_info.config.params.vectors = mock_vectors
+    mock_info.config.params.vectors = mock_vectors_multiple
     store.client.get_collection.return_value = mock_info
 
+    with pytest.raises(ValueError, match="uses multiple or named vectors"):
+        store.ensure_collection(384)
+
+    # Test single named vector (non-empty name)
+    mock_vectors_single = {"dense": MagicMock(size=384)}
+    mock_info.config.params.vectors = mock_vectors_single
+    
     with pytest.raises(ValueError, match="uses multiple or named vectors"):
         store.ensure_collection(384)
 
@@ -102,11 +112,7 @@ def test_seed_reconciles_existing_material_and_quiz_fields():
         "display_name": "New Name",
         "notes": "New Notes",
     }
-    material.display_name = mat_data["display_name"]
-    material.notes = mat_data["notes"]
-    material.status = mat_data["status"]
-    material.file_type = mat_data["file_type"]
-    material.storage_path = f"materials/{mat_data['filename']}"
+    apply_material_updates(material, mat_data)
     session.commit()
 
     assert material.status == "ready"
@@ -123,11 +129,7 @@ def test_seed_reconciles_existing_material_and_quiz_fields():
             {"question_text": "Q2", "options": ["1", "2"], "correct_option": "1"},
         ],
     }
-    if quiz_data["status"] == "published" and quiz.status == "draft":
-        quiz.status = "published"
-    quiz.time_limit_seconds = quiz_data["time_limit_seconds"]
-    quiz.source = quiz_data["source"]
-    quiz.questions = [QuizQuestion(**q) for q in quiz_data["questions"]]
+    apply_quiz_updates(quiz, quiz_data)
     session.commit()
 
     assert quiz.status == "published"

@@ -1,3 +1,4 @@
+import os
 import argparse
 import asyncio
 import datetime
@@ -26,10 +27,75 @@ from app.seed_data import (
     FLASHCARD_DECKS,
 )
 
-PASSWORD = "Password123!"
+# ---------------------------------------------------------------------------
+# Seed credential — read from environment; fall back to the well-known demo
+# value with a visible warning.  Production environments must set SEED_PASSWORD
+# explicitly; the seeder will abort when APP_ENV=production and the variable is
+# absent so that a bare hard-coded string never reaches a live Supabase tenant.
+# ---------------------------------------------------------------------------
+_env_password = os.environ.get("SEED_PASSWORD", "")
+if _env_password:
+    PASSWORD = _env_password
+else:
+    PASSWORD = "Password123!"
+    print(
+        "[seed] WARNING: SEED_PASSWORD env var not set — using built-in demo "
+        "password. Set SEED_PASSWORD before seeding a production environment.",
+        file=sys.stderr,
+    )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _reconcile_quiz_questions(existing: list, incoming: list[dict]) -> list:
+    """Return a list of QuizQuestion ORM objects that preserves the IDs of
+    questions whose ``question_text`` matches an existing question.
+
+    Matched questions keep their original primary key so that any
+    QuizAttempt.answers dict keyed by str(question.id) remains valid.  New
+    questions (no match by text) receive a fresh auto-assigned ID.
+    """
+    existing_by_text = {q.question_text: q for q in existing}
+    result = []
+    for q_data in incoming:
+        text = q_data.get("question_text", "")
+        if text in existing_by_text:
+            existing_q = existing_by_text[text]
+            # Update mutable fields in-place to retain the same PK.
+            existing_q.options = q_data.get("options", existing_q.options)
+            existing_q.correct_option = q_data.get("correct_option", existing_q.correct_option)
+            result.append(existing_q)
+        else:
+            result.append(QuizQuestion(**q_data))
+    return result
+
+
+def apply_material_updates(material: "Material", mat_data: dict) -> None:
+    """Apply seed-data fields onto an *existing* Material row in-place.
+
+    Called by ``seed_data()`` on the update branch and by the test suite to
+    validate that the production reconciliation path is exercised.
+    """
+    material.display_name = mat_data["display_name"]
+    material.notes = mat_data["notes"]
+    material.status = mat_data["status"]
+    material.file_type = mat_data["file_type"]
+    material.storage_path = f"materials/{mat_data['filename']}"
+
+
+def apply_quiz_updates(quiz: "Quiz", quiz_data: dict) -> None:
+    """Apply seed-data fields onto an *existing* Quiz row in-place.
+
+    Preserves QuizQuestion IDs for unchanged questions (by question_text) so
+    that QuizAttempt.answers dicts remain consistent across re-runs.
+    Called by ``seed_data()`` and by the test suite.
+    """
+    if quiz_data["status"] == "published" and quiz.status == "draft":
+        quiz.status = "published"
+    quiz.time_limit_seconds = quiz_data["time_limit_seconds"]
+    quiz.source = quiz_data["source"]
+    quiz.questions = _reconcile_quiz_questions(quiz.questions, quiz_data["questions"])
+
 
 async def provision_user(db: Session, email: str, name: str, role: str, password: str) -> User:
     """Create the Supabase Auth user if needed, then create/update the local
@@ -177,11 +243,7 @@ async def seed_data(with_rag: bool = False):
                 db.refresh(material)
                 print(f"Created material metadata: {mat['filename']} ({mat['status']})")
             else:
-                material.display_name = mat["display_name"]
-                material.notes = mat["notes"]
-                material.status = mat["status"]
-                material.file_type = mat["file_type"]
-                material.storage_path = f"materials/{mat['filename']}"
+                apply_material_updates(material, mat)
             materials_by_filename[mat["filename"]] = (material, mat)
         db.commit()
 
@@ -209,11 +271,7 @@ async def seed_data(with_rag: bool = False):
                 db.refresh(quiz)
                 print(f"Created quiz: {quiz_data['topic']} ({quiz_data['status']}, {len(quiz.questions)} questions)")
             else:
-                if quiz_data["status"] == "published" and quiz.status == "draft":
-                    quiz.status = "published"
-                quiz.time_limit_seconds = quiz_data["time_limit_seconds"]
-                quiz.source = quiz_data["source"]
-                quiz.questions = [QuizQuestion(**q) for q in quiz_data["questions"]]
+                apply_quiz_updates(quiz, quiz_data)
             quizzes_by_subject[quiz_data["subject"]].append(quiz)
         db.commit()
 

@@ -103,6 +103,8 @@ class SupabaseAuthClient:
                 break
 
             for u in batch:
+                if not isinstance(u, dict):
+                    continue
                 if u.get("email") == email:
                     return u
 

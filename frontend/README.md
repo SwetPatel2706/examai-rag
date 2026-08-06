@@ -20,7 +20,29 @@ npm install
 npm run dev
 ```
 
-Starts the Vite dev server with HMR. The app expects the FastAPI backend to be running separately for live API calls; many screens still use mock data during Phase 1 development.
+Starts the Vite dev server with HMR. The app expects the FastAPI backend to be
+running separately for live API calls; many screens still use mock data during
+Phase 1 development.
+
+The dev server has **no proxy** — it calls the API directly at
+`VITE_API_BASE_URL` (default `http://localhost:8000`, set in
+`frontend/.env.local`). Keep the backend running and the ports in sync.
+
+## Running the full stack
+
+```bash
+# Terminal 1 — backend API → http://localhost:8000 (docs: /docs)
+cd backend
+./venv/bin/uvicorn app.main:app --reload    # canonical venv is backend/venv/
+
+# Terminal 2 — this frontend → http://localhost:5173
+cd frontend
+npm run dev
+```
+
+Backend setup (one-time, from `backend/`): copy `.env.example` → `.env.local`,
+then `./venv/bin/alembic upgrade head` and `./venv/bin/python -m app.seed`.
+Full details in `backend/README.md`.
 
 ## Production build
 
@@ -36,6 +58,9 @@ npm run lint
 ```
 
 Uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for fast static checks.
+
+> There is no automated frontend test suite yet. Run `npm run lint` and
+> `npm run build` as your verification gate before handing off changes.
 
 ## Architecture overview
 

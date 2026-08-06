@@ -2,6 +2,13 @@
 
 This is the FastAPI backend for the ExamAI application.
 
+> **Venv note:** the canonical virtualenv is `backend/venv/` (Python 3.14.6).
+> Every command below runs **from the `backend/` directory** using
+> `./venv/bin/…` (`./venv/bin/uvicorn`, `./venv/bin/pytest`,
+> `./venv/bin/alembic`, …). The repo-root `.venv/` is a stale partial
+> duplicate — do not use it. `app/config.py` reads `.env.local` from the
+> current working directory, which is why you must always run from `backend/`.
+
 ## Setup and Running the Server
 
 ### 1. Prerequisites

@@ -10,19 +10,46 @@ class QdrantStore:
         self.client = client or QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY,
                                              timeout=settings.QDRANT_TIMEOUT_SECONDS)
         self.collection = collection or settings.QDRANT_COLLECTION
+        self._verified_dimension: int | None = None
 
     def ensure_collection(self, dimension: int) -> None:
+        if self._verified_dimension == dimension:
+            return
         try:
             info = self.client.get_collection(self.collection)
-            size = info.config.params.vectors.size
+            vectors = info.config.params.vectors
+            if isinstance(vectors, dict):
+                if len(vectors) == 1 and "" in vectors:
+                    size = vectors[""].size
+                else:
+                    raise ValueError(f"Qdrant collection '{self.collection}' uses multiple or named vectors which are incompatible with single unnamed vector operations")
+            else:
+                size = vectors.size
             if size != dimension:
                 raise ValueError(f"Qdrant collection dimension {size} does not match embedding dimension {dimension}")
         except Exception as exc:
             if "doesn't exist" not in str(exc).lower() and "not found" not in str(exc).lower():
                 raise
             self.client.create_collection(self.collection, vectors_config=models.VectorParams(size=dimension, distance=models.Distance.COSINE))
+        self._verified_dimension = dimension
 
     def upsert(self, vectors: list[list[float]], payloads: list[dict], ids: list[str]) -> None:
+        # Pre-flight: lengths must agree before touching the collection.
+        if len(vectors) != len(payloads) or len(vectors) != len(ids):
+            raise ValueError(
+                f"upsert called with mismatched lengths: "
+                f"vectors={len(vectors)}, payloads={len(payloads)}, ids={len(ids)}"
+            )
+        if not vectors:
+            return
+        dim = len(vectors[0])
+        bad = [i for i, v in enumerate(vectors) if len(v) != dim]
+        if bad:
+            raise ValueError(
+                f"upsert called with inconsistent vector dimensions: "
+                f"expected {dim}, got wrong dimension at indices {bad[:5]}"
+            )
+        self.ensure_collection(dim)
         for start in range(0, len(ids), 100):
             end = start + 100
             self.client.upsert(self.collection, points=[models.PointStruct(id=ids[i], vector=vectors[i], payload=payloads[i]) for i in range(start, min(end, len(ids)))])
@@ -38,6 +65,10 @@ class QdrantStore:
 
     def query(self, vector: list[float], subject_id: uuid.UUID, material_ids: list[uuid.UUID], limit: int = 5):
         """Metadata-filtered query used by Phase 3; authorization must precede this call."""
+        if not vector:
+            raise ValueError("query called with an empty vector; provide a non-empty embedding")
+        if self._verified_dimension != len(vector):
+            self.ensure_collection(len(vector))
         return self.client.query_points(
             collection_name=self.collection,
             query=vector,
@@ -48,3 +79,4 @@ class QdrantStore:
             limit=limit,
             with_payload=True,
         ).points
+

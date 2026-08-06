@@ -3,6 +3,34 @@
 FastAPI. Routes are thin (HTTP only); logic lives in `app/services/`.
 `app/schemas/` (Pydantic) is separate from `app/models/` (SQLAlchemy).
 
+## Environment — venv path, running, testing (read this first)
+
+- **Canonical venv: `backend/venv/`** (Python 3.14.6). Run every Python tool
+  as `./venv/bin/<tool>` **from the `backend/` directory**
+  (`./venv/bin/python`, `./venv/bin/pytest`, `./venv/bin/uvicorn`,
+  `./venv/bin/alembic`, `./venv/bin/pip`). Do **not** use the repo-root
+  `.venv/` — it is a stale partial duplicate missing the parser libraries
+  (pypdf, python-pptx, python-docx, reportlab, …). On a clean checkout, create
+  and provision it once from `backend/`: `python3.14 -m venv venv` then
+  `./venv/bin/pip install -r requirements.txt`.
+- Install deps: `./venv/bin/pip install -r requirements.txt`
+- Config: `app/config.py` (pydantic-settings) loads `.env.local` **from the
+  current working directory**. Always run uvicorn/alembic/seed/pytest from
+  `backend/`, never from the repo root. Template: `.env.example`; real values
+  live in the gitignored `.env.local`.
+- Run API: `./venv/bin/uvicorn app.main:app --reload` →
+  http://localhost:8000 (Swagger at `/docs`, ReDoc at `/redoc`).
+- Migrations: `./venv/bin/alembic upgrade head`
+- Seed demo data: `./venv/bin/python -m app.seed` — add `--with-rag` to embed
+  synthetic material content so Chat/Flashcards resolve real citations (needs
+  Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
+- Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
+- Tests: `./venv/bin/pytest` from `backend/` — **offline, 77 tests pass
+  (~1.5 s)**, no external services required. Single file:
+  `./venv/bin/pytest tests/test_smoke.py -q`.
+- No project-level Python linter/typecheck config; `pytest` is the gate. Code
+  carries `# pyrefly: ignore` comments for the in-editor pyrefly checker.
+
 ## Folder structure
 ```
 backend/

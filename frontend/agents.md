@@ -4,6 +4,22 @@ React + Vite. Visual design (colors, spacing, component styling) comes from
 Google Stitch exports — treat those as source of truth for markup/styling,
 this file only covers structure, routing, and state behavior.
 
+## Environment — running & testing (read this first)
+
+- Requires Node **20.19+ or 22.12+** (repo currently runs on v25). All
+  commands run from `frontend/`.
+- `npm install` → install dependencies (node_modules already present).
+- `npm run dev` → Vite dev server with HMR on http://localhost:5173.
+- `npm run lint` → oxlint static checks.
+- `npm run build` → production build into `dist/`; `npm run preview` serves it.
+- **No automated test suite yet** — verification is `npm run lint` +
+  `npm run build` + manual check in the browser.
+- The Vite dev server has **no proxy**: the app calls the API directly at
+  `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
+  `frontend/.env.local`). Start the backend first from `backend/`:
+  `./venv/bin/uvicorn app.main:app --reload` (canonical venv is `backend/venv/`;
+  see `../agents.md` and `backend/agents.md`).
+
 ## Roles & navigation
 Login screen with email/password only. Users are provisioned by an explicit seed operation; there is no signup, forgot-password/reset, OAuth, magic-link, MFA, or runtime user creation. The backend returns the user's role and the client uses it for redirects; users do not choose their role.
 

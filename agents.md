@@ -18,6 +18,63 @@ Google Stitch exports, not here — this doc covers structure and behavior only.
 FastAPI · React + Vite · Gemini · Qdrant Cloud · Supabase (Postgres/Auth/Storage) ·
 local sentence-transformers · Render.com deployment.
 
+## Environment — how to run, test, and verify (read this first)
+
+**Python venv: the canonical virtualenv is `backend/venv/`** (Python 3.14.6).
+Run every backend command from the `backend/` directory using `./venv/bin/…`
+(`./venv/bin/python`, `./venv/bin/pytest`, `./venv/bin/uvicorn`, …). Do **not**
+use the repo-root `.venv/` — it is a stale, partial duplicate missing the
+parser libraries (pypdf, python-pptx, python-docx, reportlab, …). If ever in
+doubt, check with `backend/venv/bin/python --version`. On a clean checkout,
+create and provision it once from the repository root:
+
+```bash
+python3.14 -m venv backend/venv
+backend/venv/bin/pip install -r backend/requirements.txt
+```
+
+Quick-start (two terminals):
+
+```bash
+# Terminal 1 — backend API → http://localhost:8000 (Swagger at /docs)
+cd backend
+./venv/bin/uvicorn app.main:app --reload
+
+# Terminal 2 — frontend → http://localhost:5173
+cd frontend
+npm run dev
+```
+
+Backend one-time setup (all from `backend/`):
+- Install deps: `./venv/bin/pip install -r requirements.txt`
+- Configure env: copy `.env.example` → `.env.local` and fill in real values.
+  `app/config.py` (pydantic-settings) loads `.env.local` **from the current
+  working directory**, so always run uvicorn / alembic / seed / pytest from
+  `backend/`, never from the repo root.
+- Migrate: `./venv/bin/alembic upgrade head`
+- Seed demo data: `./venv/bin/python -m app.seed` — add `--with-rag` to embed
+  synthetic material content so Chat/Flashcards resolve real citations (needs
+  Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
+- Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
+
+Backend tests (fully offline — no external services required):
+```bash
+cd backend
+./venv/bin/pytest                     # full suite: 77 tests pass (~1.5 s)
+./venv/bin/pytest tests/test_smoke.py -q   # single file
+```
+There is no project-level Python linter/typecheck config; `pytest` is the
+backend gate. (Code carries `# pyrefly: ignore` comments for the in-editor
+pyrefly checker.)
+
+Frontend (all in `frontend/`):
+- Requires Node 20.19+ or 22.12+ (repo currently runs on v25).
+- `npm install` → `npm run dev` (HMR on :5173) · `npm run lint` (oxlint) ·
+  `npm run build` (dist/) · `npm run preview`. No automated test suite yet.
+- The Vite dev server has **no proxy** — it calls the API directly at
+  `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
+  `frontend/.env.local`). Keep the backend running and ports in sync.
+
 ## Core architectural decision (post Review-1)
 Materials are **teacher-owned, not student-owned**. A subject can have multiple
 teachers. Students never upload for RAG — they select which already-approved

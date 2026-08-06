@@ -29,6 +29,12 @@ class QuizQuestion(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False)
+    # Stable dataset identifier assigned by the seeder (quiz topic + position).
+    # Reconciliation matches on this key so editing a seeded question's text
+    # updates the row in place instead of replacing it (which would orphan
+    # QuizAttempt.answers referencing the old question id). NULL for
+    # non-seeded (teacher-authored / AI-generated) questions.
+    seed_key = Column(String, nullable=True)
     question_text = Column(String, nullable=False)
     options = Column(JSON, nullable=False)  # JSON list of options
     correct_option = Column(String, nullable=False)

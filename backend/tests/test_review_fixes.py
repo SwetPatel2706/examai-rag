@@ -101,9 +101,15 @@ def test_seed_reconciles_existing_material_and_quiz_fields():
         status="draft",
         time_limit_seconds=600,
     )
-    quiz.questions = [QuizQuestion(question_text="Q1", options=["A", "B"], correct_option="A")]
+    quiz.questions = [
+        QuizQuestion(question_text="Q1", options=["A", "B"], correct_option="A", seed_key="Algorithms::q0"),
+        QuizQuestion(question_text="Q2", options=["C", "D"], correct_option="C", seed_key="Algorithms::q1"),
+    ]
     session.add(quiz)
     session.commit()
+
+    q1_id = quiz.questions[0].id
+    q2_id = quiz.questions[1].id
 
     mat_data = {
         "filename": "lecture1.pdf",
@@ -118,6 +124,8 @@ def test_seed_reconciles_existing_material_and_quiz_fields():
     assert material.status == "ready"
     assert material.file_type == "pdf"
     assert material.storage_path == "materials/lecture1.pdf"
+    assert material.display_name == "New Name"
+    assert material.notes == "New Notes"
 
     quiz_data = {
         "topic": "Algorithms",
@@ -125,8 +133,20 @@ def test_seed_reconciles_existing_material_and_quiz_fields():
         "status": "published",
         "time_limit_seconds": 1200,
         "questions": [
-            {"question_text": "Updated Q1", "options": ["X", "Y"], "correct_option": "X"},
-            {"question_text": "Q2", "options": ["1", "2"], "correct_option": "1"},
+            {
+                "question_text": "Updated Q1",
+                "options": ["X", "Y"],
+                "correct_option": "X",
+                "topic_tag": "UpdatedTag",
+                "difficulty": "hard",
+            },
+            {
+                "question_text": "Q2",
+                "options": ["1", "2"],
+                "correct_option": "1",
+                "topic_tag": "StableTag",
+                "difficulty": "easy",
+            },
         ],
     }
     apply_quiz_updates(quiz, quiz_data)
@@ -135,6 +155,26 @@ def test_seed_reconciles_existing_material_and_quiz_fields():
     assert quiz.status == "published"
     assert quiz.time_limit_seconds == 1200
     assert len(quiz.questions) == 2
-    assert quiz.questions[0].question_text == "Updated Q1"
+
+    session.expire_all()
+    reloaded_quiz = session.query(Quiz).filter_by(topic="Algorithms").first()
+    by_key = {q.seed_key: q for q in reloaded_quiz.questions}
+
+    updated = by_key["Algorithms::q0"]
+    assert updated.id == q1_id
+    assert updated.question_text == "Updated Q1"
+    assert updated.options == ["X", "Y"]
+    assert updated.correct_option == "X"
+    assert updated.topic_tag == "UpdatedTag"
+    assert updated.difficulty == "hard"
+
+    unchanged = by_key["Algorithms::q1"]
+    assert unchanged.id == q2_id
+    assert unchanged.question_text == "Q2"
+    assert unchanged.options == ["1", "2"]
+    assert unchanged.correct_option == "1"
+    assert unchanged.topic_tag == "StableTag"
+    assert unchanged.difficulty == "easy"
+    assert {q.id for q in reloaded_quiz.questions} == {q1_id, q2_id}
 
     session.close()

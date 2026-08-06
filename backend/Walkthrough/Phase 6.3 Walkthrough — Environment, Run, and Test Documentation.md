@@ -79,8 +79,11 @@ server has no proxy; added a test-gate note under Lint.
   unused.
 
 ## Follow-up / limitations
-- Optional: delete repo-root `.venv/` or re-run `./venv/bin/pip install -r
-  requirements.txt` into it if anyone ever wants a root-level convenience
-  venv.
+- Optional: delete repo-root `.venv/` or refresh it if anyone ever wants a
+  root-level convenience venv. Note the `.venv/bin/pip` path only refers to
+  `backend/venv/` when run from `backend/`. To rebuild the root venv, run from
+  the repository root: `.venv/bin/pip install -r backend/requirements.txt` (the
+  equivalent command from `backend/` is `../.venv/bin/pip install -r
+  requirements.txt`, since the root `.venv/` is a sibling of `backend/`).
 - READMEs link to `backend/README.md` for the full seed-account table and
   phase-by-phase manual verification steps — those were not duplicated.

@@ -25,7 +25,13 @@ Run every backend command from the `backend/` directory using `./venv/bin/…`
 (`./venv/bin/python`, `./venv/bin/pytest`, `./venv/bin/uvicorn`, …). Do **not**
 use the repo-root `.venv/` — it is a stale, partial duplicate missing the
 parser libraries (pypdf, python-pptx, python-docx, reportlab, …). If ever in
-doubt, check with `backend/venv/bin/python --version`.
+doubt, check with `backend/venv/bin/python --version`. On a clean checkout,
+create and provision it once from the repository root:
+
+```bash
+python3.14 -m venv backend/venv
+backend/venv/bin/pip install -r backend/requirements.txt
+```
 
 Quick-start (two terminals):
 

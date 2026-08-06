@@ -10,7 +10,9 @@ FastAPI. Routes are thin (HTTP only); logic lives in `app/services/`.
   (`./venv/bin/python`, `./venv/bin/pytest`, `./venv/bin/uvicorn`,
   `./venv/bin/alembic`, `./venv/bin/pip`). Do **not** use the repo-root
   `.venv/` — it is a stale partial duplicate missing the parser libraries
-  (pypdf, python-pptx, python-docx, reportlab, …).
+  (pypdf, python-pptx, python-docx, reportlab, …). On a clean checkout, create
+  and provision it once from `backend/`: `python3.14 -m venv venv` then
+  `./venv/bin/pip install -r requirements.txt`.
 - Install deps: `./venv/bin/pip install -r requirements.txt`
 - Config: `app/config.py` (pydantic-settings) loads `.env.local` **from the
   current working directory**. Always run uvicorn/alembic/seed/pytest from

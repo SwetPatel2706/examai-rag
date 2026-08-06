@@ -15,8 +15,18 @@ Architecture and behavior conventions live in `agents.md` (root),
 
 ## Prerequisites
 
-- Python 3.14 (canonical venv already provisioned at `backend/venv/`)
+- Python 3.14
 - Node.js 20.19+ or 22.12+ (repo currently runs on v25)
+- The backend virtualenv `backend/venv/`. On a clean checkout, create and
+  provision it once from the repository root:
+
+  ```bash
+  python3.14 -m venv backend/venv
+  backend/venv/bin/pip install -r backend/requirements.txt
+  ```
+
+  (Equivalently, from inside `backend/`: `python3.14 -m venv venv` then
+  `./venv/bin/pip install -r requirements.txt`.)
 - Backend env: copy `backend/.env.example` → `backend/.env.local` and fill in
   real Supabase / Qdrant / Gemini values. The backend reads `.env.local` from
   its working directory — run all backend commands from `backend/`.
@@ -60,8 +70,9 @@ Frontend: `npm run lint` (oxlint) and `npm run build`. No frontend test suite ye
 
 ## Demo logins
 
-Seeded with password `Password123!` — see `backend/README.md` for the full
-table:
+Seeded accounts use the password configured via `SEED_PASSWORD`; `Password123!`
+is only the non-production/local fallback when that variable is unset (see
+`backend/README.md` for the full table):
 
 | Role | Email | Subjects |
 |---|---|---|

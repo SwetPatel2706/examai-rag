@@ -6,8 +6,14 @@ This is the FastAPI backend for the ExamAI application.
 > Every command below runs **from the `backend/` directory** using
 > `./venv/bin/…` (`./venv/bin/uvicorn`, `./venv/bin/pytest`,
 > `./venv/bin/alembic`, …). The repo-root `.venv/` is a stale partial
-> duplicate — do not use it. `app/config.py` reads `.env.local` from the
-> current working directory, which is why you must always run from `backend/`.
+> duplicate — do not use it. On a clean checkout, create and provision it once
+> from `backend/`:
+> ```bash
+> python3.14 -m venv venv
+> ./venv/bin/pip install -r requirements.txt
+> ```
+> `app/config.py` reads `.env.local` from the current working directory, which
+> is why you must always run from `backend/`.
 
 ## Setup and Running the Server
 
@@ -72,8 +78,11 @@ analytics all work, but Chat and Flashcard *generation* have no vectors to
 retrieve from until real files are uploaded through `POST /api/materials`.
 
 The credentials below are for the configured development/demo Supabase project
-only; do not reuse them in a shared or production environment. Every account
-uses password `Password123!`.
+only; do not reuse them in a shared or production environment. Every seeded
+account uses the password configured in `SEED_PASSWORD`; `Password123!` is only
+the fallback for non-production/local environments where `SEED_PASSWORD` is
+unset. When `APP_ENV=production` the seeder refuses to run without
+`SEED_PASSWORD` explicitly set.
 
 | Role | Email | Seeded access |
 |---|---|---|

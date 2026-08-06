@@ -17,25 +17,21 @@ generation resolve real citations. The seed never embeds materials whose
 TEACHERS = [
     {
         "email": "teacher1@examai.com",
-        "password": "Password123!",
         "name": "Dr. Alice Smith",
         "role": "teacher",
     },
     {
         "email": "teacher2@examai.com",
-        "password": "Password123!",
         "name": "Dr. Bob Jones",
         "role": "teacher",
     },
     {
         "email": "teacher3@examai.com",
-        "password": "Password123!",
         "name": "Dr. Carol Nguyen",
         "role": "teacher",
     },
     {
         "email": "teacher4@examai.com",
-        "password": "Password123!",
         "name": "Dr. Dana Patel",
         "role": "teacher",
     },

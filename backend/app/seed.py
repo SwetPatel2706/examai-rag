@@ -8,6 +8,7 @@ import uuid
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.db.session import SessionLocal
 from app.models.user import User
 from app.models.subject import Subject, SubjectTeacher, StudentSubject
@@ -29,44 +30,74 @@ from app.seed_data import (
 
 # ---------------------------------------------------------------------------
 # Seed credential — read from environment; fall back to the well-known demo
-# value with a visible warning.  Production environments must set SEED_PASSWORD
-# explicitly; the seeder will abort when APP_ENV=production and the variable is
-# absent so that a bare hard-coded string never reaches a live Supabase tenant.
+# value (Password123!) only for non-production environments.  Production must
+# set SEED_PASSWORD explicitly; the seeder aborts at import time when
+# APP_ENV=production and the variable is absent so that a bare hard-coded
+# string never reaches a live Supabase tenant.
 # ---------------------------------------------------------------------------
 _env_password = os.environ.get("SEED_PASSWORD", "")
 if _env_password:
     PASSWORD = _env_password
+elif settings.APP_ENV == "production":
+    raise RuntimeError(
+        "SEED_PASSWORD env var is required when APP_ENV=production. "
+        "Refusing to seed a live Supabase tenant with the built-in demo password."
+    )
 else:
     PASSWORD = "Password123!"
     print(
         "[seed] WARNING: SEED_PASSWORD env var not set — using built-in demo "
-        "password. Set SEED_PASSWORD before seeding a production environment.",
+        "password (local/development only). Set SEED_PASSWORD before seeding a "
+        "production environment.",
         file=sys.stderr,
     )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _reconcile_quiz_questions(existing: list, incoming: list[dict]) -> list:
-    """Return a list of QuizQuestion ORM objects that preserves the IDs of
-    questions whose ``question_text`` matches an existing question.
+def _question_seed_key(quiz_topic: str, index: int) -> str:
+    """Return the stable dataset identifier for a seeded question.
 
-    Matched questions keep their original primary key so that any
-    QuizAttempt.answers dict keyed by str(question.id) remains valid.  New
-    questions (no match by text) receive a fresh auto-assigned ID.
+    Derived from the quiz topic plus the question's position in the dataset, so
+    editing a question's ``question_text`` (or options) in ``seed_data.py``
+    never changes its key: the existing QuizQuestion row is updated in place
+    instead of being replaced, keeping ``QuizAttempt.answers`` dicts (keyed by
+    ``str(question.id)``) valid.  New questions should be appended to the end of
+    a quiz's list rather than inserted, so existing keys do not shift.
     """
-    existing_by_text = {q.question_text: q for q in existing}
+    return f"{quiz_topic}::q{index}"
+
+
+def _reconcile_quiz_questions(quiz_topic: str, existing: list, incoming: list[dict]) -> list:
+    """Return a list of QuizQuestion ORM objects that preserves the IDs of
+    questions whose stable dataset key (``seed_key``) matches an existing one.
+
+    Matched questions keep their original primary key — so QuizAttempt.answers
+    dicts keyed by str(question.id) remain valid even when the question text
+    changes — and only their mutable fields are updated in place.  New
+    questions (no key match) receive a fresh auto-assigned ID plus the derived
+    seed key.  Rows created before seed keys existed (``seed_key IS NULL``) are
+    matched once by ``question_text`` to backfill their key.
+    """
+    existing_by_key = {q.seed_key: q for q in existing if q.seed_key}
+    legacy_by_text = {q.question_text: q for q in existing if not q.seed_key}
     result = []
-    for q_data in incoming:
-        text = q_data.get("question_text", "")
-        if text in existing_by_text:
-            existing_q = existing_by_text[text]
-            # Update mutable fields in-place to retain the same PK.
+    for index, q_data in enumerate(incoming):
+        key = _question_seed_key(quiz_topic, index)
+        existing_q = existing_by_key.get(key)
+        if existing_q is None:
+            existing_q = legacy_by_text.get(q_data.get("question_text", ""))
+        if existing_q is not None:
+            if existing_q.seed_key is None:
+                existing_q.seed_key = key
+            existing_q.question_text = q_data["question_text"]
             existing_q.options = q_data.get("options", existing_q.options)
             existing_q.correct_option = q_data.get("correct_option", existing_q.correct_option)
+            existing_q.topic_tag = q_data.get("topic_tag", existing_q.topic_tag)
+            existing_q.difficulty = q_data.get("difficulty", existing_q.difficulty)
             result.append(existing_q)
         else:
-            result.append(QuizQuestion(**q_data))
+            result.append(QuizQuestion(seed_key=key, **q_data))
     return result
 
 
@@ -86,15 +117,16 @@ def apply_material_updates(material: "Material", mat_data: dict) -> None:
 def apply_quiz_updates(quiz: "Quiz", quiz_data: dict) -> None:
     """Apply seed-data fields onto an *existing* Quiz row in-place.
 
-    Preserves QuizQuestion IDs for unchanged questions (by question_text) so
-    that QuizAttempt.answers dicts remain consistent across re-runs.
-    Called by ``seed_data()`` and by the test suite.
+    Preserves QuizQuestion IDs for unchanged questions (matched by their stable
+    ``seed_key``) so QuizAttempt.answers dicts remain consistent across re-runs,
+    even when question text changes. Called by ``seed_data()`` and by the test
+    suite.
     """
     if quiz_data["status"] == "published" and quiz.status == "draft":
         quiz.status = "published"
     quiz.time_limit_seconds = quiz_data["time_limit_seconds"]
     quiz.source = quiz_data["source"]
-    quiz.questions = _reconcile_quiz_questions(quiz.questions, quiz_data["questions"])
+    quiz.questions = _reconcile_quiz_questions(quiz.topic, quiz.questions, quiz_data["questions"])
 
 
 async def provision_user(db: Session, email: str, name: str, role: str, password: str) -> User:
@@ -265,7 +297,10 @@ async def seed_data(with_rag: bool = False):
                     time_limit_seconds=quiz_data["time_limit_seconds"],
                     created_at=now - datetime.timedelta(days=21 - min(18, i * 2)),
                 )
-                quiz.questions = [QuizQuestion(**q) for q in quiz_data["questions"]]
+                quiz.questions = [
+                    QuizQuestion(seed_key=_question_seed_key(quiz_data["topic"], i), **q)
+                    for i, q in enumerate(quiz_data["questions"])
+                ]
                 db.add(quiz)
                 db.commit()
                 db.refresh(quiz)

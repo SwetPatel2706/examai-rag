@@ -43,18 +43,44 @@ To run the test suite:
 ./venv/bin/pytest
 ```
 
-## Phase 2 manual verification
+## Seed data (integration testing)
 
-The seed script provisions four demo accounts. These credentials are for the
-configured development/demo Supabase project only; do not reuse them in a
-shared or production environment.
+The seed script provisions **30 users, 4 subjects, 14 materials, 12 quizzes,
+~90 quiz attempts, and 14 flashcard decks** across the demo project. Content
+lives in `app/seed_data.py`; `app/seed.py` turns it into rows. Run it with:
 
-| Role | Email | Password | Seeded access |
-|---|---|---|---|
-| Teacher | `teacher1@examai.com` | `Password123!` | Software Engineering; Advanced Database Systems |
-| Teacher | `teacher2@examai.com` | `Password123!` | Software Engineering |
-| Student | `student1@examai.com` | `Password123!` | Enrolled in Software Engineering |
-| Student | `student2@examai.com` | `Password123!` | Enrolled in Software Engineering and Advanced Database Systems |
+```bash
+./venv/bin/python -m app.seed            # metadata + users (fast, no Qdrant)
+./venv/bin/python -m app.seed --with-rag # also embeds synthetic material
+                                         # content so Chat + Flashcard
+                                         # generation resolve real citations
+```
+
+`--with-rag` needs Qdrant reachable and downloads the local embedding model
+(`all-MiniLM-L6-v2`) on first use. Without it, material lists, quizzes, and
+analytics all work, but Chat and Flashcard *generation* have no vectors to
+retrieve from until real files are uploaded through `POST /api/materials`.
+
+The credentials below are for the configured development/demo Supabase project
+only; do not reuse them in a shared or production environment. Every account
+uses password `Password123!`.
+
+| Role | Email | Seeded access |
+|---|---|---|
+| Teacher | `teacher1@examai.com` | Software Engineering; Advanced Database Systems |
+| Teacher | `teacher2@examai.com` | Software Engineering; Data Structures & Algorithms |
+| Teacher | `teacher3@examai.com` | Advanced Database Systems; Operating Systems |
+| Teacher | `teacher4@examai.com` | Data Structures & Algorithms; Operating Systems |
+| Student | `student1@examai.com` | Software Engineering; Data Structures & Algorithms |
+| Student | `student2@examai.com` | Software Engineering; Advanced Database Systems; Operating Systems |
+| Student | `student3@examai.com` … `student26@examai.com` | Each enrolled in 2–3 subjects (see `app/seed_data.py`) |
+
+Each subject has two co-teachers, 2–3 ready materials (plus one `failed` and
+one `processing` row on Software Engineering to exercise the status UI), 2–3
+shared quizzes (8 published, 4 drafts), and quiz attempts from most enrolled
+students with a realistic grade spread (A–F bands and at-risk flags included).
+Several students have pre-seeded flashcard decks so the deck list and study
+screens render immediately.
 
 Start the API, then log in through `POST /api/auth/login` in Swagger at
 `http://localhost:8000/docs`, or use:

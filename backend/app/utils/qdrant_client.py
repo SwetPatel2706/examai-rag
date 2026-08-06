@@ -14,7 +14,8 @@ class QdrantStore:
     def ensure_collection(self, dimension: int) -> None:
         try:
             info = self.client.get_collection(self.collection)
-            size = info.config.params.vectors.size
+            vectors = info.config.params.vectors
+            size = next(iter(vectors.values())).size if isinstance(vectors, dict) else vectors.size
             if size != dimension:
                 raise ValueError(f"Qdrant collection dimension {size} does not match embedding dimension {dimension}")
         except Exception as exc:

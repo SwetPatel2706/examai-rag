@@ -1,7 +1,16 @@
+import logging
 from typing import Dict, Any, Optional
 # pyrefly: ignore [missing-import]
 import httpx
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class SupabaseUserLookupIncompleteError(Exception):
+    """Raised when admin user lookup cannot complete full pagination scan."""
+    pass
+
 
 class SupabaseAuthClient:
     def __init__(self):
@@ -83,15 +92,28 @@ class SupabaseAuthClient:
         }
         page = 1
         per_page = 50
-        while True:
+        max_pages = 100
+        while page <= max_pages:
             url = f"{self.auth_url}/admin/users?page={page}&per_page={per_page}"
             response = await self.client.get(url, headers=headers)
             if response.status_code != 200:
-                break
+                logger.warning(
+                    "Supabase admin user lookup failed: HTTP %s",
+                    response.status_code,
+                )
+                raise SupabaseUserLookupIncompleteError(
+                    f"Lookup incomplete due to HTTP {response.status_code}"
+                )
             try:
                 users_list = response.json()
-            except Exception:
-                break
+            except Exception as exc:
+                logger.warning(
+                    "Supabase admin user lookup returned a non-JSON body: %s",
+                    type(exc).__name__,
+                )
+                raise SupabaseUserLookupIncompleteError(
+                    f"Lookup incomplete due to invalid JSON: {type(exc).__name__}"
+                )
 
             batch = []
             if isinstance(users_list, list):
@@ -100,7 +122,7 @@ class SupabaseAuthClient:
                 batch = users_list["users"]
 
             if not batch:
-                break
+                return None
 
             for u in batch:
                 if not isinstance(u, dict):
@@ -109,7 +131,13 @@ class SupabaseAuthClient:
                     return u
 
             if len(batch) < per_page:
-                break
+                return None
+
+            if page == max_pages:
+                raise SupabaseUserLookupIncompleteError(
+                    f"Lookup incomplete: reached max_pages limit ({max_pages})"
+                )
+
             page += 1
 
         return None

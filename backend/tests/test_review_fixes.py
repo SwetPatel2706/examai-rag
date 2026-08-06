@@ -10,7 +10,7 @@ from app.models.user import User
 from app.models.subject import Subject
 from app.models.material import Material
 from app.models.quiz import Quiz, QuizQuestion
-from app.auth.supabase_client import SupabaseAuthClient
+from app.auth.supabase_client import SupabaseAuthClient, SupabaseUserLookupIncompleteError
 from app.utils.qdrant_client import QdrantStore
 from app.seed import apply_material_updates, apply_quiz_updates
 
@@ -18,24 +18,85 @@ from app.seed import apply_material_updates, apply_quiz_updates
 @pytest.mark.asyncio
 async def test_admin_get_user_by_email_paginates():
     client = SupabaseAuthClient()
-    page1_users = [{"email": f"user{i}@example.com", "id": str(uuid.uuid4())} for i in range(50)]
-    target_user = {"email": "target@example.com", "id": str(uuid.uuid4())}
-    page2_users = [target_user]
+    async with client.client:
+        page1_users = [{"email": f"user{i}@example.com", "id": str(uuid.uuid4())} for i in range(50)]
+        target_user = {"email": "target@example.com", "id": str(uuid.uuid4())}
+        page2_users = [target_user]
 
-    async def mock_get(url, headers):
-        mock_resp = MagicMock()
-        mock_resp.status_code = 200
-        if "page=1" in url:
-            mock_resp.json.return_value = page1_users
-        elif "page=2" in url:
-            mock_resp.json.return_value = page2_users
-        else:
-            mock_resp.json.return_value = []
-        return mock_resp
+        async def mock_get(url, headers):
+            mock_resp = MagicMock()
+            mock_resp.status_code = 200
+            if "page=1&" in url or "page=1" in url and "per_page" in url:
+                mock_resp.json.return_value = page1_users
+            elif "page=2&" in url or "page=2" in url and "per_page" in url:
+                mock_resp.json.return_value = page2_users
+            else:
+                mock_resp.json.return_value = []
+            return mock_resp
 
-    client.client.get = AsyncMock(side_effect=mock_get)
-    result = await client._admin_get_user_by_email("target@example.com")
-    assert result == target_user
+        client.client.get = AsyncMock(side_effect=mock_get)
+        result = await client._admin_get_user_by_email("target@example.com")
+        assert result == target_user
+
+
+@pytest.mark.asyncio
+async def test_admin_get_user_by_email_incomplete_scans_and_logging(caplog):
+    client = SupabaseAuthClient()
+    async with client.client:
+        # 1. Non-200 HTTP response
+        mock_resp_500 = MagicMock()
+        mock_resp_500.status_code = 500
+        client.client.get = AsyncMock(return_value=mock_resp_500)
+        with pytest.raises(SupabaseUserLookupIncompleteError, match="HTTP 500"):
+            await client._admin_get_user_by_email("target@example.com")
+        assert "target@example.com" not in caplog.text
+        assert "HTTP 500" in caplog.text
+
+        caplog.clear()
+
+        # 2. Non-JSON response
+        mock_resp_nonjson = MagicMock()
+        mock_resp_nonjson.status_code = 200
+        mock_resp_nonjson.json.side_effect = ValueError("Invalid JSON string")
+        client.client.get = AsyncMock(return_value=mock_resp_nonjson)
+        with pytest.raises(SupabaseUserLookupIncompleteError, match="invalid JSON: ValueError"):
+            await client._admin_get_user_by_email("target@example.com")
+        assert "target@example.com" not in caplog.text
+        assert "ValueError" in caplog.text
+
+        # 3. Max pages limit reached (Page 100 full -> attempt page 101 raise)
+        full_page = [{"email": f"user_{i}@example.com", "id": str(uuid.uuid4())} for i in range(50)]
+        mock_resp_full = MagicMock()
+        mock_resp_full.status_code = 200
+        mock_resp_full.json.return_value = full_page
+        client.client.get = AsyncMock(return_value=mock_resp_full)
+
+        with pytest.raises(SupabaseUserLookupIncompleteError, match=r"reached max_pages limit \(100\)"):
+            await client._admin_get_user_by_email("target@example.com")
+        assert client.client.get.call_count == 100
+
+
+@pytest.mark.asyncio
+async def test_admin_get_user_by_email_found_on_page_100():
+    client = SupabaseAuthClient()
+    async with client.client:
+        full_page = [{"email": f"user_{i}@example.com", "id": str(uuid.uuid4())} for i in range(50)]
+        target_user = {"email": "target@example.com", "id": str(uuid.uuid4())}
+        page100 = full_page[:-1] + [target_user]
+
+        async def mock_get(url, headers):
+            mock_resp = MagicMock()
+            mock_resp.status_code = 200
+            if "page=100" in url:
+                mock_resp.json.return_value = page100
+            else:
+                mock_resp.json.return_value = full_page
+            return mock_resp
+
+        client.client.get = AsyncMock(side_effect=mock_get)
+        user = await client._admin_get_user_by_email("target@example.com")
+        assert user == target_user
+        assert client.client.get.call_count == 100
 
 
 def test_qdrant_ensure_collection_single_unnamed_vector():

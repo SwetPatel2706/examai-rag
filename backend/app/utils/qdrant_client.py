@@ -10,8 +10,11 @@ class QdrantStore:
         self.client = client or QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY,
                                              timeout=settings.QDRANT_TIMEOUT_SECONDS)
         self.collection = collection or settings.QDRANT_COLLECTION
+        self._verified_dimension: int | None = None
 
     def ensure_collection(self, dimension: int) -> None:
+        if self._verified_dimension == dimension:
+            return
         try:
             info = self.client.get_collection(self.collection)
             vectors = info.config.params.vectors
@@ -28,16 +31,17 @@ class QdrantStore:
             if "doesn't exist" not in str(exc).lower() and "not found" not in str(exc).lower():
                 raise
             self.client.create_collection(self.collection, vectors_config=models.VectorParams(size=dimension, distance=models.Distance.COSINE))
+        self._verified_dimension = dimension
 
     def upsert(self, vectors: list[list[float]], payloads: list[dict], ids: list[str]) -> None:
-        if not vectors:
-            return
         # Pre-flight: lengths must agree before touching the collection.
         if len(vectors) != len(payloads) or len(vectors) != len(ids):
             raise ValueError(
                 f"upsert called with mismatched lengths: "
                 f"vectors={len(vectors)}, payloads={len(payloads)}, ids={len(ids)}"
             )
+        if not vectors:
+            return
         dim = len(vectors[0])
         bad = [i for i, v in enumerate(vectors) if len(v) != dim]
         if bad:
@@ -63,7 +67,8 @@ class QdrantStore:
         """Metadata-filtered query used by Phase 3; authorization must precede this call."""
         if not vector:
             raise ValueError("query called with an empty vector; provide a non-empty embedding")
-        self.ensure_collection(len(vector))
+        if self._verified_dimension != len(vector):
+            self.ensure_collection(len(vector))
         return self.client.query_points(
             collection_name=self.collection,
             query=vector,

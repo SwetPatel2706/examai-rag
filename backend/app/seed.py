@@ -29,28 +29,34 @@ from app.seed_data import (
 )
 
 # ---------------------------------------------------------------------------
-# Seed credential — read from environment; fall back to the well-known demo
-# value (Password123!) only for non-production environments.  Production must
-# set SEED_PASSWORD explicitly; the seeder aborts at import time when
-# APP_ENV=production and the variable is absent so that a bare hard-coded
-# string never reaches a live Supabase tenant.
+# Seed credential — resolved from the environment; falls back to the well-known
+# demo value (Password123!) only for non-production environments.  Production
+# must set SEED_PASSWORD explicitly; the seeder refuses to run so that a bare
+# hard-coded string never reaches a live Supabase tenant.  Resolution is
+# deferred to call time (not import time) so importing app.seed never raises.
 # ---------------------------------------------------------------------------
-_env_password = os.environ.get("SEED_PASSWORD", "")
-if _env_password:
-    PASSWORD = _env_password
-elif settings.APP_ENV == "production":
-    raise RuntimeError(
-        "SEED_PASSWORD env var is required when APP_ENV=production. "
-        "Refusing to seed a live Supabase tenant with the built-in demo password."
-    )
-else:
-    PASSWORD = "Password123!"
+def resolve_seed_password() -> str:
+    """Return the seed password used for accounts without an explicit one.
+
+    Uses ``SEED_PASSWORD`` when set; otherwise falls back to the built-in demo
+    password (Password123!) for local/development use, unless ``APP_ENV`` is
+    ``production``, in which case the seeder refuses to run.
+    """
+    env_password = os.environ.get("SEED_PASSWORD", "")
+    if env_password:
+        return env_password
+    if settings.APP_ENV == "production":
+        raise RuntimeError(
+            "SEED_PASSWORD env var is required when APP_ENV=production. "
+            "Refusing to seed a live Supabase tenant with the built-in demo password."
+        )
     print(
         "[seed] WARNING: SEED_PASSWORD env var not set — using built-in demo "
         "password (local/development only). Set SEED_PASSWORD before seeding a "
         "production environment.",
         file=sys.stderr,
     )
+    return "Password123!"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -86,7 +92,7 @@ def _reconcile_quiz_questions(quiz_topic: str, existing: list, incoming: list[di
         key = _question_seed_key(quiz_topic, index)
         existing_q = existing_by_key.get(key)
         if existing_q is None:
-            existing_q = legacy_by_text.get(q_data.get("question_text", ""))
+            existing_q = legacy_by_text.pop(q_data.get("question_text", ""), None)
         if existing_q is not None:
             if existing_q.seed_key is None:
                 existing_q.seed_key = key
@@ -181,8 +187,13 @@ def seed_rag_content(db: Session, materials_by_filename: dict[str, tuple[Materia
             for i, paragraph in enumerate(mat_data["content"])
         ]
         chunks = chunk_documents(documents, file_type="pdf")
+        if not chunks:
+            print(f"  Skipping {filename}: no chunks produced")
+            continue
         vectors = embedder.embed([chunk.text for chunk in chunks])
-        qdrant.ensure_collection(len(vectors[0]))
+        if not vectors:
+            print(f"  Skipping {filename}: embedder produced no vectors")
+            continue
         payloads = [
             {
                 "material_id": str(material.id),
@@ -216,11 +227,12 @@ async def seed_data(with_rag: bool = False):
     try:
         print("Starting seeding process...")
         now = datetime.datetime.now(datetime.timezone.utc)
+        seed_password = resolve_seed_password()
 
         # 1. Provision all users (teachers + students) in Supabase Auth + local DB.
         users = {}
         for u in TEACHERS + STUDENTS:
-            user = await provision_user(db, u["email"], u["name"], u.get("role", "student"), u.get("password", PASSWORD))
+            user = await provision_user(db, u["email"], u["name"], u.get("role", "student"), u.get("password", seed_password))
             users[u["email"]] = user
         db.commit()
 
@@ -327,7 +339,7 @@ async def seed_data(with_rag: bool = False):
             for quiz in quiz_list:
                 if quiz.status != "published":
                     continue
-                question_map = {str(q.id): q for q in quiz.questions}
+                question_map = {str(q.id): q for q in sorted(quiz.questions, key=lambda q: (q.seed_key or "", str(q.id)))}
                 for student in students:
                     pair_rng = random.Random(f"{quiz.id}:{student.id}")
                     if pair_rng.random() > participation[student.id]:

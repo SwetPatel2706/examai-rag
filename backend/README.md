@@ -18,7 +18,7 @@ This is the FastAPI backend for the ExamAI application.
 ## Setup and Running the Server
 
 ### 1. Prerequisites
-Ensure you have Python 3.10+ installed and the virtual environment set up.
+Ensure you have Python 3.14 installed and the virtual environment set up.
 
 ### 2. Install Dependencies
 Activate the virtual environment or run from the backend directory:
@@ -107,7 +107,7 @@ Start the API, then log in through `POST /api/auth/login` in Swagger at
 ```bash
 curl -s http://localhost:8000/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"teacher1@examai.com","password":"Password123!"}'
+  -d "{\"email\":\"teacher1@examai.com\",\"password\":\"$SEED_PASSWORD\"}"
 ```
 
 Copy `data.access_token` into Swagger's **Authorize** dialog as a Bearer

@@ -26,9 +26,9 @@ async def test_admin_get_user_by_email_paginates():
         async def mock_get(url, headers):
             mock_resp = MagicMock()
             mock_resp.status_code = 200
-            if "page=1&" in url or "page=1" in url and "per_page" in url:
+            if "?page=1&" in url:
                 mock_resp.json.return_value = page1_users
-            elif "page=2&" in url or "page=2" in url and "per_page" in url:
+            elif "?page=2&" in url:
                 mock_resp.json.return_value = page2_users
             else:
                 mock_resp.json.return_value = []

@@ -48,8 +48,8 @@ export default function SubjectOverview() {
       getSubject(id),
       listSubjectMaterials(id, { status: 'ready', size: 100 }),
       listQuizzes(id),
-      listMyAttempts(),
-      getStudentSubjects(),
+      listMyAttempts().catch(() => []),
+      getStudentSubjects().catch(() => []),
     ]);
     setCurrentSubject(id);
     return { subject, materials, quizzes, attempts, cards };

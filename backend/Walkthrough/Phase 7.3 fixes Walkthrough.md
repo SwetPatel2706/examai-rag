@@ -39,9 +39,12 @@ All findings were confirmed still valid before editing:
   URL after the `await`. On failure, close the placeholder and keep the
   existing error path (`setDownloadError` / `setRejectionMsg`). The placeholder
   deliberately drops `noopener`: with `noopener`, `window.open` returns `null`
-  in Firefox so the reference cannot be redirected. Same-tab navigation was
-  rejected because Supabase signed URLs render PDFs inline, which would replace
-  the app tab.
+  for the new window reference (general browser behavior per the HTML spec), so
+  the reference cannot be redirected. Same-tab navigation was rejected because
+  it would disrupt the app tab. Dropping `noopener` is acceptable only because
+  the server now forces `Content-Disposition: attachment` on signed responses
+  and stores uploads with server-controlled content types, so no inline
+  script-capable content can be served from storage.
 - **Minimal `pageError` fix:** `subjectsApi.error || materialsApi.error` with a
   retry that reloads whichever API actually failed; no restructuring of the
   loading guard in `TeacherMaterials.jsx`.
@@ -74,10 +77,12 @@ All findings were confirmed still valid before editing:
 
 ## Notable pitfalls or lessons
 
-- `window.open(..., 'noopener')` returns `null` in Firefox, so that option is
+- `window.open(..., 'noopener')` returns `null` for the new window reference
+  (general browser behavior, not a Firefox quirk), so that option is
   incompatible with the "open a placeholder, then redirect it" technique. Only
-  the about:blank placeholder is opened without `noopener`; the final target is
-  a signed storage URL we generated, keeping the security risk negligible.
+  the about:blank placeholder is opened without `noopener`; the risk stays
+  negligible because signed responses force attachment disposition and stored
+  objects carry server-controlled content types.
 - Reported line numbers in review findings drift; verify against the current
   file (the quiz subject selector is at ~line 378, not 218) before editing.
 - React renders functions-as-children as an error, not a silent warning — the
@@ -86,5 +91,5 @@ All findings were confirmed still valid before editing:
 ## Follow-up
 
 No known limitations introduced. A future pass could standardize the
-download-handler pattern into a shared helper and decide whether signed-URL
-downloads should force `Content-Disposition: attachment` server-side.
+download-handler pattern into a shared helper; signed-URL downloads now force
+`Content-Disposition: attachment` server-side.

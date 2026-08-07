@@ -26,7 +26,7 @@ async def create_material(
     data = await file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
-    material = await upload_material(db, current_user, subject_id, file.filename or "upload", file.content_type or "", data)
+    material = await upload_material(db, current_user, subject_id, file.filename or "upload", data)
     return StandardResponse.ok(data=MaterialResponse.model_validate(material).model_dump(mode="json"))
 
 @router.get("", response_model=StandardResponse)

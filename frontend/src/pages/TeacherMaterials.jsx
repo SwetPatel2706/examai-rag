@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
+import { Pagination } from '@/components/ui/pagination';
 import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
 import { cn } from '@/lib/utils';
 import { getTypeConfig } from '@/lib/materials';
@@ -31,6 +32,7 @@ const STATUS_BADGE = {
 export default function TeacherMaterials() {
   const user = useAuthStore((s) => s.user);
   const [activeSubjectId, setActiveSubjectId] = useState(null);
+  const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [targetSubjectId, setTargetSubjectId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -42,10 +44,12 @@ export default function TeacherMaterials() {
   const subjectsApi = useApi(getTeacherSubjects, []);
 
   const materialsApi = useApi(
-    () => (activeSubjectId ? listMaterials({ subjectId: activeSubjectId, size: 100 }) : Promise.resolve({ items: [], total: 0, pages: 0 })),
-    [activeSubjectId]
+    () => (activeSubjectId ? listMaterials({ subjectId: activeSubjectId, page, size: 100 }) : Promise.resolve({ items: [], total: 0, pages: 0 })),
+    [activeSubjectId, page]
   );
   const materials = materialsApi.data?.items || [];
+  const totalMaterials = materialsApi.data?.total ?? 0;
+  const totalPages = materialsApi.data?.pages || 1;
 
   // Default the active subject tab once subjects load.
   useEffect(() => {
@@ -54,6 +58,11 @@ export default function TeacherMaterials() {
       setActiveSubjectId(subjects[0].subjectId);
     }
   }, [activeSubjectId, subjectsApi.data]);
+
+  // Reset to the first page whenever the active subject changes.
+  useEffect(() => {
+    setPage(1);
+  }, [activeSubjectId]);
 
   // Poll ingestion status for any 'processing' materials.
   const processingIds = materials.filter((m) => m.status === 'processing').map((m) => m.id);
@@ -200,7 +209,7 @@ export default function TeacherMaterials() {
             <span className="material-symbols-outlined text-[20px]">error</span>
             <span>{rejectionMsg}</span>
           </div>
-          <button type="button" onClick={() => setRejectionMsg(null)} aria-label="Dismiss upload error" className="hover:opacity-75">
+          <button type="button" onClick={() => setRejectionMsg(null)} aria-label="Dismiss error" className="hover:opacity-75">
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
           </button>
         </div>
@@ -231,7 +240,7 @@ export default function TeacherMaterials() {
 
       {/* Materials Table */}
       <section>
-        <SectionHeader title={`All Materials (${materials.length})`} />
+        <SectionHeader title={`All Materials (${totalMaterials})`} />
         {materials.length === 0 ? (
           <EmptyState
             icon="folder_off"
@@ -317,6 +326,12 @@ export default function TeacherMaterials() {
                 </tbody>
               </table>
             </div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              summary={`Showing ${materials.length} of ${totalMaterials} materials`}
+            />
           </div>
         )}
       </section>

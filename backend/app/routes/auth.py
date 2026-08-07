@@ -76,7 +76,6 @@ async def login(request_body: LoginRequest, response: Response, db: Session = De
         access_token=auth_data["access_token"],
         token_type=auth_data.get("token_type", "bearer"),
         expires_in=auth_data["expires_in"],
-        refresh_token=auth_data["refresh_token"],
         user=UserProfileResponse.model_validate(db_user)
     )
     return StandardResponse.ok(data=response_data.model_dump())

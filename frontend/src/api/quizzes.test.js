@@ -89,6 +89,29 @@ describe('quiz API', () => {
     });
   });
 
+  it('createQuiz does not coerce null/empty/boolean correct values into an option index', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: { id: 'q-new' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await createQuiz({
+      subjectId: 's1',
+      topic: 'Arrays',
+      questions: [
+        { stem: 'Q1', options: ['A', 'B'], correct: null },
+        { stem: 'Q2', options: ['A', 'B'], correct: '' },
+        { stem: 'Q3', options: ['A', 'B'], correct: false },
+        { stem: 'Q4', options: ['A', 'B'], correct: '1' },
+      ],
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const questions = JSON.parse(init.body).questions;
+    expect(questions[0].correct_option).toBeNull();
+    expect(questions[1].correct_option).toBe('');
+    expect(questions[2].correct_option).toBe(false);
+    expect(questions[3].correct_option).toBe('B');
+  });
+
   it('listMyAttempts passes quiz_id filter and maps the paginated envelope', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({

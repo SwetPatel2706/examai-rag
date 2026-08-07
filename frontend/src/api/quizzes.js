@@ -52,9 +52,10 @@ export async function getQuiz(id) {
 function toQuestionInput(q) {
   // The editor stores `correct` as a 0-based option index; the backend
   // grades on the option TEXT, so resolve the index to the actual option
-  // string. Non-numeric values (e.g. a string passed through from an
-  // AI-generated draft) are forwarded as-is.
-  const correctIndex = Number(q.correct);
+  // string. Only real numeric values (or non-empty numeric strings) are
+  // treated as indexes; null, empty strings, and booleans pass through.
+  const isIndex = typeof q.correct === 'number' || (typeof q.correct === 'string' && q.correct.trim() !== '');
+  const correctIndex = isIndex ? Number(q.correct) : NaN;
   const correctOption =
     Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < q.options.length
       ? q.options[correctIndex]

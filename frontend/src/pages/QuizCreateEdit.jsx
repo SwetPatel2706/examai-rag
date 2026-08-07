@@ -340,6 +340,7 @@ export default function QuizCreateEdit() {
                     {quiz.status === 'draft' && (
                       <button
                         onClick={() => {
+                          setActionError(null);
                           publishQuiz(quiz.id)
                             .then(() => quizzesApi.reload())
                             .catch((err) => setActionError(err));

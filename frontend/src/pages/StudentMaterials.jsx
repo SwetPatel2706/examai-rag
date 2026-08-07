@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import TopAppBar from '@/components/layout/TopAppBar';
 import { PageHeader } from '@/components/ui/page-header';
@@ -16,11 +16,20 @@ import { formatDate } from '@/lib/format';
 
 const PAGE_SIZE = 5;
 
+// Fixed-delay debounce: the server search request fires only after the user
+// pauses typing for `delay` ms, while the controlled input updates instantly.
+function useDebouncedValue(value, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function StudentMaterials() {
   const [search, setSearch] = useState('');
-  // Debounce the server-side search so a request fires only once the user
-  // pauses typing; the controlled input still updates instantly.
-  const deferredSearch = useDeferredValue(search);
+  const debouncedSearch = useDebouncedValue(search);
   const [courseFilter, setCourseFilter] = useState('All');
   const [selectedTeachers, setSelectedTeachers] = useState(new Set());
   const [view, setView] = useState('list');
@@ -33,10 +42,10 @@ export default function StudentMaterials() {
     () =>
       getStudentMaterials({
         subjectId: courseFilter === 'All' ? undefined : courseFilter,
-        search: deferredSearch.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         size: 100,
       }),
-    [courseFilter, deferredSearch]
+    [courseFilter, debouncedSearch]
   );
 
   const subjects = subjectsApi.data || [];

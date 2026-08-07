@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils';
 /** Consistent loading placeholder for data-bearing sections. */
 export function LoadingState({ label = 'Loading…', className }) {
   return (
-    <div className={cn('flex flex-col items-center justify-center gap-3 py-16 text-secondary', className)}>
-      <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+    <div role="status" className={cn('flex flex-col items-center justify-center gap-3 py-16 text-secondary', className)}>
+      <div aria-hidden="true" className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       <p className="font-label-md text-label-md">{label}</p>
     </div>
   );
@@ -28,7 +28,7 @@ export function EmptyState({ icon = 'inbox', title = 'Nothing here yet', descrip
 /** Consistent error state with a retry action (renders the API envelope message). */
 export function ErrorState({ message, onRetry, className }) {
   return (
-    <div className={cn('flex flex-col items-center justify-center gap-3 py-12 text-center', className)}>
+    <div role="alert" className={cn('flex flex-col items-center justify-center gap-3 py-12 text-center', className)}>
       <span className="material-symbols-outlined text-[40px] text-error">error_outline</span>
       <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
         {message || 'Something went wrong.'}

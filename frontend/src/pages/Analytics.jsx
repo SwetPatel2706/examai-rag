@@ -8,6 +8,7 @@ import { getQuizAnalytics, getTeacherSubjects } from '@/api/analytics';
 import { listQuizzes } from '@/api/quizzes';
 
 function accuracyColor(pct) {
+  if (pct === null || pct === undefined) return 'bg-surface-container-high text-on-surface-variant';
   if (pct >= 80) return 'bg-tertiary text-on-tertiary-fixed';
   if (pct >= 60) return 'bg-primary text-on-primary';
   if (pct >= 40) return 'bg-secondary text-on-secondary';
@@ -28,13 +29,14 @@ export default function Analytics() {
   const subjectsApi = useApi(getTeacherSubjects, []);
   const quizzesApi = useApi(listQuizzes, []);
   const publishedQuizzes = (quizzesApi.data || []).filter((q) => q.status === 'published');
+  const firstPublishedQuizId = publishedQuizzes[0]?.id ?? null;
 
   // Default to the first published quiz once loaded.
   useEffect(() => {
-    if (!selectedQuizId && publishedQuizzes.length > 0) {
-      setSelectedQuizId(publishedQuizzes[0].id);
+    if (!selectedQuizId && firstPublishedQuizId) {
+      setSelectedQuizId(firstPublishedQuizId);
     }
-  }, [selectedQuizId, publishedQuizzes]);
+  }, [selectedQuizId, firstPublishedQuizId]);
 
   const analyticsApi = useApi(
     () => (selectedQuizId ? getQuizAnalytics(selectedQuizId) : Promise.resolve(null)),
@@ -53,7 +55,7 @@ export default function Analytics() {
   if (pageError) {
     return (
       <AppLayout role="teacher">
-        <ErrorState message={pageError.message} onRetry={pageError && subjectsApi.error ? subjectsApi.reload : quizzesApi.reload} />
+        <ErrorState message={pageError.message} onRetry={() => { if (subjectsApi.error) subjectsApi.reload(); if (quizzesApi.error) quizzesApi.reload(); }} />
       </AppLayout>
     );
   }
@@ -108,7 +110,7 @@ export default function Analytics() {
             { icon: 'groups', label: 'Class Size', value: data.classSize, iconBg: 'bg-primary-fixed', iconColor: 'text-primary' },
             { icon: 'assignment_turned_in', label: 'Completed', value: `${data.attemptCount}/${data.classSize}`, iconBg: 'bg-tertiary-fixed/30', iconColor: 'text-tertiary' },
             { icon: 'percent', label: 'Completion', value: `${data.completionPct}%`, iconBg: 'bg-secondary-container', iconColor: 'text-secondary' },
-            { icon: 'leaderboard', label: 'Class Avg', value: `${data.avgScore}%`, iconBg: 'bg-primary-fixed', iconColor: 'text-primary' },
+            { icon: 'leaderboard', label: 'Class Avg', value: `${data.avgScore ?? '—'}%`, iconBg: 'bg-primary-fixed', iconColor: 'text-primary' },
           ];
 
           return (
@@ -137,8 +139,8 @@ export default function Analytics() {
                           key={q.questionId}
                           className={cn('rounded-xl p-3 flex flex-col gap-1 transition-transform hover:scale-105', accuracyColor(q.accuracy))}
                         >
-                          <span className="text-[11px] font-bold opacity-80 uppercase tracking-wider truncate">{q.questionText}</span>
-                          <span className="text-[24px] font-bold leading-none">{q.accuracy}%</span>
+                          <span title={q.questionText} className="text-[11px] font-bold opacity-80 uppercase tracking-wider truncate">{q.questionText}</span>
+                          <span className="text-[24px] font-bold leading-none">{q.accuracy == null ? '—' : `${q.accuracy}%`}</span>
                           <span className="text-[10px] opacity-70">correct</span>
                         </div>
                       ))}

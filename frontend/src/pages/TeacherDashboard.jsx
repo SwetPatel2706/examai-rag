@@ -6,27 +6,19 @@ import { LoadingState, ErrorState } from '@/components/ui/states';
 import { useApi } from '@/lib/useApi';
 import useAuthStore from '@/store/authStore';
 import { getTeacherDashboardStats, getTeacherSubjects } from '@/api/analytics';
-import { cn } from '@/lib/utils';
+import { cn, initials } from '@/lib/utils';
 
 function timeAgo(iso) {
   if (!iso) return '—';
   const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (secs < 60) return `${Math.max(secs, 1)}s ago`;
+  if (secs <= 0) return 'just now';
+  if (secs < 60) return `${secs}s ago`;
   const mins = Math.floor(secs / 60);
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
-}
-
-function initials(name) {
-  return (name || '?')
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 }
 
 const BAND_STYLES = {
@@ -66,7 +58,7 @@ export default function TeacherDashboard() {
       <AppLayout role="teacher">
         <ErrorState
           message={pageError.message}
-          onRetry={() => (subjectsApi.error ? subjectsApi.reload() : statsApi.reload())}
+          onRetry={() => { if (subjectsApi.error) subjectsApi.reload(); if (statsApi.error) statsApi.reload(); }}
         />
       </AppLayout>
     );
@@ -106,7 +98,7 @@ export default function TeacherDashboard() {
             {subjects.map((subj) => (
               <button
                 key={subj.subjectId}
-                onClick={() => navigate(`/teacher/analytics`)}
+                onClick={() => navigate('/teacher/analytics', { state: { subjectId: subj.subjectId } })}
                 className="px-sp-md py-sp-sm rounded-t-xl font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
                 title={`View analytics for ${subj.name}`}
               >
@@ -132,7 +124,7 @@ export default function TeacherDashboard() {
         {/* Avg Score card */}
         <div className="bg-primary text-on-primary p-sp-md rounded-2xl ambient-shadow card-hover relative overflow-hidden">
           <p className="font-label-md text-label-md opacity-80">Avg. Section Score</p>
-          <h3 className="font-display-lg text-display-lg mt-sp-xs leading-none">{stats.avgSectionScore ?? '—'}%</h3>
+          <h3 className="font-display-lg text-display-lg mt-sp-xs leading-none">{stats.avgSectionScore == null ? '—' : `${stats.avgSectionScore}%`}</h3>
           <div className="mt-sp-md flex items-center gap-sp-xs">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>trending_up</span>
             <span className="text-label-sm font-label-sm">Across your subjects</span>

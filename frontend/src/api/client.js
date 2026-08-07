@@ -29,11 +29,17 @@ function buildUrl(path, params) {
   return url.toString();
 }
 
+let redirectToLogin = (url) => window.location.assign(url);
+
+export function setRedirectToLogin(handler) {
+  redirectToLogin = handler;
+}
+
 function handleUnauthorized() {
   const { clearAuth } = useAuthStore.getState();
   clearAuth();
   if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-    window.location.assign('/login?expired=1');
+    redirectToLogin('/login?expired=1');
   }
 }
 
@@ -74,6 +80,10 @@ export async function request(path, { method = 'GET', body, params, formData, he
     });
   }
 
+  if (response.status === 401) {
+    handleUnauthorized();
+  }
+
   let payload;
   try {
     payload = await response.json();
@@ -83,10 +93,6 @@ export async function request(path, { method = 'GET', body, params, formData, he
       code: 'INVALID_RESPONSE',
       message: 'The server returned an unexpected response.',
     });
-  }
-
-  if (response.status === 401) {
-    handleUnauthorized();
   }
 
   if (!payload || typeof payload.success !== 'boolean') {

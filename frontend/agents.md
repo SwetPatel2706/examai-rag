@@ -79,6 +79,11 @@ subject context — shared between Dashboard, Subject Overview, and Chat's
 subject switcher), `materialScopeStore` (per-session selected material IDs,
 scoped to current subject, resets are NOT persisted server-side).
 
+The current backend/client contract still persists a refresh token in
+`examai.auth`; this is an accepted capstone trade-off until refresh-token
+rotation via an HttpOnly cookie is available. Revisit this before production
+deployment because localStorage persistence increases XSS exposure.
+
 ## API integration conventions
 - `src/api/` — one file per backend resource (materials, subjects, chat,
   quizzes, flashcards), thin wrappers, no business logic in the frontend.

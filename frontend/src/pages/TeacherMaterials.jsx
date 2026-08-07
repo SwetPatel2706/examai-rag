@@ -4,6 +4,7 @@ import { SectionHeader } from '@/components/ui/shared';
 import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
 import { cn } from '@/lib/utils';
 import { getTypeConfig } from '@/lib/materials';
+import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/useApi';
 import useAuthStore from '@/store/authStore';
 import {
@@ -19,13 +20,6 @@ import { listMaterials, uploadMaterial, getMaterialStatus, retryMaterial, delete
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'pptx', 'doc', 'ppt'];
 const SUPPORTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
 const ACCEPTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => `.${extension}`).join(',');
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
 
 const STATUS_BADGE = {
   processing: { label: 'Processing', cls: 'bg-primary-fixed text-primary' },
@@ -122,7 +116,7 @@ export default function TeacherMaterials() {
       await retryMaterial(mat.id);
       materialsApi.reload();
     } catch (err) {
-      alert(`Could not retry: ${err.message}`);
+      setRejectionMsg(`Could not retry: ${err.message}`);
     }
   }
 
@@ -133,7 +127,7 @@ export default function TeacherMaterials() {
       await deleteMaterial(mat.id);
       materialsApi.reload();
     } catch (err) {
-      alert(`Could not delete: ${err.message}`);
+      setRejectionMsg(`Could not delete: ${err.message}`);
     }
   }
 
@@ -142,11 +136,11 @@ export default function TeacherMaterials() {
       const { url } = await getMaterialDownloadUrl(mat.id);
       window.open(url, '_blank', 'noopener');
     } catch (err) {
-      alert(`Could not download: ${err.message}`);
+      setRejectionMsg(`Could not download: ${err.message}`);
     }
   }
 
-  if (subjectsApi.loading || materialsApi.loading) {
+  if (subjectsApi.loading || (!subjectsApi.data && materialsApi.loading)) {
     return (
       <AppLayout role="teacher">
         <LoadingState label="Loading materials…" />
@@ -154,13 +148,13 @@ export default function TeacherMaterials() {
     );
   }
 
-  const pageError = subjectsApi.error || materialsApi.error;
+  const pageError = subjectsApi.error;
   if (pageError) {
     return (
       <AppLayout role="teacher">
         <ErrorState
           message={pageError.message}
-          onRetry={() => (subjectsApi.error ? subjectsApi.reload() : materialsApi.reload())}
+          onRetry={subjectsApi.reload}
         />
       </AppLayout>
     );
@@ -256,7 +250,7 @@ export default function TeacherMaterials() {
                   {materials.map((mat) => {
                     const typeConfig = getTypeConfig(mat.fileType);
                     const isOwn = mat.teacherId === user?.id;
-                    const badge = STATUS_BADGE[mat.status] ?? STATUS_BADGE.ready;
+                    const badge = STATUS_BADGE[mat.status] ?? { label: mat.status || 'Unknown', cls: 'bg-surface-container-high text-on-surface-variant' };
                     const subjectName = subjects.find((s) => s.subjectId === mat.subjectId)?.name || 'Unknown';
                     return (
                       <tr key={mat.id} className="hover:bg-surface-container-low transition-colors group">
@@ -279,7 +273,7 @@ export default function TeacherMaterials() {
                         <td className="px-sp-md py-sp-md">
                           <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-bold', badge.cls)}>{badge.label}</span>
                         </td>
-                        <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{formatDate(mat.uploadedAt)}</td>
+                        <td className="px-sp-md py-sp-md font-label-sm text-label-sm text-secondary">{formatDate(mat.uploadedAt, { withYear: true })}</td>
                         <td className="px-sp-md py-sp-md text-right">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                             {mat.status === 'ready' && (

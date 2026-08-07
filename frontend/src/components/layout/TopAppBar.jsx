@@ -1,6 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import useAuthStore from '@/store/authStore';
+import { initials as getInitials } from '@/lib/utils';
 
 /**
  * Fixed top bar with search and account actions — spans main content area beside sidebar.
@@ -8,7 +9,7 @@ import useAuthStore from '@/store/authStore';
 export default function TopAppBar({ searchPlaceholder = 'Search…', searchValue, onSearchChange }) {
   const { user, role } = useAuthStore();
   const displayName = user?.name ?? (role === 'teacher' ? 'Professor' : 'Student');
-  const initials = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  const initials = getInitials(displayName);
 
   return (
     <header className="fixed top-0 left-0 lg:left-64 right-0 w-full lg:w-[calc(100%-16rem)] h-16 bg-surface/80 backdrop-blur-md z-40 px-sp-lg flex items-center justify-between border-b border-outline-variant/10">

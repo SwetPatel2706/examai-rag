@@ -99,10 +99,10 @@ export default function QuizCreateEdit() {
 
   // Ready materials for AI generation, scoped to the selected subject.
   const materialsApi = useApi(
-    () => (subjectId ? listMaterials({ subjectId, size: 100 }) : Promise.resolve({ items: [], total: 0 })),
+    () => (subjectId ? listMaterials({ subjectId, status: 'ready', size: 100 }) : Promise.resolve({ items: [], total: 0 })),
     [subjectId]
   );
-  const readyMaterials = (materialsApi.data?.items || []).filter((m) => m.status === 'ready');
+  const readyMaterials = materialsApi.data?.items || [];
 
   useEffect(() => {
     setSelectedMats(new Set());
@@ -133,7 +133,7 @@ export default function QuizCreateEdit() {
           id: `edit-${q.id}`,
           stem: q.stem,
           options: [...q.options],
-          correct: Math.max(0, q.options.indexOf(q.correct)),
+          correct: q.options.indexOf(q.correct),
         }))
       );
     } catch (err) {
@@ -185,7 +185,7 @@ export default function QuizCreateEdit() {
           id: `ai-${Date.now()}-${i}`,
           stem: d.stem,
           options: [...d.options],
-          correct: Math.max(0, d.options.indexOf(d.correct)),
+          correct: d.options.indexOf(d.correct),
         })),
       ]);
       setMode('manual');
@@ -206,8 +206,8 @@ export default function QuizCreateEdit() {
 
   async function persist(publishNow) {
     const cleanQuestions = questions.filter((q) => q.stem.trim());
-    if (!cleanQuestions.length) {
-      setActionError({ message: 'Add at least one question before saving.' });
+    if (!title.trim() || !subjectId || !cleanQuestions.length || cleanQuestions.some((q) => !q.options.some((option) => option.trim()) || q.correct < 0 || q.correct >= q.options.length)) {
+      setActionError({ message: 'Enter a title, choose a subject, add at least one option per question, and choose a valid answer for every question.' });
       return;
     }
     setSaving(true);

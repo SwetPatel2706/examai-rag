@@ -8,6 +8,7 @@ import { useApi } from '@/lib/useApi';
 import { listSubjects, listSubjectMaterials } from '@/api/subjects';
 import { askQuestion } from '@/api/chat';
 import { cn } from '@/lib/utils';
+import { groupByTeacher } from '@/lib/materials';
 
 /**
  * Citation tooltip shown on hover over [N] markers.
@@ -61,21 +62,6 @@ function MessageContent({ text, citations = [] }) {
       })}
     </>
   );
-}
-
-function groupByTeacher(items) {
-  const groups = [];
-  const byTeacher = new Map();
-  for (const mat of items || []) {
-    const key = mat.teacherId;
-    if (!byTeacher.has(key)) {
-      const group = { teacher: { id: key, name: mat.teacherName || 'Unknown' }, materials: [] };
-      byTeacher.set(key, group);
-      groups.push(group);
-    }
-    byTeacher.get(key).materials.push({ id: mat.id, name: mat.name, type: mat.fileType });
-  }
-  return groups;
 }
 
 export default function Chat() {
@@ -201,7 +187,7 @@ export default function Chat() {
     }
   }
 
-  if (subjectsApi.loading || materialsApi.loading) {
+  if (subjectsApi.loading) {
     return (
       <AppLayout role="student">
         <LoadingState label="Loading chat…" />
@@ -209,12 +195,10 @@ export default function Chat() {
     );
   }
 
-  if (subjectsApi.error || (activeSubjectId && materialsApi.error)) {
-    const message = subjectsApi.error?.message || materialsApi.error?.message;
-    const onRetry = subjectsApi.error ? subjectsApi.reload : materialsApi.reload;
+  if (subjectsApi.error) {
     return (
       <AppLayout role="student">
-        <ErrorState message={message} onRetry={onRetry} />
+        <ErrorState message={subjectsApi.error.message} onRetry={subjectsApi.reload} />
       </AppLayout>
     );
   }
@@ -231,7 +215,9 @@ export default function Chat() {
             scopeOpen ? 'w-72 p-sp-md' : 'w-0 p-0 overflow-hidden'
           )}
         >
-          {materialsApi.error ? (
+          {materialsApi.loading ? (
+            <LoadingState label="Loading materials…" className="py-8" />
+          ) : materialsApi.error ? (
             <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} className="py-8" />
           ) : (
             <MaterialScopePanel materialsByTeacher={materialsByTeacher} />
@@ -290,7 +276,7 @@ export default function Chat() {
                     msg.role === 'user'
                       ? 'bg-primary text-on-primary rounded-br-sm'
                       : msg.isError
-                        ? 'bg-error-container text-error rounded-bl-sm'
+                        ? 'bg-error-container text-on-error-container rounded-bl-sm'
                         : 'bg-white text-on-surface ambient-shadow rounded-bl-sm'
                   )}
                 >

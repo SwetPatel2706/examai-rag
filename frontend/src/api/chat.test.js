@@ -41,4 +41,13 @@ describe('askQuestion()', () => {
       { num: 1, teacherName: 'Dr. Vance', materialFilename: 'arrays.pdf', materialId: 'm1', sourceLocator: { type: 'page', value: 4 } },
     ]);
   });
+
+  it('maps missing citations and source locators safely', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({
+      success: true,
+      data: { answer_text: 'Answer', citations: [{ marker: 1, teacher_name: 'Dr. Vance', material_filename: 'notes.pdf', material_id: 'm1' }] },
+    })));
+    const res = await askQuestion({ subjectId: 's1', selectedMaterialIds: [], question: 'Hi' });
+    expect(res.citations).toEqual([{ num: 1, teacherName: 'Dr. Vance', materialFilename: 'notes.pdf', materialId: 'm1', sourceLocator: null }]);
+  });
 });

@@ -34,6 +34,7 @@ describe('authStore', () => {
 
     expect(useAuthStore.getState().role).toBe('teacher');
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).role).toBe('teacher');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY))).toMatchObject({ accessToken: 'at-1', refreshToken: 'rt-1' });
   });
 
   it('clearAuth wipes the session and persisted state', () => {

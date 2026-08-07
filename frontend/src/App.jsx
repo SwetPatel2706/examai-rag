@@ -37,7 +37,12 @@ function RequireAuth({ children }) {
 
 function RequireRole({ role, children }) {
   const userRole = useAuthStore((s) => s.role);
-  if (userRole && userRole !== role) {
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  if (!userRole) {
+    clearAuth();
+    return <Navigate to="/login" replace />;
+  }
+  if (userRole !== role) {
     return <Navigate to={userRole === 'teacher' ? '/teacher' : '/student'} replace />;
   }
   return children;
@@ -87,7 +92,7 @@ function SessionBootstrap({ children }) {
 function RedirectIfAuthed() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.role);
-  if (accessToken) {
+  if (accessToken && role) {
     return <Navigate to={roleHome(role)} replace />;
   }
   return <Login />;

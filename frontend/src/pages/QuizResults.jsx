@@ -24,9 +24,9 @@ export default function QuizResults() {
     async () => {
       if (liveAttempt) return liveAttempt;
       const attempts = await listMyAttempts({ quizId: id });
-      return attempts[0] ?? null;
+      return [...attempts].sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0] ?? null;
     },
-    [id, liveAttempt]
+    [id, liveAttempt?.id]
   );
 
   if (loading) {

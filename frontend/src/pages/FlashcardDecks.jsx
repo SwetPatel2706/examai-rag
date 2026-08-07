@@ -18,21 +18,7 @@ import { listDecks, generateDeck } from '@/api/flashcards';
 import { getStudentSubjects } from '@/api/analytics';
 import { listSubjectMaterials } from '@/api/subjects';
 import { cn } from '@/lib/utils';
-
-function groupByTeacher(items) {
-  const groups = [];
-  const byTeacher = new Map();
-  for (const mat of items || []) {
-    const key = mat.teacherId;
-    if (!byTeacher.has(key)) {
-      const group = { teacher: { id: key, name: mat.teacherName || 'Unknown' }, materials: [] };
-      byTeacher.set(key, group);
-      groups.push(group);
-    }
-    byTeacher.get(key).materials.push({ id: mat.id, name: mat.name, type: mat.fileType });
-  }
-  return groups;
-}
+import { groupByTeacher } from '@/lib/materials';
 
 function DeckCard({ deck, onStudy }) {
   const cardCount = deck.cards.length;
@@ -95,7 +81,7 @@ export default function FlashcardDecks() {
 
   const materialsApi = useApi(
     () => (activeGenSubjectId ? listSubjectMaterials(activeGenSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
-    [activeGenSubjectId]
+    [activeGenSubjectId, generateOpen]
   );
   const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
 

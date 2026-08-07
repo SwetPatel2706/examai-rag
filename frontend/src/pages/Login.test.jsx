@@ -9,9 +9,9 @@ function jsonResponse(payload, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => payload };
 }
 
-function renderLogin() {
+function renderLogin(initialEntry = '/login') {
   return render(
-    <MemoryRouter initialEntries={['/login']}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/student" element={<div>Student Home</div>} />
@@ -89,5 +89,12 @@ describe('Login', () => {
     renderLogin();
     await waitFor(() => expect(screen.getByLabelText('Email Address')).toBeInTheDocument());
     expect(screen.queryByText('Your session expired. Please log in again.')).not.toBeInTheDocument();
+  });
+
+  it('shows a session-expired banner for an expired session URL', async () => {
+    useAuthStore.getState().clearAuth();
+    renderLogin('/login?expired=1');
+    await waitFor(() => expect(screen.getByLabelText('Email Address')).toBeInTheDocument());
+    expect(screen.getByText('Your session expired. Please log in again.')).toBeInTheDocument();
   });
 });

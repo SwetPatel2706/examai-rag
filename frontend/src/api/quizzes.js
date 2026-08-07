@@ -18,8 +18,8 @@ export function mapQuizSummary(q) {
 }
 
 /** GET /api/quizzes — role-aware: teacher sees drafts+published, student published only. */
-export async function listQuizzes() {
-  const data = await request('/api/quizzes');
+export async function listQuizzes(subjectId) {
+  const data = await request('/api/quizzes', { params: subjectId ? { subject_id: subjectId } : undefined });
   return (data || []).map(mapQuizSummary);
 }
 

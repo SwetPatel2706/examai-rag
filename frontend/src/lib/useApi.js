@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 /**
  * Minimal async hook: runs `fetcher` on mount and whenever `deps` change,
@@ -34,9 +34,9 @@ export function useApi(fetcher, deps = []) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, reloadKey]);
 
-  function reload() {
+  const reload = useCallback(() => {
     setReloadKey((k) => k + 1);
-  }
+  }, []);
 
   return { data, loading, error, reload };
 }

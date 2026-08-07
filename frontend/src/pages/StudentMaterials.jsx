@@ -12,15 +12,9 @@ import { MaterialsTable } from '@/components/materials/MaterialsTable';
 import { useApi } from '@/lib/useApi';
 import { getStudentMaterials, getStudentSubjects, getStudentStats } from '@/api/analytics';
 import { getMaterialDownloadUrl } from '@/api/materials';
+import { formatDate } from '@/lib/format';
 
 const PAGE_SIZE = 5;
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
 
 export default function StudentMaterials() {
   const [search, setSearch] = useState('');
@@ -28,6 +22,7 @@ export default function StudentMaterials() {
   const [selectedTeachers, setSelectedTeachers] = useState(new Set());
   const [view, setView] = useState('list');
   const [page, setPage] = useState(1);
+  const [downloadError, setDownloadError] = useState(null);
 
   const subjectsApi = useApi(getStudentSubjects, []);
   const statsApi = useApi(getStudentStats, []);
@@ -80,7 +75,7 @@ export default function StudentMaterials() {
     id: mat.id,
     name: mat.name,
     course: subjectNameById.get(mat.subjectId) || 'Unknown',
-    dateAdded: formatDate(mat.uploadedAt),
+    dateAdded: formatDate(mat.uploadedAt, { withYear: true }),
     size: '—',
     owner: mat.teacherName || 'Unknown',
     ownerId: mat.teacherId,
@@ -108,12 +103,12 @@ export default function StudentMaterials() {
   }
 
   async function handleDownload(material) {
+    setDownloadError(null);
     try {
       const { url } = await getMaterialDownloadUrl(material.id);
       window.open(url, '_blank', 'noopener');
     } catch (err) {
-      // surface inline by falling back to a no-op; the row stays interactive
-      alert(`Could not download: ${err.message}`);
+      setDownloadError(`Could not download: ${err.message}`);
     }
   }
 
@@ -146,6 +141,7 @@ export default function StudentMaterials() {
       />
 
       <div className="-m-margin-desktop mt-0 pt-20 px-sp-lg pb-sp-xl">
+        {downloadError && <div role="alert" className="mb-sp-md p-sp-md bg-error-container text-error rounded-2xl">{downloadError}</div>}
         <PageHeader
           title="Resources"
           description="Materials approved by your teachers, grouped by course."
@@ -192,7 +188,7 @@ export default function StudentMaterials() {
                 <RecentlyAccessedCard
                   key={item.id}
                   name={item.name}
-                  accessedAt={formatDate(item.uploadedAt)}
+                  accessedAt={formatDate(item.uploadedAt, { withYear: true })}
                   type={item.fileType}
                 />
               ))}
@@ -233,6 +229,7 @@ export default function StudentMaterials() {
                     name={mat.name}
                     accessedAt={`${mat.course} · ${mat.owner}`}
                     type={mat.type}
+                    onClick={() => handleDownload(mat)}
                   />
                 ))}
               </div>

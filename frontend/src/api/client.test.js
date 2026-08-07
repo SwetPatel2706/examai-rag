@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { request, ApiError } from './client';
+import { request, ApiError, setRedirectToLogin } from './client';
 import useAuthStore from '@/store/authStore';
 
 function jsonResponse(payload, status = 200) {
@@ -16,6 +16,7 @@ describe('request()', () => {
   });
 
   afterEach(() => {
+    setRedirectToLogin((url) => window.location.assign(url));
     vi.unstubAllGlobals();
   });
 
@@ -77,13 +78,24 @@ describe('request()', () => {
       { accessToken: 'expired', refreshToken: 'rt' }
     );
     const assign = vi.fn();
+    setRedirectToLogin(assign);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: false, error: { code: 'UNAUTHORIZED', message: 'Expired' } }, 401)));
-    Object.defineProperty(window, 'location', { value: { ...window.location, pathname: '/student', assign }, writable: true });
 
     await request('/api/me').catch(() => {});
     expect(useAuthStore.getState().accessToken).toBeNull();
     expect(useAuthStore.getState().user).toBeNull();
     expect(assign).toHaveBeenCalledWith('/login?expired=1');
+  });
+
+  it('clears auth and redirects before decoding a non-JSON 401', async () => {
+    useAuthStore.getState().setAuth({ id: 'u1', role: 'student' }, 'student', { accessToken: 'expired', refreshToken: 'rt' });
+    const redirect = vi.fn();
+    setRedirectToLogin(redirect);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 401, json: async () => { throw new Error('not json'); } }));
+
+    await request('/api/me').catch(() => {});
+    expect(redirect).toHaveBeenCalledWith('/login?expired=1');
+    expect(useAuthStore.getState().accessToken).toBeNull();
   });
 
   it('omits empty query params', async () => {

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
 import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
-import { cn } from '@/lib/utils';
+import { cn, initials } from '@/lib/utils';
+import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/useApi';
 import { getStudentProgress, getStudentProgressDetail, getTeacherSubjects } from '@/api/analytics';
 
@@ -14,21 +15,7 @@ function ScoreBadge({ score }) {
   return <span className={cn('px-2 py-0.5 rounded-full text-[13px] font-bold', style)}>{score}%</span>;
 }
 
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}`;
-}
-
-function initials(name) {
-  return (name || '?')
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
+export { initials };
 
 export default function StudentProgress() {
   const [subjectFilter, setSubjectFilter] = useState('all');
@@ -67,7 +54,7 @@ export default function StudentProgress() {
 
   const subjects = subjectsApi.data || [];
   const students = (rosterApi.data?.students || []).filter((s) =>
-    s.name.toLowerCase().includes(search.trim().toLowerCase())
+    (typeof s.name === 'string' ? s.name : '').toLowerCase().includes(search.trim().toLowerCase())
   );
   const atRiskCount = students.filter((s) => s.atRisk).length;
   const selectedStudent = detailApi.data;
@@ -139,6 +126,7 @@ export default function StudentProgress() {
                     <tr
                       key={s.studentId}
                       tabIndex={0}
+                      role="button"
                       aria-expanded={isSelected}
                       onClick={toggle}
                       onKeyDown={(e) => {

@@ -37,18 +37,27 @@ const useAuthStore = create((set) => ({
   refreshToken: persisted?.refreshToken ?? null,
 
   setAuth: (user, role, { accessToken, refreshToken } = {}) => {
-    set({ user, role, accessToken, refreshToken });
-    persist({ user, role, accessToken, refreshToken });
+    set((state) => {
+      const next = { ...state, user, role, accessToken, refreshToken };
+      persist(next);
+      return next;
+    });
   },
 
   setUser: (user) => {
-    set({ user, role: user.role });
-    persist({ user, role: user.role });
+    set((state) => {
+      const next = { ...state, user, role: user.role };
+      persist(next);
+      return next;
+    });
   },
 
   clearAuth: () => {
-    set({ user: null, role: null, accessToken: null, refreshToken: null });
-    persist({ user: null, role: null, accessToken: null, refreshToken: null });
+    set((state) => {
+      const next = { ...state, user: null, role: null, accessToken: null, refreshToken: null };
+      persist(next);
+      return next;
+    });
   },
 }));
 

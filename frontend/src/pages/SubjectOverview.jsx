@@ -9,6 +9,8 @@ import useSubjectStore from '@/store/subjectStore';
 import { getSubject, listSubjectMaterials } from '@/api/subjects';
 import { listQuizzes, listMyAttempts } from '@/api/quizzes';
 import { getStudentSubjects } from '@/api/analytics';
+import { initials } from '@/lib/utils';
+import { groupByTeacher } from '@/lib/materials';
 
 const STATUS_STYLES = {
   completed: 'bg-tertiary-fixed/30 text-tertiary',
@@ -23,7 +25,6 @@ const STATUS_LABELS = {
 };
 
 function TeacherChip({ teacher }) {
-  const initials = (teacher.name || '?').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
   return (
     <div className="flex items-center gap-2 bg-white border border-outline-variant rounded-full px-3 py-1.5">
       <Avatar size="sm">
@@ -46,7 +47,7 @@ export default function SubjectOverview() {
     const [subject, materials, quizzes, attempts, cards] = await Promise.all([
       getSubject(id),
       listSubjectMaterials(id, { status: 'ready', size: 100 }),
-      listQuizzes(),
+      listQuizzes(id),
       listMyAttempts(),
       getStudentSubjects(),
     ]);
@@ -74,18 +75,7 @@ export default function SubjectOverview() {
   const subjectCard = (cards || []).find((c) => c.subjectId === id);
   const progress = subjectCard?.progress ?? 0;
 
-  // Group materials by teacher
-  const materialsByTeacher = [];
-  const byTeacher = new Map();
-  for (const mat of materials.items) {
-    const key = mat.teacherId;
-    if (!byTeacher.has(key)) {
-      const group = { teacher: { id: key, name: mat.teacherName || 'Unknown' }, materials: [] };
-      byTeacher.set(key, group);
-      materialsByTeacher.push(group);
-    }
-    byTeacher.get(key).materials.push({ id: mat.id, name: mat.name, type: mat.fileType });
-  }
+  const materialsByTeacher = groupByTeacher(materials.items);
 
   // Map attempt → quiz status
   const attemptsByQuiz = new Map((attempts || []).map((a) => [a.quizId, a]));
@@ -178,7 +168,6 @@ export default function SubjectOverview() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-label-md text-label-md text-on-surface truncate">{mat.name}</p>
-                            <p className="text-[11px] text-secondary uppercase">{mat.type}</p>
                           </div>
                           <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">{mat.type}</span>
                         </div>

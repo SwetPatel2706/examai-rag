@@ -95,7 +95,11 @@ export default function Quizzes() {
   }
 
   const subjectNames = new Map((data.subjects || []).map((s) => [s.subjectId, s.name]));
-  const attemptsByQuiz = new Map((data.attempts || []).map((a) => [a.quizId, a]));
+  const attemptsByQuiz = new Map();
+  for (const attempt of data.attempts || []) {
+    const previous = attemptsByQuiz.get(attempt.quizId);
+    if (!previous || new Date(attempt.submittedAt || 0) > new Date(previous.submittedAt || 0)) attemptsByQuiz.set(attempt.quizId, attempt);
+  }
 
   const quizCards = (data.quizzes || []).map((quiz) => {
     const attempt = attemptsByQuiz.get(quiz.id);

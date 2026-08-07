@@ -104,7 +104,6 @@ export default function QuizTaking() {
       {/* Top bar */}
       <header className="h-16 bg-white border-b border-outline-variant flex items-center justify-between px-sp-xl shrink-0">
         <div>
-          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">{quiz.topic}</p>
           <h1 className="font-headline-md text-headline-md text-on-background">{quiz.topic}</h1>
         </div>
         <div className="flex items-center gap-sp-md">

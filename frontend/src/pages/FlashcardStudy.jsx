@@ -41,8 +41,8 @@ export default function FlashcardStudy() {
   async function persistMastery(cardId, result) {
     try {
       await updateCardMastery(cardId, result === 'got_it' ? 'mastered' : 'learning');
-    } catch {
-      // ignore — mastery is advisory, the local session still advances
+    } catch (err) {
+      console.debug('Could not persist flashcard mastery:', err);
     }
   }
 

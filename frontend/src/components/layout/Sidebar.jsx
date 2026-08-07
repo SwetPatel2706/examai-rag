@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn, initials as getInitials } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import useAuthStore from '@/store/authStore';
 import { logout } from '@/api/auth';
@@ -28,7 +28,7 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
 
   const displayName = user?.name ?? (role === 'teacher' ? 'Professor' : 'Student');
   const displayRole = role === 'teacher' ? 'Professor View' : 'Student View';
-  const initials = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  const initials = getInitials(displayName);
 
   async function handleLogout() {
     try {

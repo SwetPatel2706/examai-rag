@@ -131,7 +131,7 @@ export default function StudentDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
             {subjectList.map((subject) => {
               const teacherNames = (subject.teachers || []).map((t) => t.name).join(', ');
-              const progress = subject.progress ?? 0;
+              const progress = subject.progress == null ? null : subject.progress;
               return (
                 <button
                   key={subject.subjectId}
@@ -148,9 +148,9 @@ export default function StudentDashboard() {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center text-[12px] font-label-md">
                         <span className="text-secondary">Progress</span>
-                        <span className="text-on-background font-bold">{progress}%</span>
+                        <span className="text-on-background font-bold">{progress == null ? '—' : `${progress}%`}</span>
                       </div>
-                      <ProgressBar value={progress} />
+                      <ProgressBar value={progress ?? 0} />
                     </div>
                   </div>
                 </button>

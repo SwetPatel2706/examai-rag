@@ -28,7 +28,7 @@ function TeacherChip({ teacher }) {
   return (
     <div className="flex items-center gap-2 bg-white border border-outline-variant rounded-full px-3 py-1.5">
       <Avatar size="sm">
-        <AvatarFallback>{initials}</AvatarFallback>
+        <AvatarFallback>{initials(teacher.name)}</AvatarFallback>
       </Avatar>
       <div>
         <p className="font-label-md text-label-md text-on-surface">{teacher.name}</p>

@@ -376,9 +376,10 @@ export default function QuizCreateEdit() {
             <div>
               <label className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block mb-1">Subject</label>
               <select
-                className="w-full border border-outline-variant rounded-xl px-sp-md py-sp-sm font-body-md text-body-md outline-none focus:border-primary transition-colors bg-white"
+                className="w-full border border-outline-variant rounded-xl px-sp-md py-sp-sm font-body-md text-body-md outline-none focus:border-primary transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                 value={subjectId}
                 onChange={(e) => setSubjectId(e.target.value)}
+                disabled={!!editingId}
               >
                 {subjects.map((s) => (
                   <option key={s.subjectId} value={s.subjectId}>{s.name}</option>

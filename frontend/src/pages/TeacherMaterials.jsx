@@ -132,10 +132,13 @@ export default function TeacherMaterials() {
   }
 
   async function handleDownload(mat) {
+    // Open the target window synchronously so the popup isn't blocked after the await.
+    const win = window.open('', '_blank');
     try {
       const { url } = await getMaterialDownloadUrl(mat.id);
-      window.open(url, '_blank', 'noopener');
+      if (win) win.location.href = url;
     } catch (err) {
+      win?.close();
       setRejectionMsg(`Could not download: ${err.message}`);
     }
   }
@@ -148,13 +151,13 @@ export default function TeacherMaterials() {
     );
   }
 
-  const pageError = subjectsApi.error;
+  const pageError = subjectsApi.error || materialsApi.error;
   if (pageError) {
     return (
       <AppLayout role="teacher">
         <ErrorState
           message={pageError.message}
-          onRetry={subjectsApi.reload}
+          onRetry={() => (subjectsApi.error ? subjectsApi.reload() : materialsApi.reload())}
         />
       </AppLayout>
     );

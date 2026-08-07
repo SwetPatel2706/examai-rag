@@ -43,19 +43,19 @@ export default function Analytics() {
     [selectedQuizId]
   );
 
-  if (subjectsApi.loading || quizzesApi.loading) {
-    return (
-      <AppLayout role="teacher">
-        <LoadingState label="Loading analytics…" />
-      </AppLayout>
-    );
-  }
-
   const pageError = subjectsApi.error || quizzesApi.error;
   if (pageError) {
     return (
       <AppLayout role="teacher">
         <ErrorState message={pageError.message} onRetry={() => { if (subjectsApi.error) subjectsApi.reload(); if (quizzesApi.error) quizzesApi.reload(); }} />
+      </AppLayout>
+    );
+  }
+
+  if (subjectsApi.loading || quizzesApi.loading) {
+    return (
+      <AppLayout role="teacher">
+        <LoadingState label="Loading analytics…" />
       </AppLayout>
     );
   }
@@ -74,6 +74,7 @@ export default function Analytics() {
         {/* Quiz selector */}
         {publishedQuizzes.length > 0 && (
           <select
+            aria-label="Select quiz"
             className="border border-outline-variant rounded-xl px-sp-md py-sp-sm font-label-md text-label-md outline-none focus:border-primary bg-white shrink-0 max-w-[320px]"
             value={selectedQuizId ?? ''}
             onChange={(e) => setSelectedQuizId(e.target.value)}
@@ -110,7 +111,7 @@ export default function Analytics() {
             { icon: 'groups', label: 'Class Size', value: data.classSize, iconBg: 'bg-primary-fixed', iconColor: 'text-primary' },
             { icon: 'assignment_turned_in', label: 'Completed', value: `${data.attemptCount}/${data.classSize}`, iconBg: 'bg-tertiary-fixed/30', iconColor: 'text-tertiary' },
             { icon: 'percent', label: 'Completion', value: `${data.completionPct}%`, iconBg: 'bg-secondary-container', iconColor: 'text-secondary' },
-            { icon: 'leaderboard', label: 'Class Avg', value: `${data.avgScore ?? '—'}%`, iconBg: 'bg-primary-fixed', iconColor: 'text-primary' },
+            { icon: 'leaderboard', label: 'Class Avg', value: data.avgScore == null ? '—' : `${data.avgScore}%`, iconBg: 'bg-primary-fixed', iconColor: 'text-primary' },
           ];
 
           return (

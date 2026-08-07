@@ -104,10 +104,13 @@ export default function StudentMaterials() {
 
   async function handleDownload(material) {
     setDownloadError(null);
+    // Open the target window synchronously so the popup isn't blocked after the await.
+    const win = window.open('', '_blank');
     try {
       const { url } = await getMaterialDownloadUrl(material.id);
-      window.open(url, '_blank', 'noopener');
+      if (win) win.location.href = url;
     } catch (err) {
+      win?.close();
       setDownloadError(`Could not download: ${err.message}`);
     }
   }

@@ -143,6 +143,27 @@ class SupabaseAuthClient:
         return None
 
 
+    async def refresh(self, refresh_token: str) -> Dict[str, Any]:
+        """Exchange a refresh token for a new session.
+
+        Supabase rotates the refresh token on every call, so the caller must
+        persist the returned ``refresh_token`` (here: a fresh HttpOnly cookie).
+        """
+        url = f"{self.auth_url}/token?grant_type=refresh_token"
+        headers = {
+            "apikey": self.anon_key,
+            "Content-Type": "application/json",
+        }
+        data = {"refresh_token": refresh_token}
+        response = await self.client.post(url, headers=headers, json=data)
+        if response.status_code != 200:
+            try:
+                error_detail = response.json().get("error_description", "Invalid or expired refresh token")
+            except Exception:
+                error_detail = "Invalid or expired refresh token"
+            raise ValueError(error_detail)
+        return response.json()
+
     async def logout(self, token: str) -> None:
         url = f"{self.auth_url}/logout"
         headers = {

@@ -141,7 +141,7 @@ export default function FlashcardDecks() {
           <p className="font-body-md text-body-md text-secondary mt-1">Your personal study decks, generated from approved materials.</p>
         </div>
         <button
-          onClick={() => { reset(); setGenError(null); setGenerateOpen(true); }}
+          onClick={() => { reset(); setGenSubjectId(null); setGenError(null); setGenerateOpen(true); }}
           className="h-12 px-6 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center gap-2 hover:scale-95 transition-all shadow-md"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
@@ -183,7 +183,7 @@ export default function FlashcardDecks() {
                 {subjects.map((s) => (
                   <button
                     key={s.subjectId}
-                    onClick={() => setGenSubjectId(s.subjectId)}
+                    onClick={() => { setGenSubjectId(s.subjectId); reset(); }}
                     className={cn(
                       'px-3 py-1 rounded-full font-label-md text-label-md transition-all',
                       s.subjectId === activeGenSubjectId

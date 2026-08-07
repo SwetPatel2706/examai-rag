@@ -15,7 +15,7 @@ export function LoadingState({ label = 'Loading…', className }) {
 export function EmptyState({ icon = 'inbox', title = 'Nothing here yet', description, action, className }) {
   return (
     <div className={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
-      <span className="material-symbols-outlined text-[48px] text-outline">{icon}</span>
+      <span aria-hidden="true" className="material-symbols-outlined text-[48px] text-outline">{icon}</span>
       <h3 className="font-headline-md text-headline-md text-on-background mt-3">{title}</h3>
       {description && (
         <p className="font-body-md text-body-md text-secondary mt-1 max-w-sm">{description}</p>
@@ -29,7 +29,7 @@ export function EmptyState({ icon = 'inbox', title = 'Nothing here yet', descrip
 export function ErrorState({ message, onRetry, className }) {
   return (
     <div role="alert" className={cn('flex flex-col items-center justify-center gap-3 py-12 text-center', className)}>
-      <span className="material-symbols-outlined text-[40px] text-error">error_outline</span>
+      <span aria-hidden="true" className="material-symbols-outlined text-[40px] text-error">error_outline</span>
       <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
         {message || 'Something went wrong.'}
       </p>

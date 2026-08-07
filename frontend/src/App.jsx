@@ -23,7 +23,7 @@ import Analytics from './pages/Analytics';
 import StudentProgress from './pages/StudentProgress';
 
 import useAuthStore from './store/authStore';
-import { fetchMe } from './api/auth';
+import { fetchMe, refreshSession } from './api/auth';
 import { LoadingState } from './components/ui/states';
 
 function RequireAuth({ children }) {
@@ -37,9 +37,7 @@ function RequireAuth({ children }) {
 
 function RequireRole({ role, children }) {
   const userRole = useAuthStore((s) => s.role);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
   if (!userRole) {
-    clearAuth();
     return <Navigate to="/login" replace />;
   }
   if (userRole !== role) {
@@ -53,35 +51,43 @@ function roleHome(role) {
 }
 
 /**
- * Revalidates a persisted session against GET /auth/me once on app load.
- * Renders a brief splash so guards never flash the wrong role home.
+ * Restores a session once on app load. The access token is memory-only, so
+ * on a reload we silently re-mint it from the HttpOnly refresh cookie, then
+ * revalidate against GET /auth/me. Renders a brief splash so guards never
+ * flash the wrong role home.
  */
 function SessionBootstrap({ children }) {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
   const setUser = useAuthStore((s) => s.setUser);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    async function revalidate() {
-      if (!accessToken) {
-        if (!cancelled) setReady(true);
-        return;
+    async function restore() {
+      let token = accessToken;
+      if (!token) {
+        token = await refreshSession();
+        if (token && !cancelled) setAccessToken(token);
       }
-      try {
-        const user = await fetchMe();
-        if (!cancelled) setUser(user);
-      } catch {
-        // 401 handler in the API client already cleared auth + redirected.
-      } finally {
-        if (!cancelled) setReady(true);
+      if (token) {
+        try {
+          const user = await fetchMe();
+          if (!cancelled) setUser(user);
+        } catch {
+          // 401 handler in the API client already cleared auth + redirected.
+        }
+      } else if (!cancelled) {
+        clearAuth();
       }
+      if (!cancelled) setReady(true);
     }
-    revalidate();
+    restore();
     return () => {
       cancelled = true;
     };
-  }, [accessToken, setUser]);
+  }, [accessToken, setAccessToken, setUser, clearAuth]);
 
   if (!ready) {
     return <LoadingState label="Restoring session…" />;

@@ -16,6 +16,7 @@ export default function QuizTaking() {
 
   const [quiz, setQuiz] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({}); // { questionId: optionIndex }
   const [timeLeft, setTimeLeft] = useState(null);
@@ -50,6 +51,7 @@ export default function QuizTaking() {
     submittedRef.current = true;
     clearInterval(timerRef.current);
     setSubmitting(true);
+    setSubmitError(null);
     try {
       // Backend grades option TEXT strings — map { questionId: optionIndex } → text.
       const textAnswers = {};
@@ -62,7 +64,7 @@ export default function QuizTaking() {
     } catch (err) {
       submittedRef.current = false;
       setSubmitting(false);
-      setLoadError(err);
+      setSubmitError(err);
     }
   }, [quiz, answers, id, navigate]);
 
@@ -158,6 +160,21 @@ export default function QuizTaking() {
           </div>
         </div>
       </main>
+
+      {/* Submission failure banner (distinct from loadError above) */}
+      {submitError && (
+        <div role="alert" className="px-sp-xl pt-2">
+          <div className="bg-error-container text-error rounded-2xl px-sp-md py-sp-sm text-body-sm flex items-center justify-between gap-3">
+            <span>Your answer could not be submitted: {submitError.message}</span>
+            <button
+              onClick={submitQuiz}
+              className="shrink-0 h-9 px-4 rounded-lg bg-error text-on-error font-label-md text-label-md"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navigation footer */}
       <footer className="h-20 bg-white border-t border-outline-variant flex items-center justify-between px-sp-xl shrink-0">

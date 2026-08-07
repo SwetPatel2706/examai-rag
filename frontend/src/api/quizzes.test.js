@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getQuiz, submitAttempt, listMyAttempts } from './quizzes';
+import { getQuiz, submitAttempt, listMyAttempts, createQuiz } from './quizzes';
 
 function jsonResponse(payload, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => payload };
@@ -67,21 +67,51 @@ describe('quiz API', () => {
     expect(attempt.questions[0]).toMatchObject({ isCorrect: true, selected: 'O(1)', correct: 'O(1)' });
   });
 
-  it('listMyAttempts passes quiz_id filter and maps rows', async () => {
+  it('createQuiz resolves the 0-based correct index to the option text the backend grades on', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: { id: 'q-new' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await createQuiz({
+      subjectId: 's1',
+      topic: 'Arrays',
+      questions: [{ stem: 'Access cost?', options: ['O(1)', 'O(n)'], correct: 0, topicTag: 'complexity', difficulty: 'easy' }],
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(init.body)).toEqual({
+      subject_id: 's1',
+      topic: 'Arrays',
+      source: 'manual',
+      time_limit_seconds: null,
+      questions: [
+        { question_text: 'Access cost?', options: ['O(1)', 'O(n)'], correct_option: 'O(1)', topic_tag: 'complexity', difficulty: 'easy' },
+      ],
+    });
+  });
+
+  it('listMyAttempts passes quiz_id filter and maps the paginated envelope', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
         success: true,
-        data: [
-          { id: 'a2', quiz_id: 'q2', student_id: 'u1', quiz_title: 'Sorting', answers: {}, score: 80, correct_count: 2, total_questions: 3, weak_topics: [], submitted_at: '2026-08-05T10:00:00Z', questions: [] },
-        ],
+        data: {
+          items: [
+            { id: 'a2', quiz_id: 'q2', student_id: 'u1', quiz_title: 'Sorting', answers: {}, score: 80, correct_count: 2, total_questions: 3, weak_topics: [], submitted_at: '2026-08-05T10:00:00Z', questions: [] },
+          ],
+          total: 1,
+          page: 1,
+          pages: 1,
+          size: 100,
+        },
       })
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const attempts = await listMyAttempts({ quizId: 'q2' });
+    const result = await listMyAttempts({ quizId: 'q2' });
 
     const [url] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/students/me/attempts?quiz_id=q2');
-    expect(attempts[0]).toMatchObject({ id: 'a2', quizId: 'q2', score: 80 });
+    expect(result.total).toBe(1);
+    expect(result.pages).toBe(1);
+    expect(result.items[0]).toMatchObject({ id: 'a2', quizId: 'q2', score: 80 });
   });
 });

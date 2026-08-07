@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useDeferredValue, useMemo, useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import TopAppBar from '@/components/layout/TopAppBar';
 import { PageHeader } from '@/components/ui/page-header';
@@ -18,6 +18,9 @@ const PAGE_SIZE = 5;
 
 export default function StudentMaterials() {
   const [search, setSearch] = useState('');
+  // Debounce the server-side search so a request fires only once the user
+  // pauses typing; the controlled input still updates instantly.
+  const deferredSearch = useDeferredValue(search);
   const [courseFilter, setCourseFilter] = useState('All');
   const [selectedTeachers, setSelectedTeachers] = useState(new Set());
   const [view, setView] = useState('list');
@@ -30,10 +33,10 @@ export default function StudentMaterials() {
     () =>
       getStudentMaterials({
         subjectId: courseFilter === 'All' ? undefined : courseFilter,
-        search: search.trim() || undefined,
+        search: deferredSearch.trim() || undefined,
         size: 100,
       }),
-    [courseFilter, search]
+    [courseFilter, deferredSearch]
   );
 
   const subjects = subjectsApi.data || [];

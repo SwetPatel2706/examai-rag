@@ -206,8 +206,8 @@ export default function QuizCreateEdit() {
 
   async function persist(publishNow) {
     const cleanQuestions = questions.filter((q) => q.stem.trim());
-    if (!title.trim() || !subjectId || !cleanQuestions.length || cleanQuestions.some((q) => !q.options.some((option) => option.trim()) || q.correct < 0 || q.correct >= q.options.length)) {
-      setActionError({ message: 'Enter a title, choose a subject, add at least one option per question, and choose a valid answer for every question.' });
+    if (!title.trim() || !subjectId || !cleanQuestions.length || cleanQuestions.some((q) => q.correct < 0 || q.correct >= q.options.length || !(q.options[q.correct] || '').trim())) {
+      setActionError({ message: 'Enter a title, choose a subject, add at least one option per question, and choose a valid answer with text for every question.' });
       return;
     }
     setSaving(true);
@@ -339,7 +339,11 @@ export default function QuizCreateEdit() {
                     </button>
                     {quiz.status === 'draft' && (
                       <button
-                        onClick={() => publishQuiz(quiz.id).then(() => quizzesApi.reload())}
+                        onClick={() => {
+                          publishQuiz(quiz.id)
+                            .then(() => quizzesApi.reload())
+                            .catch((err) => setActionError(err));
+                        }}
                         className="flex-1 h-9 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:scale-[0.98] transition-all"
                       >
                         Publish

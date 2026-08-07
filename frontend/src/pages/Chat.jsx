@@ -3,7 +3,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
-import { LoadingState, ErrorState } from '@/components/ui/states';
+import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
 import { useApi } from '@/lib/useApi';
 import { listSubjects, listSubjectMaterials } from '@/api/subjects';
 import { askQuestion } from '@/api/chat';
@@ -199,6 +199,18 @@ export default function Chat() {
     return (
       <AppLayout role="student">
         <ErrorState message={subjectsApi.error.message} onRetry={subjectsApi.reload} />
+      </AppLayout>
+    );
+  }
+
+  if (!subjects.length) {
+    return (
+      <AppLayout role="student">
+        <EmptyState
+          icon="school"
+          title="No subjects yet"
+          description="You are not enrolled in any subjects. Contact a teacher to get enrolled."
+        />
       </AppLayout>
     );
   }

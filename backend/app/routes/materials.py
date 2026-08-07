@@ -11,7 +11,7 @@ from app.services.material_service import get_materials, get_material_by_id, upd
 from app.services.material_ingestion_service import upload_material, start_retry, mark_deleting
 from app.services.ingestion.pipeline import IngestionPipeline
 from app.utils.storage import StorageClient
-from app.schemas.material import MaterialResponse, MaterialUpdateRequest, MaterialsListResponse, MaterialStatusResponse
+from app.schemas.material import MaterialUpdateRequest, MaterialsListResponse, MaterialStatusResponse
 from app.schemas.common import StandardResponse
 from app.services.material_ingestion_service import MAX_BYTES
 
@@ -27,7 +27,7 @@ async def create_material(
     if len(data) > MAX_BYTES:
         raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
     material = await upload_material(db, current_user, subject_id, file.filename or "upload", data)
-    return StandardResponse.ok(data=MaterialResponse.model_validate(material).model_dump(mode="json"))
+    return StandardResponse.ok(data=serialize_material(material).model_dump(mode="json"))
 
 @router.get("", response_model=StandardResponse)
 async def list_all_materials(

@@ -23,7 +23,6 @@ export default function Login() {
       const session = await login(email, password);
       setAuth(session.user, session.user.role, {
         accessToken: session.accessToken,
-        refreshToken: session.refreshToken,
       });
       const from = location.state?.from?.pathname;
       const home = session.user.role === 'teacher' ? '/teacher' : '/student';

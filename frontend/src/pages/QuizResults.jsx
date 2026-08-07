@@ -24,7 +24,7 @@ export default function QuizResults() {
     async () => {
       if (liveAttempt) return liveAttempt;
       const attempts = await listMyAttempts({ quizId: id });
-      return [...attempts].sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0] ?? null;
+      return [...(attempts.items || [])].sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0] ?? null;
     },
     [id, liveAttempt?.id]
   );
@@ -56,6 +56,7 @@ export default function QuizResults() {
 
   const grade = gradeLabel(attempt.score);
   const questions = attempt.questions || [];
+  const weakTopics = attempt.weakTopics || [];
 
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center py-sp-xl px-sp-md" style={{ fontFamily: "'Geist Variable', sans-serif" }}>
@@ -80,13 +81,13 @@ export default function QuizResults() {
         </div>
 
         {/* Weak topics — own weak topics only, no classmate data */}
-        {attempt.weakTopics.length > 0 && (
+        {weakTopics.length > 0 && (
           <section className="bg-white rounded-2xl ambient-shadow p-sp-md">
             <h2 className="font-label-md text-label-md font-bold text-error uppercase tracking-wider mb-sp-md">
               Areas to Review
             </h2>
             <div className="space-y-3">
-              {attempt.weakTopics.map((wt) => (
+              {weakTopics.map((wt) => (
                 <div key={wt.topic}>
                   <div className="flex justify-between text-label-md font-label-md mb-1">
                     <span className="text-on-surface">{wt.topic}</span>

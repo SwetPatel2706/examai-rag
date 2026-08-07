@@ -185,7 +185,7 @@ export default function StudentProgress() {
 
           {/* Drill-down panel */}
           {selectedStudentId && (
-            <div className="bg-white rounded-2xl ambient-shadow p-sp-md h-fit">
+            <div className="bg-white rounded-2xl ambient-shadow p-sp-md h-fit lg:col-span-1">
               {detailApi.loading ? (
                 <LoadingState label="Loading student…" />
               ) : detailApi.error ? (

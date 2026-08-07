@@ -59,14 +59,23 @@ def students_me_subjects(
 def students_me_attempts(
     response: Response,
     quiz_id: Optional[UUID] = Query(None, description="Filter to one quiz"),
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    size: int = Query(20, ge=1, le=100, description="Page size"),
     current_user=Depends(require_student),
     db: Session = Depends(get_db),
 ):
-    """The student's own quiz attempts (newest first), so the frontend can
-    render per-quiz status/score and deep-link into results."""
+    """The student's own quiz attempts (newest first), paginated, so the
+    frontend can render per-quiz status/score and deep-link into results."""
     response.headers["Cache-Control"] = "no-store"
-    attempts = list_own_attempts(db, current_user, quiz_id)
-    data = [serialize_attempt(attempt).model_dump(mode="json") for attempt in attempts]
+    attempts, total = list_own_attempts(db, current_user, quiz_id, page=page, size=size)
+    pages = (total + size - 1) // size
+    data = {
+        "items": [serialize_attempt(attempt).model_dump(mode="json") for attempt in attempts],
+        "total": total,
+        "page": page,
+        "pages": pages,
+        "size": size,
+    }
     return StandardResponse.ok(data=data)
 
 

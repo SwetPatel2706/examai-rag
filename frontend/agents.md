@@ -79,10 +79,12 @@ subject context — shared between Dashboard, Subject Overview, and Chat's
 subject switcher), `materialScopeStore` (per-session selected material IDs,
 scoped to current subject, resets are NOT persisted server-side).
 
-The current backend/client contract still persists a refresh token in
-`examai.auth`; this is an accepted capstone trade-off until refresh-token
-rotation via an HttpOnly cookie is available. Revisit this before production
-deployment because localStorage persistence increases XSS exposure.
+Auth tokens are never persisted to `localStorage`. The refresh token is an
+HttpOnly cookie scoped to `/api/auth` (set on login, rotated by Supabase on
+each `POST /api/auth/refresh`), and the access token lives in memory only —
+`SessionBootstrap` in `App.jsx` re-mints it from the cookie on reload. On any
+401, the API client tries exactly one silent refresh then replays the request
+once before falling back to the login redirect (`src/api/client.js`).
 
 ## API integration conventions
 - `src/api/` — one file per backend resource (materials, subjects, chat,

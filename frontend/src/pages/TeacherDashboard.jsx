@@ -10,7 +10,9 @@ import { cn, initials } from '@/lib/utils';
 
 function timeAgo(iso) {
   if (!iso) return '—';
-  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  const timestamp = new Date(iso).getTime();
+  if (Number.isNaN(timestamp)) return '—';
+  const secs = Math.floor((Date.now() - timestamp) / 1000);
   if (secs <= 0) return 'just now';
   if (secs < 60) return `${secs}s ago`;
   const mins = Math.floor(secs / 60);

@@ -48,7 +48,7 @@ export default function SubjectOverview() {
       getSubject(id),
       listSubjectMaterials(id, { status: 'ready', size: 100 }),
       listQuizzes(id),
-      listMyAttempts().catch(() => []),
+      listMyAttempts().catch(() => ({ items: [] })),
       getStudentSubjects().catch(() => []),
     ]);
     setCurrentSubject(id);
@@ -77,8 +77,14 @@ export default function SubjectOverview() {
 
   const materialsByTeacher = groupByTeacher(materials.items);
 
-  // Map attempt → quiz status
-  const attemptsByQuiz = new Map((attempts || []).map((a) => [a.quizId, a]));
+  // Map attempt → quiz status, keeping the newest attempt per quiz.
+  const attemptsByQuiz = new Map();
+  for (const attempt of attempts?.items || []) {
+    const previous = attemptsByQuiz.get(attempt.quizId);
+    if (!previous || new Date(attempt.submittedAt || 0) > new Date(previous.submittedAt || 0)) {
+      attemptsByQuiz.set(attempt.quizId, attempt);
+    }
+  }
   const subjectQuizzes = (quizzes || [])
     .filter((q) => q.subjectId === id)
     .map((quiz) => {

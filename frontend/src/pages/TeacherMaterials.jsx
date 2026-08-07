@@ -218,23 +218,35 @@ export default function TeacherMaterials() {
       {/* Upload Zone */}
       <section className="mb-sp-xl">
         <div
-          role="button"
-          tabIndex={0}
-          onClick={openDialog}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              openDialog();
-            }
-          }}
+          role={subjects.length === 0 ? undefined : 'button'}
+          tabIndex={subjects.length === 0 ? undefined : 0}
+          onClick={subjects.length === 0 ? undefined : openDialog}
+          onKeyDown={
+            subjects.length === 0
+              ? undefined
+              : (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openDialog();
+                  }
+                }
+          }
           className={cn(
-            'border-2 border-dashed rounded-3xl p-sp-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 text-center',
-            'border-outline-variant bg-white hover:border-primary/50 hover:bg-primary-fixed/5'
+            'border-2 border-dashed rounded-3xl p-sp-xl flex flex-col items-center justify-center text-center transition-all duration-200',
+            subjects.length === 0
+              ? 'border-outline-variant bg-surface-container-low cursor-not-allowed'
+              : 'cursor-pointer border-outline-variant bg-white hover:border-primary/50 hover:bg-primary-fixed/5'
           )}
         >
           <span className="material-symbols-outlined text-[48px] mb-sp-md text-secondary">cloud_upload</span>
-          <p className="font-headline-md text-headline-md text-on-background mb-1">Click to upload materials</p>
-          <p className="font-body-md text-body-md text-secondary">{SUPPORTED_FORMATS} supported — you'll pick the subject next</p>
+          <p className="font-headline-md text-headline-md text-on-background mb-1">
+            {subjects.length === 0 ? 'Uploads are unavailable yet' : 'Click to upload materials'}
+          </p>
+          <p className="font-body-md text-body-md text-secondary">
+            {subjects.length === 0
+              ? "You aren't assigned to any subjects. Ask an administrator to assign you before uploading."
+              : `${SUPPORTED_FORMATS} supported — you'll pick the subject next`}
+          </p>
         </div>
       </section>
 

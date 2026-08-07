@@ -7,5 +7,5 @@ export function cn(...inputs) {
 
 export function initials(name) {
   const parts = typeof name === 'string' ? name.trim().split(/\s+/).filter(Boolean) : [];
-  return parts.length ? parts.map((part) => part[0]).join('').slice(0, 2).toUpperCase() : '?';
+  return parts.length ? parts.map((part) => [...part][0]).slice(0, 2).join('').toUpperCase() : '?';
 }

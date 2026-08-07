@@ -43,15 +43,67 @@ function handleUnauthorized() {
   }
 }
 
+// Singleton in-flight guard: concurrent 401s share one refresh call instead of
+// hammering the endpoint, and the retry below reads the freshly minted token.
+let refreshInFlight = null;
+
+/**
+ * Exchange the HttpOnly refresh cookie for a fresh access token. Uses a raw
+ * fetch so it never recurses through request() (a failed refresh is not
+ * itself a 401-triggered retry). Returns the new token, or null on any
+ * failure. Stores the token in authStore on success.
+ */
+export async function refreshAccessToken() {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      let response;
+      try {
+        response = await fetch(buildUrl('/api/auth/refresh'), { method: 'POST', credentials: 'include' });
+      } catch {
+        return null;
+      }
+      if (!response.ok) return null;
+      let payload;
+      try {
+        payload = await response.json();
+      } catch {
+        return null;
+      }
+      if (!payload || payload.success !== true) return null;
+      const token = payload.data?.access_token ?? null;
+      useAuthStore.getState().setAccessToken(token);
+      return token;
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+const REFRESH_PATH = '/api/auth/refresh';
+const LOGIN_PATH = '/api/auth/login';
+
 /**
  * Thin fetch wrapper around the FastAPI backend.
  * - prefixes every path with VITE_API_BASE_URL
  * - attaches the bearer token from authStore
+ * - sends cookies (`credentials: 'include'`) so the HttpOnly refresh cookie
+ *   travels with the request
  * - unwraps the { success, data, error } envelope and returns `data`
  * - throws ApiError with status/code/message/requestId on failure
- * - on 401 clears the session and redirects to /login?expired=1
+ * - on 401 tries exactly one silent refresh via the HttpOnly cookie, then
+ *   replays the request once; if that fails, clears the session and
+ *   redirects to /login?expired=1
  */
-export async function request(path, { method = 'GET', body, params, formData, headers = {} } = {}) {
+export async function request(path, options = {}) {
+  return requestOnce(path, options, 0);
+}
+
+async function requestOnce(
+  path,
+  { method = 'GET', body, params, formData, headers = {} } = {},
+  attempt
+) {
   const token = useAuthStore.getState().accessToken;
 
   const requestHeaders = { ...headers };
@@ -71,6 +123,7 @@ export async function request(path, { method = 'GET', body, params, formData, he
       method,
       headers: requestHeaders,
       body: fetchBody,
+      credentials: 'include',
     });
   } catch {
     throw new ApiError({
@@ -80,7 +133,11 @@ export async function request(path, { method = 'GET', body, params, formData, he
     });
   }
 
-  if (response.status === 401) {
+  if (response.status === 401 && attempt === 0 && path !== REFRESH_PATH && path !== LOGIN_PATH) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      return requestOnce(path, { method, body, params, formData, headers }, 1);
+    }
     handleUnauthorized();
   }
 

@@ -96,7 +96,7 @@ export default function Quizzes() {
 
   const subjectNames = new Map((data.subjects || []).map((s) => [s.subjectId, s.name]));
   const attemptsByQuiz = new Map();
-  for (const attempt of data.attempts || []) {
+  for (const attempt of data.attempts?.items || []) {
     const previous = attemptsByQuiz.get(attempt.quizId);
     if (!previous || new Date(attempt.submittedAt || 0) > new Date(previous.submittedAt || 0)) attemptsByQuiz.set(attempt.quizId, attempt);
   }

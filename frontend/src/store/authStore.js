@@ -14,17 +14,14 @@ function loadPersisted() {
 
 const persisted = loadPersisted();
 
+// Only identity (user + role) is persisted. The access token lives in memory
+// only, and the long-lived refresh token is an HttpOnly cookie scoped to
+// /api/auth that JavaScript can never read — see POST /api/auth/refresh.
+// On reload, SessionBootstrap silently re-mints an access token from that
+// cookie before rendering any guarded route.
 function persist(state) {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        user: state.user,
-        role: state.role,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-      })
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: state.user, role: state.role }));
   } catch {
     // ignore storage failures (private mode / quota)
   }
@@ -33,12 +30,11 @@ function persist(state) {
 const useAuthStore = create((set) => ({
   user: persisted?.user ?? null, // { id, email, role, name }
   role: persisted?.role ?? null, // 'student' | 'teacher'
-  accessToken: persisted?.accessToken ?? null,
-  refreshToken: persisted?.refreshToken ?? null,
+  accessToken: null, // memory-only — re-minted from the refresh cookie on load
 
-  setAuth: (user, role, { accessToken, refreshToken } = {}) => {
+  setAuth: (user, role, { accessToken } = {}) => {
     set((state) => {
-      const next = { ...state, user, role, accessToken, refreshToken };
+      const next = { ...state, user, role, accessToken };
       persist(next);
       return next;
     });
@@ -52,9 +48,13 @@ const useAuthStore = create((set) => ({
     });
   },
 
+  setAccessToken: (accessToken) => {
+    set({ accessToken });
+  },
+
   clearAuth: () => {
     set((state) => {
-      const next = { ...state, user: null, role: null, accessToken: null, refreshToken: null };
+      const next = { ...state, user: null, role: null, accessToken: null };
       persist(next);
       return next;
     });

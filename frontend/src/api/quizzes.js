@@ -50,10 +50,19 @@ export async function getQuiz(id) {
 // ── Teacher authoring ──────────────────────────────────────────────────────
 
 function toQuestionInput(q) {
+  // The editor stores `correct` as a 0-based option index; the backend
+  // grades on the option TEXT, so resolve the index to the actual option
+  // string. Non-numeric values (e.g. a string passed through from an
+  // AI-generated draft) are forwarded as-is.
+  const correctIndex = Number(q.correct);
+  const correctOption =
+    Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < q.options.length
+      ? q.options[correctIndex]
+      : q.correct;
   return {
     question_text: q.stem,
     options: q.options,
-    correct_option: q.correct,
+    correct_option: correctOption,
     topic_tag: q.topicTag ?? null,
     difficulty: q.difficulty ?? 'medium',
   };
@@ -158,10 +167,16 @@ export async function getAttempt(id) {
   return mapAttempt(data);
 }
 
-/** GET /api/students/me/attempts — own attempts (newest first), optional quiz filter. */
-export async function listMyAttempts({ quizId } = {}) {
+/** GET /api/students/me/attempts — own attempts (newest first), optional quiz filter, paginated. */
+export async function listMyAttempts({ quizId, page = 1, size = 100 } = {}) {
   const data = await request('/api/students/me/attempts', {
-    params: quizId ? { quiz_id: quizId } : undefined,
+    params: { quiz_id: quizId, page, size },
   });
-  return (data || []).map(mapAttempt);
+  return {
+    items: (data.items || []).map(mapAttempt),
+    total: data.total ?? 0,
+    page: data.page ?? 1,
+    pages: data.pages ?? 0,
+    size: data.size ?? 0,
+  };
 }

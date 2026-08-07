@@ -5,11 +5,16 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user
-from app.auth.supabase_client import supabase_auth
+from app.auth.supabase_client import (
+    SupabaseRateLimitError,
+    SupabaseUpstreamError,
+    supabase_auth,
+)
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, UserProfileResponse
 from app.schemas.common import StandardResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import httpx
 security = HTTPBearer()
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -100,6 +105,15 @@ async def refresh(request: Request, response: Response):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
         )
+    except SupabaseRateLimitError as e:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(e)) from e
+    except SupabaseUpstreamError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e)) from e
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable",
+        ) from e
     new_refresh_token = auth_data.get("refresh_token")
     if new_refresh_token:
         _set_refresh_cookie(response, new_refresh_token)

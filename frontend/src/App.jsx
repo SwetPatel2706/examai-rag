@@ -66,22 +66,30 @@ function SessionBootstrap({ children }) {
   useEffect(() => {
     let cancelled = false;
     async function restore() {
-      let token = accessToken;
-      if (!token) {
-        token = await refreshSession();
-        if (token && !cancelled) setAccessToken(token);
-      }
-      if (token) {
-        try {
-          const user = await fetchMe();
-          if (!cancelled) setUser(user);
-        } catch {
-          // 401 handler in the API client already cleared auth + redirected.
+      try {
+        let token = accessToken;
+        if (!token) {
+          try {
+            token = await refreshSession();
+          } catch (err) {
+            if (err.status === 401 && !cancelled) clearAuth();
+            return;
+          }
+          if (token && !cancelled) setAccessToken(token);
         }
-      } else if (!cancelled) {
-        clearAuth();
+        if (token) {
+          try {
+            const user = await fetchMe();
+            if (!cancelled) setUser(user);
+          } catch {
+            // 401 handler in the API client already cleared auth + redirected.
+          }
+        } else if (!cancelled) {
+          clearAuth();
+        }
+      } finally {
+        if (!cancelled) setReady(true);
       }
-      if (!cancelled) setReady(true);
     }
     restore();
     return () => {

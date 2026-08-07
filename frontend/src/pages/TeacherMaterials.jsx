@@ -18,7 +18,7 @@ import {
 import { getTeacherSubjects } from '@/api/analytics';
 import { listMaterials, uploadMaterial, getMaterialStatus, retryMaterial, deleteMaterial, getMaterialDownloadUrl } from '@/api/materials';
 
-const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'pptx', 'doc', 'ppt'];
+const ALLOWED_EXTENSIONS = ['pdf', 'pptx', 'docx'];
 const SUPPORTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
 const ACCEPTED_FORMATS = ALLOWED_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 
@@ -50,6 +50,7 @@ export default function TeacherMaterials() {
   const materials = materialsApi.data?.items || [];
   const totalMaterials = materialsApi.data?.total ?? 0;
   const totalPages = materialsApi.data?.pages || 1;
+  const responsePages = materialsApi.data?.pages;
 
   // Default the active subject tab once subjects load.
   useEffect(() => {
@@ -63,6 +64,11 @@ export default function TeacherMaterials() {
   useEffect(() => {
     setPage(1);
   }, [activeSubjectId]);
+
+  useEffect(() => {
+    if (responsePages === undefined) return;
+    setPage((currentPage) => Math.min(currentPage, Math.max(responsePages, 1)));
+  }, [responsePages]);
 
   // Poll ingestion status for any 'processing' materials.
   const processingIds = materials.filter((m) => m.status === 'processing').map((m) => m.id);
@@ -121,6 +127,7 @@ export default function TeacherMaterials() {
   }
 
   async function handleRetry(mat) {
+    setRejectionMsg(null);
     try {
       await retryMaterial(mat.id);
       materialsApi.reload();
@@ -130,6 +137,7 @@ export default function TeacherMaterials() {
   }
 
   async function handleDelete(mat) {
+    setRejectionMsg(null);
     const ok = window.confirm(`Delete "${mat.name}"? This removes it for all students.`);
     if (!ok) return;
     try {
@@ -141,6 +149,7 @@ export default function TeacherMaterials() {
   }
 
   async function handleDownload(mat) {
+    setRejectionMsg(null);
     // Open the target window synchronously so the popup isn't blocked after the await.
     const win = window.open('', '_blank');
     try {

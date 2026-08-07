@@ -50,8 +50,8 @@ let refreshInFlight = null;
 /**
  * Exchange the HttpOnly refresh cookie for a fresh access token. Uses a raw
  * fetch so it never recurses through request() (a failed refresh is not
- * itself a 401-triggered retry). Returns the new token, or null on any
- * failure. Stores the token in authStore on success.
+ * itself a 401-triggered retry). Returns the new token or throws an ApiError
+ * for a refresh failure. Stores the token in authStore on success.
  */
 export async function refreshAccessToken() {
   if (!refreshInFlight) {
@@ -60,17 +60,50 @@ export async function refreshAccessToken() {
       try {
         response = await fetch(buildUrl('/api/auth/refresh'), { method: 'POST', credentials: 'include' });
       } catch {
-        return null;
+        throw new ApiError({
+          status: 0,
+          code: 'NETWORK_ERROR',
+          message: 'Could not refresh the session.',
+        });
       }
-      if (!response.ok) return null;
+      if (!response.ok) {
+        let payload;
+        try {
+          payload = await response.json();
+        } catch {
+          payload = null;
+        }
+        throw new ApiError({
+          status: response.status,
+          code: payload?.error?.code || 'REFRESH_FAILED',
+          message: payload?.error?.message || 'Could not refresh the session.',
+        });
+      }
       let payload;
       try {
         payload = await response.json();
       } catch {
-        return null;
+        throw new ApiError({
+          status: response.status,
+          code: 'INVALID_RESPONSE',
+          message: 'The server returned an invalid session response.',
+        });
       }
-      if (!payload || payload.success !== true) return null;
+      if (!payload || payload.success !== true) {
+        throw new ApiError({
+          status: response.status,
+          code: payload?.error?.code || 'REFRESH_FAILED',
+          message: payload?.error?.message || 'Could not refresh the session.',
+        });
+      }
       const token = payload.data?.access_token ?? null;
+      if (!token) {
+        throw new ApiError({
+          status: response.status,
+          code: 'INVALID_RESPONSE',
+          message: 'The server returned an invalid session.',
+        });
+      }
       useAuthStore.getState().setAccessToken(token);
       return token;
     })().finally(() => {
@@ -134,10 +167,18 @@ async function requestOnce(
   }
 
   if (response.status === 401 && attempt === 0 && path !== REFRESH_PATH && path !== LOGIN_PATH) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      return requestOnce(path, { method, body, params, formData, headers }, 1);
+    try {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        return requestOnce(path, { method, body, params, formData, headers }, 1);
+      }
+    } catch (err) {
+      if (err.status === 401) handleUnauthorized();
+      throw err;
     }
+  }
+
+  if (response.status === 401 && attempt === 1) {
     handleUnauthorized();
   }
 

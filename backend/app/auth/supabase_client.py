@@ -12,6 +12,14 @@ class SupabaseUserLookupIncompleteError(Exception):
     pass
 
 
+class SupabaseRateLimitError(Exception):
+    """Raised when Supabase rejects a request because of rate limiting."""
+
+
+class SupabaseUpstreamError(Exception):
+    """Raised when Supabase returns an unexpected provider response."""
+
+
 class SupabaseAuthClient:
     def __init__(self):
         # Ensure we construct valid urls with /auth/v1
@@ -155,13 +163,22 @@ class SupabaseAuthClient:
             "Content-Type": "application/json",
         }
         data = {"refresh_token": refresh_token}
-        response = await self.client.post(url, headers=headers, json=data)
+        try:
+            response = await self.client.post(url, headers=headers, json=data)
+        except httpx.HTTPError:
+            raise
         if response.status_code != 200:
-            try:
-                error_detail = response.json().get("error_description", "Invalid or expired refresh token")
-            except Exception:
-                error_detail = "Invalid or expired refresh token"
-            raise ValueError(error_detail)
+            if response.status_code == 400:
+                try:
+                    error_detail = response.json().get("error_description", "Invalid or expired refresh token")
+                except Exception:
+                    error_detail = "Invalid or expired refresh token"
+                raise ValueError(error_detail)
+            if response.status_code == 429:
+                raise SupabaseRateLimitError("Authentication provider rate limit exceeded")
+            raise SupabaseUpstreamError(
+                f"Authentication provider returned HTTP {response.status_code}"
+            )
         return response.json()
 
     async def logout(self, token: str) -> None:

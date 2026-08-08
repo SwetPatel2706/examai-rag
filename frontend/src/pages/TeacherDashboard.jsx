@@ -8,6 +8,7 @@ import { useApi } from '@/lib/useApi';
 import useAuthStore from '@/store/authStore';
 import { getTeacherDashboardStats, getTeacherSubjects } from '@/api/analytics';
 import { cn, initials } from '@/lib/utils';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 function timeAgo(iso) {
   if (!iso) return '—';
@@ -87,7 +88,8 @@ export default function TeacherDashboard() {
             <h1 className="font-headline-lg text-headline-lg text-on-surface">Dashboard Overview</h1>
           </div>
           <button
-            onClick={() => navigate('/teacher/quiz/create')}
+            {...navigationIntentProps('/teacher/quiz/create')}
+            onClick={() => navigateWithIntent(navigate, '/teacher/quiz/create')}
             className="h-10 px-6 bg-primary text-on-primary font-label-md text-label-md rounded-full flex items-center gap-2 hover:scale-95 transition-all duration-150 shadow-md"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
@@ -101,7 +103,8 @@ export default function TeacherDashboard() {
             {subjects.map((subj) => (
               <button
                 key={subj.subjectId}
-                onClick={() => navigate('/teacher/analytics', { state: { subjectId: subj.subjectId } })}
+                {...navigationIntentProps('/teacher/analytics')}
+                onClick={() => navigateWithIntent(navigate, '/teacher/analytics', { state: { subjectId: subj.subjectId } })}
                 className="px-sp-md py-sp-sm rounded-t-xl font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
                 title={`View analytics for ${subj.name}`}
               >
@@ -146,7 +149,8 @@ export default function TeacherDashboard() {
             title="Recent Activity"
             action={
               <button
-                onClick={() => navigate('/teacher/students')}
+                {...navigationIntentProps('/teacher/students')}
+                onClick={() => navigateWithIntent(navigate, '/teacher/students')}
                 className="text-primary font-label-md text-label-md hover:underline"
               >
                 Student Progress
@@ -183,7 +187,8 @@ export default function TeacherDashboard() {
                       <td className="px-sp-md py-sp-md"><ScoreBadge score={row.score} atRisk={row.atRisk} /></td>
                       <td className="px-sp-md py-sp-md text-right">
                         <button
-                          onClick={() => navigate('/teacher/students')}
+                          {...navigationIntentProps('/teacher/students')}
+                          onClick={() => navigateWithIntent(navigate, '/teacher/students')}
                           title="View student progress"
                           aria-label="View student progress"
                           className="p-sp-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
@@ -230,7 +235,8 @@ export default function TeacherDashboard() {
             <p className="font-label-sm text-label-sm uppercase tracking-wider mb-sp-xs opacity-80 text-on-primary">AI Insights</p>
             <h4 className="font-headline-md text-headline-md leading-tight mb-sp-sm text-on-primary">Class Performance</h4>
             <button
-              onClick={() => navigate('/teacher/analytics')}
+              {...navigationIntentProps('/teacher/analytics')}
+              onClick={() => navigateWithIntent(navigate, '/teacher/analytics')}
               className="bg-white/20 backdrop-blur-md px-sp-md py-sp-xs rounded-full text-label-sm font-bold border border-white/30 hover:bg-white/40 transition-colors text-on-primary w-fit"
             >
               Explore Analytics

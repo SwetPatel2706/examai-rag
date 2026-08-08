@@ -86,6 +86,16 @@ export function getOrFetch(cacheKey, fetcher, { staleMs = DEFAULT_STALE_MS } = {
 }
 
 /**
+ * Warm a cache entry before the destination component mounts. This shares the
+ * same in-flight map as useApi, so a page mount racing a prefetch still makes
+ * one request. Prefetch callers should handle errors because warming is
+ * opportunistic and must never block navigation.
+ */
+export function prefetch(parts, fetcher, options = {}) {
+  return getOrFetch(buildCacheKey(parts), fetcher, options);
+}
+
+/**
  * Drop every entry whose parts start with the given prefix, for the current
  * identity only. Deleting the entry also drops its in-flight promise, so a
  * later read starts a fresh request.

@@ -28,7 +28,7 @@ export default function Analytics() {
   const [selectedQuizId, setSelectedQuizId] = useState(null);
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
-  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes'], staleMs: 30_000 });
+  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
   const publishedQuizzes = (quizzesApi.data || []).filter((q) => q.status === 'published');
   const firstPublishedQuizId = publishedQuizzes[0]?.id ?? null;
 

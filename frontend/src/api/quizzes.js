@@ -7,7 +7,7 @@ import { invalidate } from '@/lib/apiCache';
  */
 function invalidateQuizData() {
   invalidate(['quizzes']);
-  invalidate(['subject']);
+  invalidate(['subjects']);
   invalidate(['teacher', 'dashboard-stats']);
 }
 
@@ -182,7 +182,7 @@ export async function submitAttempt({ quizId, answers }) {
   invalidate(['students', 'me', 'attempts']);
   invalidate(['students', 'me', 'stats']);
   invalidate(['quizzes']);
-  invalidate(['subject']);
+  invalidate(['subjects']);
   invalidate(['analytics']);
   invalidate(['student-progress']);
   invalidate(['teacher', 'dashboard-stats']);

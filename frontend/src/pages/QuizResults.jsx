@@ -19,6 +19,9 @@ export default function QuizResults() {
 
   // Prefer the graded attempt passed from QuizTaking; otherwise fetch it.
   const liveAttempt = location.state?.attempt;
+  const attemptKey = liveAttempt
+    ? ['students', 'me', 'attempts', 'result', id, liveAttempt.id]
+    : ['students', 'me', 'attempts', 'quiz', id];
 
   const { data: fetched, loading, error, reload } = useApi(
     async () => {
@@ -27,7 +30,7 @@ export default function QuizResults() {
       return [...(attempts.items || [])].sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0] ?? null;
     },
     [id, liveAttempt?.id],
-    { key: ['students', 'me', 'attempts', id], staleMs: 30_000 }
+    { key: attemptKey, staleMs: 30_000 }
   );
 
   if (loading) {

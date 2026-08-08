@@ -121,3 +121,44 @@ Network capture):
   risk. The materials scope panels (Chat side panel, FlashcardDeck generate
   modal) use a compact `SkeletonScopePanel` while subject materials load
   instead of a spinner.
+
+## Phase 6.7 follow-up — fast in-app navigation
+
+Implemented 2026-08-08. This follow-up addresses warm and cold route
+transitions without changing backend contracts.
+
+### Automated build measurement
+
+Measured with `npm run build` after the follow-up:
+
+- Bootstrap: `index-L2XhduuR.js` — **299.40 kB raw / 95.99 kB gzip**.
+- CSS: `index-C8Of4iUE.css` — **117.05 kB raw / 20.13 kB gzip**.
+- Route chunks remain separate; the largest page chunks are
+  `QuizCreateEdit` 13.82 kB, `StudentMaterials` 12.58 kB, and
+  `TeacherMaterials` 10.79 kB raw.
+- The bootstrap remains below the existing 300 kB raw review threshold. The
+  extra bootstrap weight is the route metadata and intent wiring; API warmers
+  stay dynamically imported.
+
+### Navigation behavior now measured by the app
+
+- `performance.mark` records route intent and route-chunk mount readiness.
+- A `examai:navigation-ready` browser event exposes `{ path, duration,
+  withinWarmBudget }` for DevTools/manual capture.
+- The seeded-browser request-count, duplicate-request, LCP, CLS, and cold/warm
+  transition table is still pending because this automated run did not start a
+  live seeded backend/browser session. Run the journeys in this document with
+  the backend and preview server before closing the phase.
+
+### Follow-up decisions
+
+- Keep the persistent authenticated shell for standard routes; focus routes
+  (quiz taking/results and flashcard study) retain their minimal full-screen
+  layouts.
+- Keep the custom in-memory cache and add shared `prefetch()` warming rather
+  than introducing SWR or another client-state dependency.
+- Warm only safe GET resources on hover, focus, or pointer-down. Chat answers,
+  mutations, generation, polling, and expiring download URLs are not warmed.
+- Split the subject overview and quiz list composite requests into canonical
+  per-resource keys so page navigation can share the same promises and cached
+  results.

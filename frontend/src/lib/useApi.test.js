@@ -42,6 +42,17 @@ describe('useApi', () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
+  it('adopts a fresh cache snapshot before the first destination render', async () => {
+    const fetcher = vi.fn().mockResolvedValue('warm');
+    const first = renderHook(() => useApi(fetcher, [], { key: ['subjects'], staleMs: 60_000 }));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    first.unmount();
+
+    const second = renderHook(() => useApi(vi.fn(), [], { key: ['subjects'], staleMs: 60_000 }));
+    expect(second.result.current.loading).toBe(false);
+    expect(second.result.current.data).toBe('warm');
+  });
+
   it('refetches on every mount when no key is given', async () => {
     const fetcher = vi.fn().mockResolvedValue('v1');
 

@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import useAuthStore from '@/store/authStore';
 import { logout } from '@/api/auth';
 import { preloadRoute } from '@/lib/lazyRoutes';
+import { markNavigationStart } from '@/lib/navigationPerformance';
 
 /**
  * @param {{ items: Array<{icon: string, label: string, to: string}>, bottomItems?: Array<{icon: string, label: string, to?: string, onClick?: fn}>, open?: boolean, onOpenChange?: (open: boolean) => void, mobileMenuButtonRef?: React.RefObject<HTMLButtonElement> }} props
@@ -76,7 +77,10 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
             <button
               type="button"
               className="lg:hidden p-1 rounded-lg hover:bg-surface-container-low text-secondary"
-              onClick={closeDrawer}
+              onClick={() => {
+                markNavigationStart(item.to);
+                closeDrawer();
+              }}
               aria-label="Close navigation menu"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -93,6 +97,10 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
               onClick={closeDrawer}
               onMouseEnter={() => preloadRoute(item.to)}
               onFocus={() => preloadRoute(item.to)}
+              onPointerDown={() => {
+                markNavigationStart(item.to);
+                preloadRoute(item.to);
+              }}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-label-md text-label-md',

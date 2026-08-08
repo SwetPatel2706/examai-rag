@@ -9,4 +9,11 @@ describe('RouteFallback', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.getByText('Loading…')).toBeInTheDocument();
   });
+
+  it('supports an in-shell fallback without taking over the viewport', () => {
+    render(<RouteFallback fullScreen={false} />);
+
+    expect(screen.getByRole('status').parentElement).toHaveClass('min-h-[320px]');
+    expect(screen.getByRole('status').parentElement).not.toHaveClass('min-h-screen');
+  });
 });

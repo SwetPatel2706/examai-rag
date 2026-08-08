@@ -61,6 +61,7 @@ describe('AppRoutes', () => {
 
     expect(await screen.findByText('Welcome back')).toBeInTheDocument();
     expect(screen.getByText('Algorithms')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Open navigation menu')).toHaveLength(1);
   });
 
   it('renders the teacher dashboard from a lazy route', async () => {

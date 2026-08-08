@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { ProgressBar, SectionHeader } from '@/components/ui/shared';
@@ -12,6 +12,7 @@ import { listQuizzes, listMyAttempts } from '@/api/quizzes';
 import { getStudentSubjects } from '@/api/analytics';
 import { initials } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 const STATUS_STYLES = {
   completed: 'bg-tertiary-fixed/30 text-tertiary',
@@ -44,17 +45,31 @@ export default function SubjectOverview() {
   const navigate = useNavigate();
   const setCurrentSubject = useSubjectStore((s) => s.setCurrentSubject);
 
-  const { data, loading, error, reload } = useApi(async () => {
-    const [subject, materials, quizzes, attempts, cards] = await Promise.all([
-      getSubject(id),
-      listSubjectMaterials(id, { status: 'ready', size: 100 }),
-      listQuizzes(id),
-      listMyAttempts().catch(() => ({ items: [] })),
-      getStudentSubjects().catch(() => []),
-    ]);
+  const subjectApi = useApi(() => getSubject(id), [id], { key: ['subjects', 'detail', id], staleMs: 60_000 });
+  const materialsApi = useApi(
+    () => listSubjectMaterials(id, { status: 'ready', size: 100 }),
+    [id],
+    { key: ['subjects', id, 'materials', 'ready'], staleMs: 60_000 }
+  );
+  const quizzesApi = useApi(() => listQuizzes(id), [id], { key: ['quizzes', 'subject', id], staleMs: 30_000 });
+  const attemptsApi = useApi(listMyAttempts, [], { key: ['students', 'me', 'attempts', 'all'], staleMs: 30_000 });
+  const cardsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+
+  useEffect(() => {
     setCurrentSubject(id);
-    return { subject, materials, quizzes, attempts, cards };
-  }, [id], { key: ['subject', id, 'overview'], staleMs: 60_000 });
+  }, [id, setCurrentSubject]);
+
+  // Attempts and the dashboard subject-card list only enrich the overview;
+  // retain the previous behavior where their failure does not block the page.
+  const loading = subjectApi.loading || materialsApi.loading || quizzesApi.loading;
+  const error = subjectApi.error || materialsApi.error || quizzesApi.error;
+  const reload = () => {
+    subjectApi.reload();
+    materialsApi.reload();
+    quizzesApi.reload();
+    attemptsApi.reload();
+    cardsApi.reload();
+  };
 
   if (loading) {
     return (
@@ -72,7 +87,11 @@ export default function SubjectOverview() {
     );
   }
 
-  const { subject, materials, quizzes, attempts, cards } = data;
+  const subject = subjectApi.data;
+  const materials = materialsApi.data;
+  const quizzes = quizzesApi.data;
+  const attempts = attemptsApi.data;
+  const cards = cardsApi.data;
   const subjectCard = (cards || []).find((c) => c.subjectId === id);
   const progress = subjectCard?.progress ?? 0;
 
@@ -118,7 +137,8 @@ export default function SubjectOverview() {
             </p>
           </div>
           <button
-            onClick={() => navigate('/student/chat')}
+            {...navigationIntentProps('/student/chat')}
+            onClick={() => navigateWithIntent(navigate, '/student/chat')}
             className="h-12 px-8 bg-primary text-on-primary font-label-md text-label-md rounded-full flex items-center gap-2 hover:scale-95 transition-all duration-150 shadow-md shrink-0"
           >
             <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
@@ -193,7 +213,8 @@ export default function SubjectOverview() {
             title="Quizzes"
             action={
               <button
-                onClick={() => navigate('/student/quizzes')}
+                {...navigationIntentProps('/student/quizzes')}
+                onClick={() => navigateWithIntent(navigate, '/student/quizzes')}
                 className="text-primary font-label-md text-label-md hover:underline flex items-center gap-1"
               >
                 All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -223,7 +244,11 @@ export default function SubjectOverview() {
                     <p className="font-label-sm text-label-sm text-tertiary font-bold mb-3">Score: {quiz.score}%</p>
                   )}
                   <button
-                    onClick={() => navigate(quiz.status === 'completed' ? `/student/quiz/${quiz.id}/results` : `/student/quiz/${quiz.id}`)}
+                    {...navigationIntentProps(quiz.status === 'completed' ? `/student/quiz/${quiz.id}/results` : `/student/quiz/${quiz.id}`)}
+                    onClick={() => navigateWithIntent(
+                      navigate,
+                      quiz.status === 'completed' ? `/student/quiz/${quiz.id}/results` : `/student/quiz/${quiz.id}`
+                    )}
                     className="w-full h-9 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:scale-[0.98] transition-all"
                   >
                     {quiz.status === 'completed' ? 'View Results' : 'Start Quiz'}

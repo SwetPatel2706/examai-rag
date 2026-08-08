@@ -7,6 +7,7 @@ import { StudentDashboardSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import useSubjectStore from '@/store/subjectStore';
 import { getStudentStats, getStudentSubjects } from '@/api/analytics';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -92,7 +93,8 @@ export default function StudentDashboard() {
               Our AI tutor is ready to help you solve complex problems, explain concepts, or prep for exams.
             </p>
             <button
-              onClick={() => navigate('/student/chat')}
+              {...navigationIntentProps('/student/chat')}
+              onClick={() => navigateWithIntent(navigate, '/student/chat')}
               className="h-12 px-8 bg-white text-primary font-label-md text-label-md rounded-full flex items-center gap-2 hover:scale-95 transition-all duration-150 shadow-lg shadow-black/10"
             >
               <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
@@ -136,7 +138,8 @@ export default function StudentDashboard() {
               return (
                 <button
                   key={subject.subjectId}
-                  onClick={() => navigate(`/student/subject/${subject.subjectId}`)}
+                  {...navigationIntentProps(`/student/subject/${subject.subjectId}`)}
+                  onClick={() => navigateWithIntent(navigate, `/student/subject/${subject.subjectId}`)}
                   className="bg-white rounded-2xl ambient-shadow card-hover overflow-hidden text-left group"
                 >
                   {/* Color banner instead of external image */}

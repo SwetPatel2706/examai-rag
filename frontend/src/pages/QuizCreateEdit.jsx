@@ -96,7 +96,7 @@ export default function QuizCreateEdit() {
   const [actionError, setActionError] = useState(null);
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
-  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes'], staleMs: 30_000 });
+  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
 
   // Ready materials for AI generation, scoped to the selected subject.
   const materialsApi = useApi(

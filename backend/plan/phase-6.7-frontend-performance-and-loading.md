@@ -55,3 +55,25 @@ This phase comes after Phase 6 because it needs real request patterns and real l
 ## Exit criteria
 
 The integrated frontend has evidence-backed improvements to initial load and route transitions, stable skeleton and error behavior, safe deduplicated reuse for eligible GET data, and regression coverage for correctness-sensitive cache boundaries. It is ready for Phase 6.8 UI consistency and navigation polish.
+
+## Phase 6.7 follow-up — fast in-app page navigation
+
+The first Phase 6.7 implementation reduced the initial bundle and added basic
+GET caching, but route transitions could still blank the shell and refetch
+composite page data. The follow-up implementation adds the missing navigation
+behavior:
+
+- Standard authenticated routes keep one persistent `AppLayout` mounted while
+  only the page content changes. Focus routes retain their full-screen UX.
+- Fresh cache snapshots render synchronously, stale snapshots render while
+  revalidating, and missing data uses an in-shell fallback.
+- Route metadata now warms the lazy chunk and safe GET data on intent. Dynamic
+  subject, quiz, result, and flashcard paths are matched by concrete URL.
+- Subject overview, quiz list, quiz detail, and result data use canonical cache
+  keys so prefetch and page mount share in-flight requests.
+- Navigation marks and the `examai:navigation-ready` event support manual
+  timing capture without adding analytics or backend dependencies.
+
+The automated build measurement and remaining live-browser capture procedure
+are recorded in `frontend/docs/performance-run.md`. The seeded-browser timing
+table must be filled before the phase is declared fully measured.

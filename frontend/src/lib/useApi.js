@@ -1,15 +1,29 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { buildCacheKey, readCache, getOrFetch, invalidate } from './apiCache';
 
+function initialState(cacheKey, enabled) {
+  if (!enabled) return { key: cacheKey, data: undefined, loading: false, error: null, validating: false };
+  if (!cacheKey) return { key: cacheKey, data: undefined, loading: true, error: null, validating: false };
+
+  const hit = readCache(cacheKey);
+  if (hit.state === 'fresh') {
+    return { key: cacheKey, data: hit.data, loading: false, error: null, validating: false };
+  }
+  if (hit.state === 'stale') {
+    return { key: cacheKey, data: hit.data, loading: false, error: null, validating: true };
+  }
+  return { key: cacheKey, data: undefined, loading: true, error: null, validating: false };
+}
+
 /**
  * Data-fetching hook with an optional safe-GET cache.
  *
  * `useApi(fetcher, deps, { key, staleMs, enabled })`
  *
  * - `key` (array of stable string parts): enables the identity-scoped,
- *   freshness-bounded cache. Fresh entries render without a network call;
- *   stale entries render once from cache while a background revalidation
- *   runs; concurrent readers of the same key share one in-flight request.
+ *   freshness-bounded cache. Fresh entries render synchronously; stale entries
+ *   render once from cache while a background revalidation runs; concurrent
+ *   readers of the same key share one in-flight request.
  * - `key` omitted: previous behaviour — plain fetch on mount / dep change,
  *   never cached (used for chat answers, mutations, status polls, uploads,
  *   generated content, and expiring URLs).
@@ -20,85 +34,74 @@ import { buildCacheKey, readCache, getOrFetch, invalidate } from './apiCache';
  * Errors are ApiError instances carrying `message` and `code`.
  */
 export function useApi(fetcher, deps = [], { key, staleMs, enabled = true } = {}) {
-  const [data, setData] = useState(undefined);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [validating, setValidating] = useState(false);
+  const cacheKey = key ? buildCacheKey(key) : null;
+  const [state, setState] = useState(() => initialState(cacheKey, enabled));
   const [reloadKey, setReloadKey] = useState(0);
 
-  const cacheKey = key ? buildCacheKey(key) : null;
+  // A route-param change can reuse the same component instance. Do not let
+  // the previous resource flash while the effect switches to the new key.
+  const visibleState = state.key === cacheKey ? state : initialState(cacheKey, enabled);
 
   useEffect(() => {
     if (!enabled) {
-      setLoading(false);
-      setError(null);
+      setState(initialState(cacheKey, false));
       return undefined;
     }
 
     let cancelled = false;
-    setError(null);
+    setState(initialState(cacheKey, enabled));
 
     async function run() {
       if (cacheKey) {
-        const hit = readCache(cacheKey, { staleMs });
+        const hit = readCache(cacheKey);
         if (hit.state === 'fresh') {
           if (!cancelled) {
-            setData(hit.data);
-            setLoading(false);
-            setValidating(false);
+            setState({ key: cacheKey, data: hit.data, loading: false, error: null, validating: false });
           }
           return;
         }
         if (hit.state === 'stale') {
           if (!cancelled) {
-            setData(hit.data);
-            setLoading(false);
-            setValidating(true);
+            setState({ key: cacheKey, data: hit.data, loading: false, error: null, validating: true });
           }
           try {
             const result = await getOrFetch(cacheKey, fetcher, { staleMs });
             if (!cancelled) {
-              setData(result);
-              setValidating(false);
+              setState({ key: cacheKey, data: result, loading: false, error: null, validating: false });
             }
           } catch (err) {
-            if (!cancelled) setError(err);
-            setValidating(false);
+            if (!cancelled) setState((current) => ({ ...current, error: err, validating: false }));
           }
           return;
         }
-        // missing — fetch (deduplicated across readers of this key)
+
+        // Missing — fetch, deduplicated across readers of the same key.
         if (!cancelled) {
-          setLoading(true);
-          setValidating(false);
+          setState({ key: cacheKey, data: undefined, loading: true, error: null, validating: false });
         }
         try {
           const result = await getOrFetch(cacheKey, fetcher, { staleMs });
           if (!cancelled) {
-            setData(result);
-            setLoading(false);
+            setState({ key: cacheKey, data: result, loading: false, error: null, validating: false });
           }
         } catch (err) {
           if (!cancelled) {
-            setError(err);
-            setLoading(false);
+            setState({ key: cacheKey, data: undefined, loading: false, error: err, validating: false });
           }
         }
         return;
       }
 
       // Uncached path — same lifecycle as the pre-cache hook.
-      if (!cancelled) setLoading(true);
+      if (!cancelled) setState({ key: cacheKey, data: undefined, loading: true, error: null, validating: false });
       try {
         const result = await fetcher();
         if (!cancelled) {
-          setData(result);
-          setLoading(false);
+          setState({ key: cacheKey, data: result, loading: false, error: null, validating: false });
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err);
-          setLoading(false);
+          setState({ key: cacheKey, data: undefined, loading: false, error: err, validating: false });
         }
       }
     }
@@ -112,9 +115,15 @@ export function useApi(fetcher, deps = [], { key, staleMs, enabled = true } = {}
 
   const reload = useCallback(() => {
     if (cacheKey) invalidate(key);
-    setReloadKey((k) => k + 1);
+    setReloadKey((current) => current + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheKey, key]);
 
-  return { data, loading, error, validating, reload };
+  return {
+    data: visibleState.data,
+    loading: visibleState.loading,
+    error: visibleState.error,
+    validating: visibleState.validating,
+    reload,
+  };
 }

@@ -6,9 +6,12 @@ import { LoadingState } from '@/components/ui/states';
  * the session/bootstrap path must stay small, and data-heavy screens replace
  * this with their own layout-preserving skeletons once mounted.
  */
-export default function RouteFallback() {
+export default function RouteFallback({ fullScreen = true }) {
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center" aria-busy="true">
+    <div
+      className={`${fullScreen ? 'min-h-screen' : 'min-h-[320px]'} bg-surface flex items-center justify-center`}
+      aria-busy="true"
+    >
       <LoadingState label="Loading…" />
     </div>
   );

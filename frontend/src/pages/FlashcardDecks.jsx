@@ -20,6 +20,7 @@ import { getStudentSubjects } from '@/api/analytics';
 import { listSubjectMaterials } from '@/api/subjects';
 import { cn } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 function DeckCard({ deck, onStudy }) {
   const cardCount = deck.cards.length;
@@ -55,6 +56,7 @@ function DeckCard({ deck, onStudy }) {
       </div>
 
       <button
+        {...navigationIntentProps(`/student/flashcards/${deck.id}/study`)}
         onClick={() => onStudy(deck.id)}
         className="mt-auto h-10 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:scale-[0.98] transition-all"
       >
@@ -110,7 +112,7 @@ export default function FlashcardDecks() {
       setGenerateOpen(false);
       reset();
       decksApi.reload();
-      navigate(`/student/flashcards/${deck.id}/study`);
+      navigateWithIntent(navigate, `/student/flashcards/${deck.id}/study`);
     } catch (err) {
       setGenError(err);
       setGenLoading(false);
@@ -163,7 +165,7 @@ export default function FlashcardDecks() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
           {decks.map((deck) => (
-            <DeckCard key={deck.id} deck={deck} onStudy={(id) => navigate(`/student/flashcards/${id}/study`)} />
+            <DeckCard key={deck.id} deck={deck} onStudy={(id) => navigateWithIntent(navigate, `/student/flashcards/${id}/study`)} />
           ))}
         </div>
       )}

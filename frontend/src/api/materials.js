@@ -10,7 +10,6 @@ import { invalidate } from '@/lib/apiCache';
 function invalidateMaterialData() {
   invalidate(['materials']);
   invalidate(['subjects']);
-  invalidate(['subject']);
   invalidate(['students', 'me', 'materials']);
   invalidate(['students', 'me', 'stats']);
   invalidate(['teacher', 'dashboard-stats']);

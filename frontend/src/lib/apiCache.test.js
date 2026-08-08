@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import useAuthStore from '@/store/authStore';
-import { buildCacheKey, readCache, getOrFetch, invalidate, clear } from '@/lib/apiCache';
+import { buildCacheKey, readCache, getOrFetch, prefetch, invalidate, clear } from '@/lib/apiCache';
 import { createQuiz } from '@/api/quizzes';
 
 function jsonResponse(payload, status = 200) {
@@ -65,6 +65,20 @@ describe('apiCache', () => {
     d.resolve({ v: 42 });
     await expect(p1).resolves.toEqual({ v: 42 });
     await expect(p2).resolves.toEqual({ v: 42 });
+  });
+
+  it('shares a prefetched request with a later cache reader', async () => {
+    useAuthStore.setState({ user: { id: 'u1', role: 'student' }, role: 'student' });
+    const d = deferred();
+    const fetcher = vi.fn(() => d.promise);
+
+    const warmed = prefetch(['subjects'], fetcher, { staleMs: 60_000 });
+    const mounted = getOrFetch(buildCacheKey(['subjects']), fetcher, { staleMs: 60_000 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    d.resolve([{ id: 's1' }]);
+    await expect(warmed).resolves.toEqual([{ id: 's1' }]);
+    await expect(mounted).resolves.toEqual([{ id: 's1' }]);
   });
 
   it('refetches once the freshness window passes', async () => {

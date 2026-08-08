@@ -1,57 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// --- Mock data (replace with GET /quizzes/:id when backend is ready) ---
-const MOCK_QUIZZES = {
-  q1: {
-    id: 'q1',
-    title: 'Arrays & Complexity',
-    subject: 'Data Structures',
-    teacher: 'Dr. Eleanor Vance',
-    timeLimitSeconds: 600, // 10 minutes
-    questions: [
-      {
-        id: 'qq1',
-        stem: 'What is the time complexity of accessing an element in an array by index?',
-        options: ['O(n)', 'O(log n)', 'O(1)', 'O(n²)'],
-        correct: 2,
-      },
-      {
-        id: 'qq2',
-        stem: 'Which data structure uses LIFO ordering?',
-        options: ['Queue', 'Stack', 'Heap', 'Linked List'],
-        correct: 1,
-      },
-      {
-        id: 'qq3',
-        stem: 'What is the worst-case time complexity of QuickSort?',
-        options: ['O(n log n)', 'O(n)', 'O(n²)', 'O(log n)'],
-        correct: 2,
-      },
-    ],
-  },
-  q2: {
-    id: 'q2',
-    title: 'Linked Lists Deep Dive',
-    subject: 'Data Structures',
-    teacher: 'Dr. Priya Nair',
-    timeLimitSeconds: 900,
-    questions: [
-      {
-        id: 'qq4',
-        stem: 'In a singly linked list, each node contains a reference to which node?',
-        options: ['Previous node', 'Next node', 'Both previous and next', 'Head node'],
-        correct: 1,
-      },
-      {
-        id: 'qq5',
-        stem: 'What is the time complexity of inserting at the head of a linked list?',
-        options: ['O(n)', 'O(log n)', 'O(1)', 'O(n²)'],
-        correct: 2,
-      },
-    ],
-  },
-};
+import { LoadingState, ErrorState } from '@/components/ui/states';
+import { getQuiz, submitAttempt } from '@/api/quizzes';
 
 function formatTime(secs) {
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
@@ -63,32 +13,77 @@ function formatTime(secs) {
 export default function QuizTaking() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const quiz = MOCK_QUIZZES[id];
 
+  const [quiz, setQuiz] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({}); // { questionId: optionIndex }
-  const [timeLeft, setTimeLeft] = useState(quiz?.timeLimitSeconds ?? 600);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const timerRef = useRef(null);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTimeLeft(t => (t <= 1 ? 0 : t - 1));
-    }, 1000);
-  
-    return () => clearInterval(timerRef.current);
-  }, []);
-  
+    let cancelled = false;
+    getQuiz(id)
+      .then((data) => {
+        if (cancelled) return;
+        setQuiz(data);
+        if (data.timeLimitSeconds) {
+          setTimeLeft(data.timeLimitSeconds);
+          timerRef.current = setInterval(() => {
+            setTimeLeft((t) => (t <= 1 ? 0 : t - 1));
+          }, 1000);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err);
+      });
+    return () => {
+      cancelled = true;
+      clearInterval(timerRef.current);
+    };
+  }, [id]);
+
+  const submitQuiz = useCallback(async () => {
+    if (submittedRef.current || !quiz) return;
+    submittedRef.current = true;
+    clearInterval(timerRef.current);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      // Backend grades option TEXT strings — map { questionId: optionIndex } → text.
+      const textAnswers = {};
+      for (const [qid, idx] of Object.entries(answers)) {
+        const question = quiz.questions.find((q) => q.id === qid);
+        if (question && question.options[idx] !== undefined) textAnswers[qid] = question.options[idx];
+      }
+      const attempt = await submitAttempt({ quizId: id, answers: textAnswers });
+      navigate(`/student/quiz/${id}/results`, { state: { attempt } });
+    } catch (err) {
+      submittedRef.current = false;
+      setSubmitting(false);
+      setSubmitError(err);
+    }
+  }, [quiz, answers, id, navigate]);
+
   useEffect(() => {
-    if (timeLeft !== 0) return;
-  
-    clearInterval(timerRef.current);   // stop timer
-    if (quiz) submitQuiz();            // latest answers
-  }, [timeLeft, quiz]);
+    if (timeLeft === 0 && quiz) submitQuiz();
+  }, [timeLeft, quiz, submitQuiz]);
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center px-sp-md">
+        <ErrorState message={loadError.message} onRetry={() => window.location.reload()} />
+      </div>
+    );
+  }
 
   if (!quiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <p className="text-on-surface-variant font-body-md text-body-md">Quiz not found.</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <LoadingState label="Loading quiz…" />
       </div>
     );
   }
@@ -97,15 +92,10 @@ export default function QuizTaking() {
   const total = quiz.questions.length;
   const progress = ((current + 1) / total) * 100;
   const isLast = current === total - 1;
-  const isUrgent = timeLeft < 60;
+  const isUrgent = timeLeft !== null && timeLeft < 60;
 
   function selectOption(idx) {
     setAnswers((prev) => ({ ...prev, [question.id]: idx }));
-  }
-
-  function submitQuiz() {
-    clearInterval(timerRef.current);
-    navigate(`/student/quiz/${id}/results`, { state: { answers, questions: quiz.questions } });
   }
 
   return (
@@ -116,16 +106,15 @@ export default function QuizTaking() {
       {/* Top bar */}
       <header className="h-16 bg-white border-b border-outline-variant flex items-center justify-between px-sp-xl shrink-0">
         <div>
-          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">{quiz.subject}</p>
-          <h1 className="font-headline-md text-headline-md text-on-background">{quiz.title}</h1>
+          <h1 className="font-headline-md text-headline-md text-on-background">{quiz.topic}</h1>
         </div>
         <div className="flex items-center gap-sp-md">
-          {/* Timer */}
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md font-bold ${isUrgent ? 'bg-error-container text-error' : 'bg-primary-fixed text-primary'}`}>
-            <span className="material-symbols-outlined text-[18px]">timer</span>
-            {formatTime(timeLeft)}
-          </div>
-          {/* Progress label */}
+          {timeLeft !== null && (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md font-bold ${isUrgent ? 'bg-error-container text-error' : 'bg-primary-fixed text-primary'}`}>
+              <span className="material-symbols-outlined text-[18px]">timer</span>
+              {formatTime(timeLeft)}
+            </div>
+          )}
           <span className="font-label-md text-label-md text-secondary">
             {current + 1} / {total}
           </span>
@@ -154,6 +143,7 @@ export default function QuizTaking() {
                 <button
                   key={idx}
                   onClick={() => selectOption(idx)}
+                  disabled={submitting}
                   className={`w-full text-left px-sp-md py-sp-md rounded-2xl border-2 transition-all duration-150 font-body-md text-body-md ${
                     selected
                       ? 'border-primary bg-primary-fixed text-primary font-semibold'
@@ -171,10 +161,25 @@ export default function QuizTaking() {
         </div>
       </main>
 
+      {/* Submission failure banner (distinct from loadError above) */}
+      {submitError && (
+        <div role="alert" className="px-sp-xl pt-2">
+          <div className="bg-error-container text-error rounded-2xl px-sp-md py-sp-sm text-body-sm flex items-center justify-between gap-3">
+            <span>Your answer could not be submitted: {submitError.message}</span>
+            <button
+              onClick={submitQuiz}
+              className="shrink-0 h-9 px-4 rounded-lg bg-error text-on-error font-label-md text-label-md"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Navigation footer */}
       <footer className="h-20 bg-white border-t border-outline-variant flex items-center justify-between px-sp-xl shrink-0">
         <button
-          disabled={current === 0}
+          disabled={current === 0 || submitting}
           onClick={() => setCurrent((c) => c - 1)}
           className="flex items-center gap-2 px-6 h-10 rounded-xl border border-outline-variant text-secondary font-label-md text-label-md disabled:opacity-40 hover:bg-surface-container-low transition-colors"
         >
@@ -188,6 +193,7 @@ export default function QuizTaking() {
             <button
               key={q.id}
               onClick={() => setCurrent(i)}
+              disabled={submitting}
               className={`w-2.5 h-2.5 rounded-full transition-all ${
                 i === current ? 'bg-primary scale-125' : answers[q.id] !== undefined ? 'bg-tertiary' : 'bg-outline-variant'
               }`}
@@ -199,14 +205,16 @@ export default function QuizTaking() {
         {isLast ? (
           <button
             onClick={submitQuiz}
+            disabled={submitting}
             className="flex items-center gap-2 px-6 h-10 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:scale-95 transition-all"
           >
-            Submit
+            {submitting ? 'Submitting…' : 'Submit'}
             <span className="material-symbols-outlined text-[18px]">check</span>
           </button>
         ) : (
           <button
             onClick={() => setCurrent((c) => c + 1)}
+            disabled={submitting}
             className="flex items-center gap-2 px-6 h-10 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:scale-95 transition-all"
           >
             Next

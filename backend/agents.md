@@ -25,7 +25,7 @@ FastAPI. Routes are thin (HTTP only); logic lives in `app/services/`.
   synthetic material content so Chat/Flashcards resolve real citations (needs
   Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
 - Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
-- Tests: `./venv/bin/pytest` from `backend/` — **offline, 77 tests pass
+- Tests: `./venv/bin/pytest` from `backend/` — **offline, 83 tests pass
   (~1.5 s)**, no external services required. Single file:
   `./venv/bin/pytest tests/test_smoke.py -q`.
 - No project-level Python linter/typecheck config; `pytest` is the gate. Code

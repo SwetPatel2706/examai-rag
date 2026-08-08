@@ -7,11 +7,11 @@ from uuid import UUID
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user
 from app.models.user import User
-from app.services.material_service import get_materials, get_material_by_id, update_material_metadata
+from app.services.material_service import get_materials, get_material_by_id, update_material_metadata, serialize_material
 from app.services.material_ingestion_service import upload_material, start_retry, mark_deleting
 from app.services.ingestion.pipeline import IngestionPipeline
 from app.utils.storage import StorageClient
-from app.schemas.material import MaterialResponse, MaterialUpdateRequest, MaterialsListResponse, MaterialStatusResponse
+from app.schemas.material import MaterialUpdateRequest, MaterialsListResponse, MaterialStatusResponse
 from app.schemas.common import StandardResponse
 from app.services.material_ingestion_service import MAX_BYTES
 
@@ -26,8 +26,8 @@ async def create_material(
     data = await file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
-    material = await upload_material(db, current_user, subject_id, file.filename or "upload", file.content_type or "", data)
-    return StandardResponse.ok(data=MaterialResponse.model_validate(material).model_dump(mode="json"))
+    material = await upload_material(db, current_user, subject_id, file.filename or "upload", data)
+    return StandardResponse.ok(data=serialize_material(material).model_dump(mode="json"))
 
 @router.get("", response_model=StandardResponse)
 async def list_all_materials(
@@ -53,7 +53,7 @@ async def list_all_materials(
     )
 
     pages = (total + size - 1) // size
-    items_data = [MaterialResponse.model_validate(m) for m in items]
+    items_data = [serialize_material(m) for m in items]
     resp = MaterialsListResponse(
         items=items_data,
         total=total,
@@ -72,7 +72,7 @@ async def get_material(
 ):
     """Retrieve details of a specific material after verifying access permissions."""
     material = get_material_by_id(db, material_id, current_user)
-    response_data = MaterialResponse.model_validate(material)
+    response_data = serialize_material(material)
     return StandardResponse.ok(data=response_data.model_dump())
 
 @router.get("/{material_id}/status", response_model=StandardResponse)
@@ -97,7 +97,7 @@ async def retry_material(material_id: UUID, current_user: User = Depends(get_cur
         material = IngestionPipeline().process(db, material.id, data, version=version)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Material retry failed: {exc}") from exc
-    return StandardResponse.ok(data=MaterialResponse.model_validate(material).model_dump(mode="json"))
+    return StandardResponse.ok(data=serialize_material(material).model_dump(mode="json"))
 
 @router.delete("/{material_id}", response_model=StandardResponse)
 async def delete_material(material_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -126,5 +126,5 @@ async def update_material(
     Only the uploading teacher can edit this.
     """
     material = update_material_metadata(db, material_id, updates, current_user)
-    response_data = MaterialResponse.model_validate(material)
+    response_data = serialize_material(material)
     return StandardResponse.ok(data=response_data.model_dump())

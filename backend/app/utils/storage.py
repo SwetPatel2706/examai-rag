@@ -31,9 +31,12 @@ class StorageClient:
         response.raise_for_status()
         return path
 
-    async def signed_url(self, path: str, expires: int = 300) -> str:
+    async def signed_url(self, path: str, expires: int = 300, *, download: bool = True) -> str:
         url = f"{self.base}/storage/v1/object/sign/{self.bucket}/{path}"
-        response = await self.client.post(url, json={"expiresIn": expires}, headers={**self.headers, "Content-Type": "application/json"})
+        body = {"expiresIn": expires}
+        if download:
+            body["download"] = "true"
+        response = await self.client.post(url, json=body, headers={**self.headers, "Content-Type": "application/json"})
         response.raise_for_status()
         signed = response.json().get("signedURL") or response.json().get("signedUrl")
         return f"{self.base}/storage/v1{signed}" if signed and signed.startswith("/") else signed

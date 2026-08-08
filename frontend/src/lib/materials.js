@@ -12,3 +12,17 @@ export const TYPE_ICONS = {
 export function getTypeConfig(type) {
   return TYPE_ICONS[type?.toUpperCase()] ?? TYPE_ICONS.default;
 }
+export function groupByTeacher(items) {
+  const groups = [];
+  const byTeacher = new Map();
+  for (const mat of items || []) {
+    const key = mat.teacherId;
+    if (!byTeacher.has(key)) {
+      const group = { teacher: { id: key, name: mat.teacherName || 'Unknown' }, materials: [] };
+      byTeacher.set(key, group);
+      groups.push(group);
+    }
+    byTeacher.get(key).materials.push({ id: mat.id, name: mat.name, type: mat.fileType });
+  }
+  return groups;
+}

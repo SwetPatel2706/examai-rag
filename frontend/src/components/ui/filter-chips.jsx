@@ -21,13 +21,13 @@ export function FilterChip({ label, active, onClick }) {
   );
 }
 
-export function FilterChipGroup({ options, value, onChange, className }) {
+export function FilterChipGroup({ options, value, onChange, className, labelById }) {
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
       {options.map((option) => (
         <FilterChip
           key={option}
-          label={option}
+          label={labelById ? labelById(option) : option}
           active={value === option}
           onClick={() => onChange(option)}
         />

@@ -2,51 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
+import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { useApi } from '@/lib/useApi';
+import { listQuizzes, listMyAttempts } from '@/api/quizzes';
+import { getStudentSubjects } from '@/api/analytics';
 import { cn } from '@/lib/utils';
-
-// --- Mock data (replace with GET /quizzes?role=student when backend is ready) ---
-const QUIZZES = [
-  {
-    id: 'q1',
-    title: 'Arrays & Complexity',
-    subject: 'Data Structures',
-    teacher: 'Dr. Eleanor Vance',
-    questions: 10,
-    dueDate: '2026-08-01',
-    status: 'completed',
-    score: 80,
-  },
-  {
-    id: 'q2',
-    title: 'Linked Lists Deep Dive',
-    subject: 'Data Structures',
-    teacher: 'Dr. Priya Nair',
-    questions: 15,
-    dueDate: '2026-08-10',
-    status: 'not_started',
-    score: null,
-  },
-  {
-    id: 'q3',
-    title: 'Supply & Demand Fundamentals',
-    subject: 'Macroeconomics',
-    teacher: 'Prof. Julian Thorne',
-    questions: 12,
-    dueDate: '2026-08-05',
-    status: 'in_progress',
-    score: null,
-  },
-  {
-    id: 'q4',
-    title: 'Matrix Operations',
-    subject: 'Linear Algebra',
-    teacher: 'Dr. Sarah Chen',
-    questions: 8,
-    dueDate: '2026-08-15',
-    status: 'not_started',
-    score: null,
-  },
-];
 
 const STATUS_CONFIG = {
   completed: { label: 'Completed', bg: 'bg-tertiary-fixed/30 text-tertiary', icon: 'check_circle' },
@@ -80,10 +40,6 @@ function QuizCard({ quiz, onAction }) {
           <span className="material-symbols-outlined text-[16px]">person</span>
           {quiz.teacher}
         </span>
-        <span className="flex items-center gap-1">
-          <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-          Due {quiz.dueDate}
-        </span>
       </div>
 
       {quiz.status === 'completed' && quiz.score !== null && (
@@ -100,7 +56,7 @@ function QuizCard({ quiz, onAction }) {
             : 'bg-primary text-on-primary'
         )}
       >
-        {quiz.status === 'completed' ? 'View Results' : quiz.status === 'in_progress' ? 'Continue' : 'Start Quiz'}
+        {quiz.status === 'completed' ? 'View Results' : 'Start Quiz'}
       </button>
     </div>
   );
@@ -109,6 +65,11 @@ function QuizCard({ quiz, onAction }) {
 export default function Quizzes() {
   const navigate = useNavigate();
 
+  const { data, loading, error, reload } = useApi(async () => {
+    const [quizzes, attempts, subjects] = await Promise.all([listQuizzes(), listMyAttempts(), getStudentSubjects()]);
+    return { quizzes, attempts, subjects };
+  }, []);
+
   function handleAction(quiz) {
     if (quiz.status === 'completed') {
       navigate(`/student/quiz/${quiz.id}/results`);
@@ -116,6 +77,42 @@ export default function Quizzes() {
       navigate(`/student/quiz/${quiz.id}`);
     }
   }
+
+  if (loading) {
+    return (
+      <AppLayout role="student">
+        <LoadingState label="Loading quizzes…" />
+      </AppLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppLayout role="student">
+        <ErrorState message={error.message} onRetry={reload} />
+      </AppLayout>
+    );
+  }
+
+  const subjectNames = new Map((data.subjects || []).map((s) => [s.subjectId, s.name]));
+  const attemptsByQuiz = new Map();
+  for (const attempt of data.attempts?.items || []) {
+    const previous = attemptsByQuiz.get(attempt.quizId);
+    if (!previous || new Date(attempt.submittedAt || 0) > new Date(previous.submittedAt || 0)) attemptsByQuiz.set(attempt.quizId, attempt);
+  }
+
+  const quizCards = (data.quizzes || []).map((quiz) => {
+    const attempt = attemptsByQuiz.get(quiz.id);
+    return {
+      id: quiz.id,
+      title: quiz.topic,
+      subject: subjectNames.get(quiz.subjectId) || 'Unknown',
+      teacher: quiz.teacherName || '—',
+      questions: quiz.questionCount,
+      status: attempt ? 'completed' : 'not_started',
+      score: attempt ? attempt.score : null,
+    };
+  });
 
   return (
     <AppLayout role="student">
@@ -126,12 +123,20 @@ export default function Quizzes() {
         </p>
       </header>
 
-      <SectionHeader title={`All Quizzes (${QUIZZES.length})`} />
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
-        {QUIZZES.map((quiz) => (
-          <QuizCard key={quiz.id} quiz={quiz} onAction={handleAction} />
-        ))}
-      </div>
+      <SectionHeader title={`All Quizzes (${quizCards.length})`} />
+      {quizCards.length === 0 ? (
+        <EmptyState
+          icon="quiz"
+          title="No quizzes available"
+          description="Your teachers haven't published any quizzes for your subjects yet."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+          {quizCards.map((quiz) => (
+            <QuizCard key={quiz.id} quiz={quiz} onAction={handleAction} />
+          ))}
+        </div>
+      )}
     </AppLayout>
   );
 }

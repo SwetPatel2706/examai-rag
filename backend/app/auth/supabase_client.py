@@ -12,6 +12,14 @@ class SupabaseUserLookupIncompleteError(Exception):
     pass
 
 
+class SupabaseRateLimitError(Exception):
+    """Raised when Supabase rejects a request because of rate limiting."""
+
+
+class SupabaseUpstreamError(Exception):
+    """Raised when Supabase returns an unexpected provider response."""
+
+
 class SupabaseAuthClient:
     def __init__(self):
         # Ensure we construct valid urls with /auth/v1
@@ -142,6 +150,56 @@ class SupabaseAuthClient:
 
         return None
 
+
+    async def refresh(self, refresh_token: str) -> Dict[str, Any]:
+        """Exchange a refresh token for a new session.
+
+        Supabase rotates the refresh token on every call, so the caller must
+        persist the returned ``refresh_token`` (here: a fresh HttpOnly cookie).
+        """
+        url = f"{self.auth_url}/token?grant_type=refresh_token"
+        headers = {
+            "apikey": self.anon_key,
+            "Content-Type": "application/json",
+        }
+        data = {"refresh_token": refresh_token}
+        try:
+            response = await self.client.post(url, headers=headers, json=data)
+        except httpx.HTTPError:
+            raise
+        if response.status_code != 200:
+            if response.status_code == 400:
+                try:
+                    error_detail = response.json().get("error_description", "Invalid or expired refresh token")
+                except Exception:
+                    error_detail = "Invalid or expired refresh token"
+                raise ValueError(error_detail)
+            if response.status_code == 429:
+                raise SupabaseRateLimitError("Authentication provider rate limit exceeded")
+            raise SupabaseUpstreamError(
+                f"Authentication provider returned HTTP {response.status_code}"
+            )
+        try:
+            payload = response.json()
+        except Exception as exc:
+            raise SupabaseUpstreamError(
+                f"Authentication provider returned a non-JSON response: {type(exc).__name__}"
+            ) from exc
+        if not isinstance(payload, dict):
+            raise SupabaseUpstreamError(
+                "Authentication provider returned an unexpected response shape"
+            )
+        access_token = payload.get("access_token")
+        new_refresh_token = payload.get("refresh_token")
+        if not isinstance(access_token, str) or not access_token:
+            raise SupabaseUpstreamError(
+                "Authentication provider response is missing a valid access_token"
+            )
+        if not isinstance(new_refresh_token, str) or not new_refresh_token:
+            raise SupabaseUpstreamError(
+                "Authentication provider response is missing a valid refresh_token"
+            )
+        return payload
 
     async def logout(self, token: str) -> None:
         url = f"{self.auth_url}/logout"

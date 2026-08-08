@@ -1,48 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
+import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { useApi } from '@/lib/useApi';
+import { listSubjects, listSubjectMaterials } from '@/api/subjects';
+import { askQuestion } from '@/api/chat';
 import { cn } from '@/lib/utils';
-
-// --- Mock data (replace with API /subjects and /chat when backend is ready) ---
-const SUBJECTS_LIST = [
-  { id: 's1', name: 'Data Structures' },
-  { id: 's2', name: 'Macroeconomics' },
-  { id: 's3', name: 'Linear Algebra' },
-];
-
-const MATERIALS_BY_SUBJECT = {
-  s1: [
-    {
-      teacher: { id: 't1', name: 'Dr. Eleanor Vance' },
-      materials: [
-        { id: 'm1', name: 'Week 1 — Arrays & Complexity.pdf', type: 'PDF' },
-        { id: 'm2', name: 'Week 2 — Linked Lists.pdf', type: 'PDF' },
-      ],
-    },
-    {
-      teacher: { id: 't2', name: 'Dr. Priya Nair' },
-      materials: [{ id: 'm3', name: 'Graph Algorithms.pdf', type: 'PDF' }],
-    },
-  ],
-  s2: [
-    {
-      teacher: { id: 't3', name: 'Prof. Julian Thorne' },
-      materials: [{ id: 'm4', name: 'Macroeconomic Theory Ch1.pdf', type: 'PDF' }],
-    },
-  ],
-  s3: [
-    {
-      teacher: { id: 't4', name: 'Dr. Sarah Chen' },
-      materials: [
-        { id: 'm5', name: 'Matrix Operations.pdf', type: 'PDF' },
-        { id: 'm6', name: 'Eigenvalues Lecture.pdf', type: 'PDF' },
-      ],
-    },
-  ],
-};
+import { groupByTeacher } from '@/lib/materials';
 
 /**
  * Citation tooltip shown on hover over [N] markers.
@@ -98,47 +64,35 @@ function MessageContent({ text, citations = [] }) {
   );
 }
 
-// Simulated AI response — replace with POST /chat when backend is ready
-function buildMockResponse(question, subjectId, selectedIds) {
-  const matList = (MATERIALS_BY_SUBJECT[subjectId] ?? []).flatMap((g) =>
-    g.materials.filter((m) => selectedIds.has(m.id)).map((m) => ({ ...m, teacherName: g.teacher.name }))
-  );
-  if (!matList.length) {
-    return {
-      text: "Please select at least one study material from the panel on the left so I can answer from the right sources.",
-      citations: [],
-    };
-  }
-  const cites = matList.slice(0, 2).map((m, i) => ({
-    num: i + 1,
-    teacherName: m.teacherName,
-    materialFilename: m.name,
-    materialId: m.id,
-  }));
-  return {
-    text: `Based on your selected materials, here is a concise answer to "${question}". The key concept is explained thoroughly in [1]${cites[1] ? ` and reinforced in [2]` : ''}.`,
-    citations: cites,
-  };
-}
-
 export default function Chat() {
-  const navigate = useNavigate();
-  const { currentSubjectId, setCurrentSubject } = useSubjectStore();
-  const { selectedIds, deselectAll } = useMaterialScopeStore();
+  const { currentSubjectId, setCurrentSubject, setSubjects } = useSubjectStore();
+  const { selectedIds, deselectAll, getSelectedArray } = useMaterialScopeStore();
 
-  const activeSubjectId = currentSubjectId ?? SUBJECTS_LIST[0].id;
-  const activeSubject = SUBJECTS_LIST.find((s) => s.id === activeSubjectId) ?? SUBJECTS_LIST[0];
-  const materialsByTeacher = MATERIALS_BY_SUBJECT[activeSubjectId] ?? [];
+  const subjectsApi = useApi(async () => {
+    const list = await listSubjects();
+    setSubjects(list);
+    return list;
+  }, []);
+
+  const subjects = subjectsApi.data || [];
+  const activeSubjectId = currentSubjectId ?? subjects[0]?.id;
+  const activeSubject = subjects.find((s) => s.id === activeSubjectId);
+
+  const materialsApi = useApi(
+    () => (activeSubjectId ? listSubjectMaterials(activeSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
+    [activeSubjectId]
+  );
+  const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
+
+  // Default to the first subject when none is selected yet.
+  useEffect(() => {
+    if (!currentSubjectId && subjects.length > 0) {
+      setCurrentSubject(subjects[0].id);
+    }
+  }, [currentSubjectId, subjects, setCurrentSubject]);
 
   const [scopeOpen, setScopeOpen] = useState(true);
-  const [messages, setMessages] = useState([
-    {
-      id: 'init',
-      role: 'assistant',
-      text: `Hello! I'm your AI study assistant for **${activeSubject.name}**. Select materials on the left, then ask me anything.`,
-      citations: [],
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -148,22 +102,52 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Greeting once a subject is resolved.
+  useEffect(() => {
+    if (activeSubject && messages.length === 0) {
+      setMessages([
+        {
+          id: 'init',
+          role: 'assistant',
+          text: `Hello! I'm your AI study assistant for **${activeSubject.name}**. Select materials on the left, then ask me anything.`,
+          citations: [],
+        },
+      ]);
+    }
+  }, [activeSubject, messages.length]);
+
   function handleSubjectChange(id) {
+    if (id === activeSubjectId) return;
     epochRef.current += 1;
     setCurrentSubject(id);
     deselectAll();
     setLoading(false);
-    setMessages([{
-      id: `init-${id}`,
-      role: 'assistant',
-      text: `Switched to **${SUBJECTS_LIST.find((s) => s.id === id)?.name}**. Select materials and ask away!`,
-      citations: [],
-    }]);
+    setMessages([
+      {
+        id: `init-${id}`,
+        role: 'assistant',
+        text: `Switched to **${subjects.find((s) => s.id === id)?.name}**. Select materials and ask away!`,
+        citations: [],
+      },
+    ]);
   }
 
-  function sendMessage() {
+  async function sendMessage() {
     const q = input.trim();
     if (!q || loading) return;
+
+    if (selectedIds.size === 0) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `hint-${Date.now()}`,
+          role: 'assistant',
+          text: 'Please select at least one study material from the panel on the left so I can answer from the right sources.',
+          citations: [],
+        },
+      ]);
+      return;
+    }
 
     const currentEpoch = epochRef.current;
     const userMsg = { id: `u-${Date.now()}`, role: 'user', text: q, citations: [] };
@@ -171,13 +155,29 @@ export default function Chat() {
     setInput('');
     setLoading(true);
 
-    // Simulate network delay — replace with actual fetch to POST /api/chat
-    setTimeout(() => {
+    try {
+      const response = await askQuestion({
+        subjectId: activeSubjectId,
+        selectedMaterialIds: getSelectedArray(),
+        question: q,
+      });
       if (currentEpoch !== epochRef.current) return;
-      const response = buildMockResponse(q, activeSubjectId, selectedIds);
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', ...response }]);
-      setLoading(false);
-    }, 900);
+      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', text: response.answerText, citations: response.citations }]);
+    } catch (err) {
+      if (currentEpoch !== epochRef.current) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-err-${Date.now()}`,
+          role: 'assistant',
+          text: `I couldn't answer that: ${err.message}`,
+          citations: [],
+          isError: true,
+        },
+      ]);
+    } finally {
+      if (currentEpoch === epochRef.current) setLoading(false);
+    }
   }
 
   function handleKeyDown(e) {
@@ -185,6 +185,34 @@ export default function Chat() {
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  if (subjectsApi.loading) {
+    return (
+      <AppLayout role="student">
+        <LoadingState label="Loading chat…" />
+      </AppLayout>
+    );
+  }
+
+  if (subjectsApi.error) {
+    return (
+      <AppLayout role="student">
+        <ErrorState message={subjectsApi.error.message} onRetry={subjectsApi.reload} />
+      </AppLayout>
+    );
+  }
+
+  if (!subjects.length) {
+    return (
+      <AppLayout role="student">
+        <EmptyState
+          icon="school"
+          title="No subjects yet"
+          description="You are not enrolled in any subjects. Contact a teacher to get enrolled."
+        />
+      </AppLayout>
+    );
   }
 
   return (
@@ -199,7 +227,13 @@ export default function Chat() {
             scopeOpen ? 'w-72 p-sp-md' : 'w-0 p-0 overflow-hidden'
           )}
         >
-          <MaterialScopePanel materialsByTeacher={materialsByTeacher} />
+          {materialsApi.loading ? (
+            <LoadingState label="Loading materials…" className="py-8" />
+          ) : materialsApi.error ? (
+            <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} className="py-8" />
+          ) : (
+            <MaterialScopePanel materialsByTeacher={materialsByTeacher} />
+          )}
         </aside>
 
         {/* ── Right: Chat Area ── */}
@@ -219,7 +253,7 @@ export default function Chat() {
             <div className="flex items-center gap-2 flex-1">
               <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Subject:</span>
               <div className="flex gap-2 flex-wrap">
-                {SUBJECTS_LIST.map((s) => (
+                {subjects.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => handleSubjectChange(s.id)}
@@ -253,7 +287,9 @@ export default function Chat() {
                     'max-w-[75%] px-sp-md py-sp-sm rounded-2xl font-body-md text-body-md leading-relaxed',
                     msg.role === 'user'
                       ? 'bg-primary text-on-primary rounded-br-sm'
-                      : 'bg-white text-on-surface ambient-shadow rounded-bl-sm'
+                      : msg.isError
+                        ? 'bg-error-container text-on-error-container rounded-bl-sm'
+                        : 'bg-white text-on-surface ambient-shadow rounded-bl-sm'
                   )}
                 >
                   <MessageContent text={msg.text} citations={msg.citations} />

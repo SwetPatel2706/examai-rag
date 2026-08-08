@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import HTTPException
@@ -466,6 +467,64 @@ def test_student_can_only_read_own_attempt(ctx):
     mock_auth(users["outsider"])
     res = client.get(f"/api/quiz-attempts/{attempt['id']}")
     assert res.status_code == 404
+
+
+def test_student_lists_own_attempts_newest_first(ctx):
+    client, db, sf, users, published = _published_quiz(ctx)
+    mock_auth(users["student"])
+    first = client.post(
+        "/api/quiz-attempts",
+        json={"quiz_id": str(published.id), "answers": {str(published.questions[0].id): "3"}},
+    ).json()["data"]
+
+    second_quiz = make_quiz(db, users["subject"], users["teacher"], status="published", topic="Vectors")
+    second = client.post(
+        "/api/quiz-attempts",
+        json={"quiz_id": str(second_quiz.id), "answers": {str(second_quiz.questions[0].id): "4"}},
+    ).json()["data"]
+
+    # Pin explicit timestamps so ordering never depends on request timing:
+    # second attempt is newer than first (submitted_at DESC, then id DESC).
+    first_ts = datetime.now(timezone.utc)
+    second_ts = first_ts + timedelta(seconds=10)
+    first_attempt = db.query(QuizAttempt).filter(QuizAttempt.id == uuid.UUID(first["id"])).one()
+    first_attempt.submitted_at = first_ts
+    second_attempt = db.query(QuizAttempt).filter(QuizAttempt.id == uuid.UUID(second["id"])).one()
+    second_attempt.submitted_at = second_ts
+    db.commit()
+
+    res = client.get("/api/students/me/attempts")
+    assert res.status_code == 200
+    data = res.json()["data"]["items"]
+    ids = [attempt["id"] for attempt in data]
+    assert ids == [second["id"], first["id"]]  # newest first
+    assert data[0]["quiz_title"] == "Vectors"
+    assert data[0]["score"] == 100
+
+
+def test_student_lists_own_attempts_filtered_by_quiz(ctx):
+    client, db, sf, users, published = _published_quiz(ctx)
+    mock_auth(users["student"])
+    client.post(
+        "/api/quiz-attempts",
+        json={"quiz_id": str(published.id), "answers": {str(published.questions[0].id): "4"}},
+    )
+
+    res = client.get(f"/api/students/me/attempts?quiz_id={published.id}")
+    assert res.status_code == 200
+    data = res.json()["data"]["items"]
+    assert len(data) == 1
+    assert data[0]["quiz_id"] == str(published.id)
+
+    res = client.get(f"/api/students/me/attempts?quiz_id={uuid.uuid4()}")
+    assert res.json()["data"]["items"] == []
+
+
+def test_student_attempts_endpoint_requires_student_role(ctx):
+    client, db, sf, users, _ = _published_quiz(ctx)
+    mock_auth(users["teacher"])
+    res = client.get("/api/students/me/attempts")
+    assert res.status_code == 403
 
 
 def test_weak_topics_only_from_tagged_questions(ctx):

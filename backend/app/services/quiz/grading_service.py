@@ -111,6 +111,32 @@ def submit_attempt(db: Session, student: User, quiz_id: UUID, answers: dict[str,
     return attempt
 
 
+def list_own_attempts(
+    db: Session,
+    student: User,
+    quiz_id: UUID | None = None,
+    page: int = 1,
+    size: int = 20,
+) -> tuple[list[QuizAttempt], int]:
+    """The student's own attempts, newest first. Optional quiz_id filter.
+
+    Bounded pagination: the ordered query never materialises more than
+    ``size`` rows, and the total count is returned so the caller can build
+    pagination metadata. Never returns another student's rows.
+    """
+    query = db.query(QuizAttempt).filter(QuizAttempt.student_id == student.id)
+    if quiz_id is not None:
+        query = query.filter(QuizAttempt.quiz_id == quiz_id)
+    total = query.count()
+    items = (
+        query.order_by(QuizAttempt.submitted_at.desc(), QuizAttempt.id.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+        .all()
+    )
+    return items, total
+
+
 def get_own_attempt(db: Session, student: User, attempt_id: UUID) -> QuizAttempt:
     attempt = (
         db.query(QuizAttempt)

@@ -11,7 +11,7 @@ from app.utils.storage import StorageClient, safe_storage_path
 ALLOWED_TYPES = {"pdf": "application/pdf", "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
 MAX_BYTES = 25 * 1024 * 1024
 
-async def upload_material(db: Session, user: User, subject_id: UUID, filename: str, content_type: str, data: bytes, *, storage=None, pipeline=None) -> Material:
+async def upload_material(db: Session, user: User, subject_id: UUID, filename: str, data: bytes, *, storage=None, pipeline=None) -> Material:
     if user.role != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can upload materials")
     check_subject_access(db, subject_id, user)
@@ -29,7 +29,7 @@ async def upload_material(db: Session, user: User, subject_id: UUID, filename: s
     db.commit()
     try:
         storage_client = storage or StorageClient()
-        await storage_client.upload(material.storage_path, data, content_type or ALLOWED_TYPES[extension])
+        await storage_client.upload(material.storage_path, data, ALLOWED_TYPES[extension])
         (pipeline or IngestionPipeline()).process(db, material.id, data, version=material.ingestion_version)
         return db.query(Material).filter(Material.id == material.id).first()
     except Exception as exc:

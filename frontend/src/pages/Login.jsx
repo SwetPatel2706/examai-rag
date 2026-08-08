@@ -1,17 +1,38 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import useAuthStore from '@/store/authStore';
+import { login } from '@/api/auth';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('student');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const setAuth = useAuthStore((s) => s.setAuth);
 
-  const handleLogin = (e) => {
+  async function handleLogin(e) {
     e.preventDefault();
-    if (role === 'student') navigate('/student');
-    else navigate('/teacher');
-  };
+    if (loading) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const session = await login(email, password);
+      setAuth(session.user, session.user.role, {
+        accessToken: session.accessToken,
+      });
+      const from = location.state?.from?.pathname;
+      const home = session.user.role === 'teacher' ? '/teacher' : '/student';
+      const target = from?.startsWith(home) ? from : home;
+      navigate(target, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="bg-surface min-h-screen flex items-center justify-center font-body-md text-on-surface relative overflow-hidden">
@@ -29,41 +50,25 @@ export default function Login() {
       <main className="w-full max-w-md px-margin-mobile md:px-0">
         {/* Auth Card */}
         <div className="bg-surface-container-lowest rounded-3xl p-sp-lg ambient-shadow relative z-10">
-
-          {/* Sliding Pill Role Toggle */}
-          <div className="mb-sp-lg">
-            <div className="relative bg-surface-container flex p-1 rounded-full items-center select-none cursor-pointer">
-              {/* Animated sliding pill */}
-              <div
-                className="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] bg-surface-container-lowest rounded-full shadow-sm transition-all duration-300 ease-in-out"
-                style={{ left: role === 'student' ? '4px' : 'calc(50% + 0px)' }}
-              />
-              <button
-                type="button"
-                onClick={() => setRole('student')}
-                className={`relative z-10 w-1/2 py-2 font-label-md text-label-md text-center transition-colors duration-300 ${
-                  role === 'student' ? 'text-on-surface' : 'text-on-secondary-container'
-                }`}
-              >
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('teacher')}
-                className={`relative z-10 w-1/2 py-2 font-label-md text-label-md text-center transition-colors duration-300 ${
-                  role === 'teacher' ? 'text-on-surface' : 'text-on-secondary-container'
-                }`}
-              >
-                Teacher
-              </button>
-            </div>
-          </div>
-
           {/* Heading */}
           <div className="text-center mb-sp-lg">
             <h2 className="font-headline-md text-headline-md text-on-background mb-2">Welcome Back</h2>
             <p className="font-body-md text-body-md text-on-surface-variant">Access your academic companion</p>
           </div>
+
+          {location.search?.includes('expired=1') && (
+            <div role="alert" className="mb-sp-md p-sp-md bg-error-container text-error rounded-2xl flex items-center gap-2 font-label-md">
+              <span className="material-symbols-outlined text-[20px]">timer_off</span>
+              <span>Your session expired. Please log in again.</span>
+            </div>
+          )}
+
+          {error && (
+            <div role="alert" className="mb-sp-md p-sp-md bg-error-container text-error rounded-2xl flex items-center gap-2 font-label-md">
+              <span className="material-symbols-outlined text-[20px]">error</span>
+              <span>{error}</span>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-sp-sm">
@@ -78,32 +83,36 @@ export default function Login() {
               <input
                 type="email"
                 id="email"
+                required
+                autoComplete="email"
                 placeholder="alex.rivers@university.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-12 px-4 rounded-xl border border-surface-variant bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-body-md text-body-md text-on-surface"
               />
             </div>
 
             {/* Password */}
             <div>
-              <div className="flex justify-between items-center mb-sp-xs ml-1">
-                <label htmlFor="password" className="font-label-md text-label-md text-on-surface-variant">
-                  Password
-                </label>
-                <a href="#" className="font-label-sm text-label-sm text-primary hover:underline">
-                  Forgot Password?
-                </a>
-              </div>
+              <label htmlFor="password" className="block font-label-md text-label-md text-on-surface-variant mb-sp-xs ml-1">
+                Password
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
+                  required
+                  autoComplete="current-password"
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full h-12 px-4 rounded-xl border border-surface-variant bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-body-md text-body-md text-on-surface pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -114,22 +123,20 @@ export default function Login() {
             <div className="pt-sp-sm">
               <button
                 type="submit"
-                className="w-full h-12 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:bg-primary-container active:scale-95 transition-all shadow-md shadow-primary/10"
+                disabled={loading}
+                className="w-full h-12 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:bg-primary-container active:scale-95 transition-all shadow-md shadow-primary/10 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Continue as {role === 'student' ? 'Student' : 'Teacher'}
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />
+                    Signing in…
+                  </>
+                ) : (
+                  'Sign In'
+                )}
               </button>
             </div>
           </form>
-
-          {/* Sign-up link */}
-          <div className="mt-sp-lg text-center">
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Don't have an account?{' '}
-              <a href="#" className="text-primary font-bold hover:underline">
-                Create an account
-              </a>
-            </p>
-          </div>
         </div>
 
         {/* Atmospheric quote */}

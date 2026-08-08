@@ -12,8 +12,9 @@ this file only covers structure, routing, and state behavior.
 - `npm run dev` → Vite dev server with HMR on http://localhost:5173.
 - `npm run lint` → oxlint static checks.
 - `npm run build` → production build into `dist/`; `npm run preview` serves it.
-- **No automated test suite yet** — verification is `npm run lint` +
-  `npm run build` + manual check in the browser.
+- `npm run test` → Vitest + Testing Library suite (mocked fetch, jsdom). Run
+  `npm run lint` + `npm run build` + `npm run test` for the full gate; plus a
+  manual browser pass against a live backend.
 - The Vite dev server has **no proxy**: the app calls the API directly at
   `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
   `frontend/.env.local`). Start the backend first from `backend/`:
@@ -77,6 +78,13 @@ Zustand. Suggested slices: `authStore` (role, user), `subjectStore` (current
 subject context — shared between Dashboard, Subject Overview, and Chat's
 subject switcher), `materialScopeStore` (per-session selected material IDs,
 scoped to current subject, resets are NOT persisted server-side).
+
+Auth tokens are never persisted to `localStorage`. The refresh token is an
+HttpOnly cookie scoped to `/api/auth` (set on login, rotated by Supabase on
+each `POST /api/auth/refresh`), and the access token lives in memory only —
+`SessionBootstrap` in `App.jsx` re-mints it from the cookie on reload. On any
+401, the API client tries exactly one silent refresh then replays the request
+once before falling back to the login redirect (`src/api/client.js`).
 
 ## API integration conventions
 - `src/api/` — one file per backend resource (materials, subjects, chat,

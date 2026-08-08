@@ -10,7 +10,11 @@ from app.models.user import User
 from app.models.subject import Subject
 from app.models.material import Material
 from app.models.quiz import Quiz, QuizQuestion
-from app.auth.supabase_client import SupabaseAuthClient, SupabaseUserLookupIncompleteError
+from app.auth.supabase_client import (
+    SupabaseAuthClient,
+    SupabaseUpstreamError,
+    SupabaseUserLookupIncompleteError,
+)
 from app.utils.qdrant_client import QdrantStore
 from app.seed import apply_material_updates, apply_quiz_updates
 
@@ -97,6 +101,63 @@ async def test_admin_get_user_by_email_found_on_page_100():
         user = await client._admin_get_user_by_email("target@example.com")
         assert user == target_user
         assert client.client.get.call_count == 100
+
+
+@pytest.mark.asyncio
+async def test_refresh_valid_response_returns_payload():
+    client = SupabaseAuthClient()
+    async with client.client:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        payload = {"access_token": "abc", "refresh_token": "xyz", "expires_in": 3600}
+        mock_resp.json.return_value = payload
+        client.client.post = AsyncMock(return_value=mock_resp)
+        result = await client.refresh("old-token")
+        assert result == payload
+
+
+@pytest.mark.asyncio
+async def test_refresh_malformed_json_raises_upstream_error():
+    client = SupabaseAuthClient()
+    async with client.client:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.side_effect = ValueError("Invalid JSON string")
+        client.client.post = AsyncMock(return_value=mock_resp)
+        with pytest.raises(SupabaseUpstreamError, match="non-JSON response"):
+            await client.refresh("old-token")
+
+
+@pytest.mark.asyncio
+async def test_refresh_non_object_payload_raises_upstream_error():
+    client = SupabaseAuthClient()
+    async with client.client:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = ["not", "a", "dict"]
+        client.client.post = AsyncMock(return_value=mock_resp)
+        with pytest.raises(SupabaseUpstreamError, match="unexpected response shape"):
+            await client.refresh("old-token")
+
+
+@pytest.mark.asyncio
+async def test_refresh_missing_or_non_string_tokens_raise_upstream_error():
+    client = SupabaseAuthClient()
+    async with client.client:
+        for payload in (
+            {},
+            {"access_token": "abc"},
+            {"refresh_token": "xyz"},
+            {"access_token": "abc", "refresh_token": 123},
+            {"access_token": None, "refresh_token": "xyz"},
+            {"access_token": "", "refresh_token": "xyz"},
+        ):
+            mock_resp = MagicMock()
+            mock_resp.status_code = 200
+            mock_resp.json.return_value = payload
+            client.client.post = AsyncMock(return_value=mock_resp)
+            with pytest.raises(SupabaseUpstreamError, match="missing a valid"):
+                await client.refresh("old-token")
 
 
 def test_qdrant_ensure_collection_single_unnamed_vector():

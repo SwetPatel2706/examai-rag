@@ -179,7 +179,27 @@ class SupabaseAuthClient:
             raise SupabaseUpstreamError(
                 f"Authentication provider returned HTTP {response.status_code}"
             )
-        return response.json()
+        try:
+            payload = response.json()
+        except Exception as exc:
+            raise SupabaseUpstreamError(
+                f"Authentication provider returned a non-JSON response: {type(exc).__name__}"
+            ) from exc
+        if not isinstance(payload, dict):
+            raise SupabaseUpstreamError(
+                "Authentication provider returned an unexpected response shape"
+            )
+        access_token = payload.get("access_token")
+        new_refresh_token = payload.get("refresh_token")
+        if not isinstance(access_token, str) or not access_token:
+            raise SupabaseUpstreamError(
+                "Authentication provider response is missing a valid access_token"
+            )
+        if not isinstance(new_refresh_token, str) or not new_refresh_token:
+            raise SupabaseUpstreamError(
+                "Authentication provider response is missing a valid refresh_token"
+            )
+        return payload
 
     async def logout(self, token: str) -> None:
         url = f"{self.auth_url}/logout"

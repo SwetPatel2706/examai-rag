@@ -2,7 +2,8 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { ProgressBar, SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { SubjectOverviewSkeleton } from '@/components/ui/skeletons';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useApi } from '@/lib/useApi';
 import useSubjectStore from '@/store/subjectStore';
@@ -53,12 +54,12 @@ export default function SubjectOverview() {
     ]);
     setCurrentSubject(id);
     return { subject, materials, quizzes, attempts, cards };
-  }, [id]);
+  }, [id], { key: ['subject', id, 'overview'], staleMs: 60_000 });
 
   if (loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading subject…" />
+        <SubjectOverviewSkeleton />
       </AppLayout>
     );
   }

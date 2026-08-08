@@ -10,7 +10,7 @@ export default function FlashcardStudy() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: deck, loading, error, reload } = useApi(() => getDeck(id), [id]);
+  const { data: deck, loading, error, reload } = useApi(() => getDeck(id), [id], { key: ['flashcards', 'decks', id], staleMs: 30_000 });
 
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);

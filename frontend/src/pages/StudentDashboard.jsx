@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { StatCard, SectionHeader, ProgressBar } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { StudentDashboardSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import useSubjectStore from '@/store/subjectStore';
 import { getStudentStats, getStudentSubjects } from '@/api/analytics';
@@ -11,17 +12,17 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const setSubjects = useSubjectStore((s) => s.setSubjects);
 
-  const stats = useApi(() => getStudentStats(), []);
+  const stats = useApi(getStudentStats, [], { key: ['students', 'me', 'stats'], staleMs: 30_000 });
   const subjects = useApi(async () => {
     const list = await getStudentSubjects();
     setSubjects(list);
     return list;
-  }, []);
+  }, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
 
   if (stats.loading || subjects.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading your dashboard…" />
+        <StudentDashboardSkeleton />
       </AppLayout>
     );
   }

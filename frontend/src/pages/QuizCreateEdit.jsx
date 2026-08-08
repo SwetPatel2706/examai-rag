@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { QuizCreateEditSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/lib/useApi';
 import { getTeacherSubjects } from '@/api/analytics';
@@ -94,13 +95,14 @@ export default function QuizCreateEdit() {
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState(null);
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
-  const quizzesApi = useApi(listQuizzes, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
+  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes'], staleMs: 30_000 });
 
   // Ready materials for AI generation, scoped to the selected subject.
   const materialsApi = useApi(
-    () => (subjectId ? listMaterials({ subjectId, status: 'ready', size: 100 }) : Promise.resolve({ items: [], total: 0 })),
-    [subjectId]
+    () => listMaterials({ subjectId, status: 'ready', size: 100 }),
+    [subjectId],
+    { key: ['materials', subjectId, 'ready'], staleMs: 60_000, enabled: !!subjectId }
   );
   const readyMaterials = materialsApi.data?.items || [];
 
@@ -248,7 +250,7 @@ export default function QuizCreateEdit() {
   if (subjectsApi.loading || quizzesApi.loading) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading quizzes…" />
+        <QuizCreateEditSkeleton />
       </AppLayout>
     );
   }

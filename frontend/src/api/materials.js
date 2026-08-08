@@ -1,5 +1,20 @@
 import { request } from './client';
 import { mapMaterial, mapMaterialsList } from './subjects';
+import { invalidate } from '@/lib/apiCache';
+
+/**
+ * Drop cached GET data that any material write makes stale: the teacher
+ * materials list, subject-scoped materials (chat scope, subject overview,
+ * flashcard generation), and dashboard/stat aggregates.
+ */
+function invalidateMaterialData() {
+  invalidate(['materials']);
+  invalidate(['subjects']);
+  invalidate(['subject']);
+  invalidate(['students', 'me', 'materials']);
+  invalidate(['students', 'me', 'stats']);
+  invalidate(['teacher', 'dashboard-stats']);
+}
 
 /**
  * GET /api/materials — teacher-side material list. `subject_id` is required
@@ -19,6 +34,7 @@ export async function uploadMaterial({ subjectId, file }) {
   formData.append('subject_id', subjectId);
   formData.append('file', file);
   const data = await request('/api/materials', { method: 'POST', formData });
+  invalidateMaterialData();
   return mapMaterial(data);
 }
 
@@ -42,12 +58,15 @@ export async function getMaterialDownloadUrl(id) {
 /** POST /api/materials/:id/retry — re-run ingestion for a failed material. */
 export async function retryMaterial(id) {
   const data = await request(`/api/materials/${id}/retry`, { method: 'POST' });
+  invalidateMaterialData();
   return mapMaterial(data);
 }
 
 /** DELETE /api/materials/:id — owning teacher only. */
 export async function deleteMaterial(id) {
-  return request(`/api/materials/${id}`, { method: 'DELETE' });
+  const result = await request(`/api/materials/${id}`, { method: 'DELETE' });
+  invalidateMaterialData();
+  return result;
 }
 
 /** PATCH /api/materials/:id — display_name / notes only. */
@@ -56,5 +75,6 @@ export async function updateMaterial(id, { displayName, notes } = {}) {
   if (displayName !== undefined) body.display_name = displayName;
   if (notes !== undefined) body.notes = notes;
   const data = await request(`/api/materials/${id}`, { method: 'PATCH', body });
+  invalidateMaterialData();
   return mapMaterial(data);
 }

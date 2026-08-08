@@ -26,7 +26,8 @@ export default function QuizResults() {
       const attempts = await listMyAttempts({ quizId: id });
       return [...(attempts.items || [])].sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0] ?? null;
     },
-    [id, liveAttempt?.id]
+    [id, liveAttempt?.id],
+    { key: ['students', 'me', 'attempts', id], staleMs: 30_000 }
   );
 
   if (loading) {

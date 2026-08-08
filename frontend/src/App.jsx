@@ -1,30 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-// Auth
 import Login from './pages/Login';
-
-// Student pages
-import StudentDashboard from './pages/StudentDashboard';
-import SubjectOverview from './pages/SubjectOverview';
-import Chat from './pages/Chat';
-import Quizzes from './pages/Quizzes';
-import QuizTaking from './pages/QuizTaking';
-import QuizResults from './pages/QuizResults';
-import FlashcardDecks from './pages/FlashcardDecks';
-import FlashcardStudy from './pages/FlashcardStudy';
-import StudentMaterials from './pages/StudentMaterials';
-
-// Teacher pages
-import TeacherDashboard from './pages/TeacherDashboard';
-import TeacherMaterials from './pages/TeacherMaterials';
-import QuizCreateEdit from './pages/QuizCreateEdit';
-import Analytics from './pages/Analytics';
-import StudentProgress from './pages/StudentProgress';
-
+import { loaders } from './lib/lazyRoutes';
 import useAuthStore from './store/authStore';
 import { fetchMe, refreshSession } from './api/auth';
 import { LoadingState } from './components/ui/states';
+import RouteFallback from './components/layout/RouteFallback';
+
+// Lazy page components. Only the Login/bootstrap path is loaded eagerly, so
+// the initial bundle stays small and route chunks load on demand.
+const StudentDashboard = lazy(loaders['/student']);
+const SubjectOverview = lazy(loaders['/student/subject/:id']);
+const Chat = lazy(loaders['/student/chat']);
+const Quizzes = lazy(loaders['/student/quizzes']);
+const QuizTaking = lazy(loaders['/student/quiz/:id']);
+const QuizResults = lazy(loaders['/student/quiz/:id/results']);
+const FlashcardDecks = lazy(loaders['/student/flashcards']);
+const FlashcardStudy = lazy(loaders['/student/flashcards/:id/study']);
+const StudentMaterials = lazy(loaders['/student/materials']);
+const TeacherDashboard = lazy(loaders['/teacher']);
+const TeacherMaterials = lazy(loaders['/teacher/materials']);
+const QuizCreateEdit = lazy(loaders['/teacher/quiz/create']);
+const Analytics = lazy(loaders['/teacher/analytics']);
+const StudentProgress = lazy(loaders['/teacher/students']);
 
 function RequireAuth({ children }) {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -112,10 +111,14 @@ function RedirectIfAuthed() {
   return <Login />;
 }
 
-export default function App() {
+/**
+ * Session bootstrap + lazy routes. Exported separately from the default
+ * `App` so tests can wrap the routes in a MemoryRouter.
+ */
+export function AppRoutes() {
   return (
-    <BrowserRouter>
-      <SessionBootstrap>
+    <SessionBootstrap>
+      <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<RedirectIfAuthed />} />
@@ -268,7 +271,15 @@ export default function App() {
           <Route path="/student-old" element={<Navigate to="/student" replace />} />
           <Route path="/teacher-old" element={<Navigate to="/teacher" replace />} />
         </Routes>
-      </SessionBootstrap>
+      </Suspense>
+    </SessionBootstrap>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

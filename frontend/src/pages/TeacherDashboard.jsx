@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, ErrorState } from '@/components/ui/states';
+import { ErrorState } from '@/components/ui/states';
+import { TeacherDashboardSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import useAuthStore from '@/store/authStore';
 import { getTeacherDashboardStats, getTeacherSubjects } from '@/api/analytics';
@@ -43,13 +44,13 @@ export default function TeacherDashboard() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
-  const statsApi = useApi(getTeacherDashboardStats, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
+  const statsApi = useApi(getTeacherDashboardStats, [], { key: ['teacher', 'dashboard-stats'], staleMs: 30_000 });
 
   if (subjectsApi.loading || statsApi.loading) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading dashboard…" />
+        <TeacherDashboardSkeleton />
       </AppLayout>
     );
   }
@@ -166,7 +167,7 @@ export default function TeacherDashboard() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high">
+                <tbody className="divide-y divide-surface-container-high cv-auto">
                   {stats.recentActivity.map((row) => (
                     <tr key={row.attemptId} className="hover:bg-surface-container-low transition-colors group">
                       <td className="px-sp-md py-sp-md">

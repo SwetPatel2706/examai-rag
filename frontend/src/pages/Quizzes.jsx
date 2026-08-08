@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { SkeletonCardGrid } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import { listQuizzes, listMyAttempts } from '@/api/quizzes';
 import { getStudentSubjects } from '@/api/analytics';
@@ -68,7 +69,7 @@ export default function Quizzes() {
   const { data, loading, error, reload } = useApi(async () => {
     const [quizzes, attempts, subjects] = await Promise.all([listQuizzes(), listMyAttempts(), getStudentSubjects()]);
     return { quizzes, attempts, subjects };
-  }, []);
+  }, [], { key: ['quizzes', 'overview'], staleMs: 30_000 });
 
   function handleAction(quiz) {
     if (quiz.status === 'completed') {
@@ -81,7 +82,9 @@ export default function Quizzes() {
   if (loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading quizzes…" />
+        <div className="space-y-sp-lg">
+          <SkeletonCardGrid count={6} cardClassName="h-52" />
+        </div>
       </AppLayout>
     );
   }

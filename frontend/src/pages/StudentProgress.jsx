@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import { ProgressSkeleton } from '@/components/ui/skeletons';
 import { cn, initials } from '@/lib/utils';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/useApi';
@@ -22,20 +23,22 @@ export default function StudentProgress() {
   const [search, setSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState(null);
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
   const rosterApi = useApi(
     () => getStudentProgress({ subjectId: subjectFilter === 'all' ? undefined : subjectFilter }),
-    [subjectFilter]
+    [subjectFilter],
+    { key: ['student-progress', subjectFilter], staleMs: 30_000 }
   );
   const detailApi = useApi(
-    () => (selectedStudentId ? getStudentProgressDetail(selectedStudentId) : Promise.resolve(null)),
-    [selectedStudentId]
+    () => getStudentProgressDetail(selectedStudentId),
+    [selectedStudentId],
+    { key: ['student-progress', selectedStudentId], staleMs: 30_000, enabled: !!selectedStudentId }
   );
 
   if (subjectsApi.loading || rosterApi.loading) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading student progress…" />
+        <ProgressSkeleton />
       </AppLayout>
     );
   }
@@ -118,7 +121,7 @@ export default function StudentProgress() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container-high">
+              <tbody className="divide-y divide-surface-container-high cv-auto">
                 {students.map((s) => {
                   const isSelected = selectedStudentId === s.studentId;
                   const toggle = () => setSelectedStudentId(isSelected ? null : s.studentId);

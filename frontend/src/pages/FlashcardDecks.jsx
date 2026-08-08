@@ -5,7 +5,8 @@ import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import { SkeletonCardGrid } from '@/components/ui/skeletons';
 import {
   Dialog,
   DialogContent,
@@ -73,15 +74,16 @@ export default function FlashcardDecks() {
   const [genLoading, setGenLoading] = useState(false);
   const [genError, setGenError] = useState(null);
 
-  const decksApi = useApi(listDecks, []);
-  const subjectsApi = useApi(getStudentSubjects, []);
+  const decksApi = useApi(listDecks, [], { key: ['flashcards', 'decks'], staleMs: 30_000 });
+  const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
 
   const subjects = subjectsApi.data || [];
   const activeGenSubjectId = genSubjectId ?? currentSubjectId ?? subjects[0]?.subjectId;
 
   const materialsApi = useApi(
-    () => (activeGenSubjectId ? listSubjectMaterials(activeGenSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
-    [activeGenSubjectId, generateOpen]
+    () => listSubjectMaterials(activeGenSubjectId, { status: 'ready', size: 100 }),
+    [activeGenSubjectId],
+    { key: ['subjects', activeGenSubjectId, 'materials', 'ready'], staleMs: 60_000, enabled: !!activeGenSubjectId }
   );
   const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
 
@@ -118,7 +120,9 @@ export default function FlashcardDecks() {
   if (decksApi.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading your decks…" />
+        <div className="space-y-sp-lg">
+          <SkeletonCardGrid count={6} cardClassName="h-52" />
+        </div>
       </AppLayout>
     );
   }

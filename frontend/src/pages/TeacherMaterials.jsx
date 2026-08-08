@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
 import { Pagination } from '@/components/ui/pagination';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { MaterialsSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 import { getTypeConfig } from '@/lib/materials';
 import { formatDate } from '@/lib/format';
@@ -41,11 +42,12 @@ export default function TeacherMaterials() {
   const [rejectionMsg, setRejectionMsg] = useState(null);
   const fileInputRef = useRef(null);
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
 
   const materialsApi = useApi(
-    () => (activeSubjectId ? listMaterials({ subjectId: activeSubjectId, page, size: 100 }) : Promise.resolve({ items: [], total: 0, pages: 0 })),
-    [activeSubjectId, page]
+    () => listMaterials({ subjectId: activeSubjectId, page, size: 100 }),
+    [activeSubjectId, page],
+    { key: ['materials', activeSubjectId, page], staleMs: 60_000, enabled: !!activeSubjectId }
   );
   const materials = materialsApi.data?.items || [];
   const totalMaterials = materialsApi.data?.total ?? 0;
@@ -164,7 +166,7 @@ export default function TeacherMaterials() {
   if (subjectsApi.loading || (!subjectsApi.data && materialsApi.loading)) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading materials…" />
+        <MaterialsSkeleton />
       </AppLayout>
     );
   }
@@ -279,7 +281,7 @@ export default function TeacherMaterials() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high">
+                <tbody className="divide-y divide-surface-container-high cv-auto">
                   {materials.map((mat) => {
                     const typeConfig = getTypeConfig(mat.fileType);
                     const isOwn = mat.teacherId === user?.id;

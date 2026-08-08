@@ -3,7 +3,8 @@ import AppLayout from '@/components/layout/AppLayout';
 import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import { ChatSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import { listSubjects, listSubjectMaterials } from '@/api/subjects';
 import { askQuestion } from '@/api/chat';
@@ -72,15 +73,16 @@ export default function Chat() {
     const list = await listSubjects();
     setSubjects(list);
     return list;
-  }, []);
+  }, [], { key: ['subjects'], staleMs: 60_000 });
 
   const subjects = subjectsApi.data || [];
   const activeSubjectId = currentSubjectId ?? subjects[0]?.id;
   const activeSubject = subjects.find((s) => s.id === activeSubjectId);
 
   const materialsApi = useApi(
-    () => (activeSubjectId ? listSubjectMaterials(activeSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
-    [activeSubjectId]
+    () => listSubjectMaterials(activeSubjectId, { status: 'ready', size: 100 }),
+    [activeSubjectId],
+    { key: ['subjects', activeSubjectId, 'materials', 'ready'], staleMs: 60_000, enabled: !!activeSubjectId }
   );
   const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
 
@@ -190,7 +192,7 @@ export default function Chat() {
   if (subjectsApi.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading chat…" />
+        <ChatSkeleton />
       </AppLayout>
     );
   }

@@ -6,7 +6,8 @@ import { FilterChipGroup, TeacherFilterCheckbox } from '@/components/ui/filter-c
 import { ViewToggle } from '@/components/ui/view-toggle';
 import { Pagination } from '@/components/ui/pagination';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { MaterialsSkeleton } from '@/components/ui/skeletons';
 import { RecentlyAccessedCard } from '@/components/materials/RecentlyAccessedCard';
 import { MaterialsTable } from '@/components/materials/MaterialsTable';
 import { useApi } from '@/lib/useApi';
@@ -36,8 +37,8 @@ export default function StudentMaterials() {
   const [page, setPage] = useState(1);
   const [downloadError, setDownloadError] = useState(null);
 
-  const subjectsApi = useApi(getStudentSubjects, []);
-  const statsApi = useApi(getStudentStats, []);
+  const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+  const statsApi = useApi(getStudentStats, [], { key: ['students', 'me', 'stats'], staleMs: 30_000 });
   const materialsApi = useApi(
     () =>
       getStudentMaterials({
@@ -45,7 +46,11 @@ export default function StudentMaterials() {
         search: debouncedSearch.trim() || undefined,
         size: 100,
       }),
-    [courseFilter, debouncedSearch]
+    [courseFilter, debouncedSearch],
+    {
+      key: ['students', 'me', 'materials', courseFilter === 'All' ? 'all' : courseFilter, debouncedSearch.trim() || 'all'],
+      staleMs: 60_000,
+    }
   );
 
   const subjects = subjectsApi.data || [];
@@ -130,7 +135,7 @@ export default function StudentMaterials() {
   if (subjectsApi.loading || materialsApi.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading resources…" />
+        <MaterialsSkeleton />
       </AppLayout>
     );
   }

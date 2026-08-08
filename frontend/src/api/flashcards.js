@@ -1,4 +1,5 @@
 import { request } from './client';
+import { invalidate } from '@/lib/apiCache';
 
 function mapDeck(d) {
   return {
@@ -33,6 +34,8 @@ export async function generateDeck({ subjectId, materialIds, title, cardCount = 
       card_count: cardCount,
     },
   });
+  invalidate(['flashcards']);
+  invalidate(['students', 'me', 'stats']);
   return mapDeck(data);
 }
 
@@ -60,5 +63,6 @@ export async function updateCardMastery(cardId, masteryState) {
     method: 'PATCH',
     body: { mastery_state: masteryState },
   });
+  invalidate(['flashcards']);
   return mapCard(data);
 }

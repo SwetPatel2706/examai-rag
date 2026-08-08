@@ -8,6 +8,7 @@ Turn the integrated build into a repeatable, safe release for the capstone demos
 
 - The target deployment platform is Render.com and the core external services are selected.
 - Earlier phases define ownership, role gates, source attribution, error envelopes, service boundaries, and frontend integration behavior.
+- Phases 6.7 and 6.8 have measured and addressed frontend loading behavior, safe request reuse, active navigation, and responsive UI consistency.
 - The root guide provides milestone dates and requires a conservative stable version ahead of each deadline.
 
 ## Not to be done in this phase
@@ -23,7 +24,7 @@ Turn the integrated build into a repeatable, safe release for the capstone demos
 2. Run dependency/security checks, secret scanning, type/lint checks, database migration checks, and production frontend build checks.
 3. Add request IDs, structured logs, latency/error metrics, safe model/Qdrant failure messages, and an operator health view.
 4. Review upload limits, MIME/content validation, filename/path sanitization, signed URL expiry, CORS, rate limits, SQL injection protections, and authorization on every resource.
-5. Tune slow paths: embedding model warmup, Qdrant timeout/retry, batch sizes, Gemini retry limits, SQL indexes, pagination, and aggregate queries.
+5. Tune backend and external-service slow paths: embedding model warmup, Qdrant timeout/retry, batch sizes, Gemini retry limits, SQL indexes, pagination, and aggregate queries. Use the frontend measurements from Phase 6.7 as a regression baseline rather than reopening broad UI optimization here.
 6. Define Supabase database/storage backup and restore expectations. Document Qdrant collection recreation/reindex procedure without using it during normal requests.
 7. Deploy backend and frontend to staging first. Configure Render environment variables outside the repository, set the frontend API URL, configure Supabase redirect/CORS URLs, and test real service quotas.
 8. Prepare a seeded demo dataset: at least two teachers on one subject, one student, multiple materials/types, one manual quiz, one AI-assisted draft, attempts, flashcards, analytics, and an intentional failed ingestion.

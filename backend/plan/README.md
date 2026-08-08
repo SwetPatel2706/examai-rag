@@ -20,7 +20,9 @@ This folder is the implementation sequence for ExamAI. It is intentionally backe
 | 4 | `phase-4-shared-quizzes.md` | Manual and AI-assisted teacher quiz authoring, publishing, attempts, grading, and student results |
 | 5 | `phase-5-analytics.md` | Teacher analytics and student progress read models from shared quiz attempts |
 | 6 | `phase-6-frontend-backend-integration.md` | Standalone replacement of frontend mocks with real API calls and end-to-end user journeys |
-| 7 | `phase-7-hardening-deployment-and-demo-readiness.md` | End-to-end verification, security/performance hardening, deployment, backups, and demo-safe release |
+| 6.7 | `phase-6.7-frontend-performance-and-loading.md` | Measured frontend speed improvements, route-level loading behavior, and safe client-side request reuse |
+| 6.8 | `phase-6.8-ui-consistency-and-navigation-polish.md` | Consistent active navigation, responsive states, interaction feedback, and visual regression coverage |
+| 7 | `phase-7-hardening-deployment-and-demo-readiness.md` | End-to-end verification, security, backend/runtime hardening, deployment, backups, and demo-safe release |
 
 The prerequisite checklist is in [`requirement.md`](requirement.md), ordered from implementation blockers to optional tools.
 
@@ -28,7 +30,7 @@ The prerequisite checklist is in [`requirement.md`](requirement.md), ordered fro
 
 Keep a stable conservative build ahead of each capstone deadline. The first usable vertical slice should be: login → subject/material visibility → teacher upload → ingestion status → student scoped chat with teacher/material citations. Quizzes and analytics follow as separate vertical slices so a failure in generative AI does not block the core platform demo.
 
-The phase documents use the same structure: what is already present, what is explicitly excluded from that phase, implementation work, contracts, verification, and exit criteria. Feature phases may include their own frontend slices; Phase 6 owns the remaining cross-application integration and mock replacement work.
+The phase documents use the same structure: what is already present, what is explicitly excluded from that phase, implementation work, contracts, verification, and exit criteria. Feature phases may include their own frontend slices; Phase 6 owns the remaining cross-application integration and mock replacement work. Phases 6.7 and 6.8 are deliberate post-integration frontend gates: measure and improve perceived speed first, then normalize navigation and visual behavior before deployment hardening begins.
 
 ## Cross-phase non-negotiables
 

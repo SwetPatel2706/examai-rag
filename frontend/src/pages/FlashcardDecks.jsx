@@ -5,8 +5,8 @@ import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
 import { SectionHeader } from '@/components/ui/shared';
-import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
-import { SkeletonCardGrid } from '@/components/ui/skeletons';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { SkeletonCardGrid, SkeletonScopePanel } from '@/components/ui/skeletons';
 import {
   Dialog,
   DialogContent,
@@ -201,7 +201,7 @@ export default function FlashcardDecks() {
               </div>
 
               {materialsApi.loading ? (
-                <div className="py-6"><LoadingState label="Loading materials…" /></div>
+                <div className="py-6"><SkeletonScopePanel /></div>
               ) : materialsApi.error ? (
                 <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} />
               ) : (

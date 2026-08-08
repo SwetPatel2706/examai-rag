@@ -63,6 +63,33 @@ export function SkeletonCardGrid({ count = 6, cardClassName = 'h-56' }) {
   );
 }
 
+/**
+ * Compact skeleton for the materials scope panel (Chat side panel and the
+ * FlashcardDecks generate modal) while its subject-scoped materials load.
+ */
+export function SkeletonScopePanel() {
+  return (
+    <div className="flex flex-col gap-4" role="status" aria-label="Loading materials">
+      <div className="flex items-center justify-between">
+        <SkeletonText className="w-28" />
+        <SkeletonText className="w-16" />
+      </div>
+      {[0, 1].map((group) => (
+        <div key={group} className="space-y-2">
+          <SkeletonText className="w-24" />
+          {[0, 1, 2].map((row) => (
+            <div key={row} className="flex items-center gap-3 px-3 py-2 rounded-xl">
+              <Skeleton className="w-4 h-4 rounded shrink-0" />
+              <SkeletonText className="w-32" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 export function SkeletonTable({ rows = 6, cols = 4 }) {
   return (
     <div className="bg-white rounded-2xl ambient-shadow overflow-hidden">

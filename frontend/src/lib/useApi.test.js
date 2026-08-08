@@ -6,6 +6,16 @@ import useAuthStore from '@/store/authStore';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 beforeEach(() => {
   clear();
   useAuthStore.setState({ user: { id: 'u1', role: 'student' }, role: 'student', accessToken: 't' });
@@ -85,5 +95,23 @@ describe('useApi', () => {
     await waitFor(() => expect(second.result.current.data).toBe('v2'));
     expect(second.result.current.validating).toBe(false);
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a stale response when the key changes before it resolves', async () => {
+    const slow = deferred();
+    const fetcher = vi.fn((part) => (part === 'a' ? slow.promise : Promise.resolve('v2')));
+
+    const hook = renderHook(({ part }) => useApi(() => fetcher(part), [part], { key: ['x', part], staleMs: 60_000 }), {
+      initialProps: { part: 'a' },
+    });
+
+    act(() => hook.rerender({ part: 'b' }));
+    await waitFor(() => expect(hook.result.current.data).toBe('v2'));
+
+    slow.resolve('v1');
+    await sleep(10);
+
+    expect(hook.result.current.data).toBe('v2');
+    expect(hook.result.current.loading).toBe(false);
   });
 });

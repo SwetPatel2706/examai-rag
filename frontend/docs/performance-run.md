@@ -118,4 +118,6 @@ Network capture):
 - **content-visibility used only on long tables** (roster, materials,
   recent-activity). The chat thread and card grids stay untouched because they
   are short or already bounded — the utility would only add layout-shift
-  risk.
+  risk. The materials scope panels (Chat side panel, FlashcardDeck generate
+  modal) use a compact `SkeletonScopePanel` while subject materials load
+  instead of a spinner.

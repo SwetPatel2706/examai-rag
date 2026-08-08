@@ -14,7 +14,7 @@ Outcome, verified by the full frontend gate (`npm run lint`, `npm run build`,
 - Initial JS bundle **461.85 kB → 279.53 kB raw (−39%)**, gzip 135.69 kB →
   89.09 kB (−34%). Every route page is now a lazy chunk; per-route chunks stay
   small (largest `QuizCreateEdit` 13.81 kB).
-- 50 tests pass (31 pre-existing + 19 new); oxlint clean; production build OK.
+- 52 tests pass (31 pre-existing + 21 new); oxlint clean; production build OK.
 - Duplicate cross-screen fetches (subject lists, material lists, stats, quiz
   lists) are now identity-scoped, freshness-bounded cache reads.
 
@@ -70,8 +70,9 @@ Outcome, verified by the full frontend gate (`npm run lint`, `npm run build`,
   mouse-enter/focus.
 - `frontend/src/components/ui/skeletons.jsx` — `Skeleton`/`SkeletonText`
   primitives, `SkeletonScreen` (role="status"), stat cards, card grid, table,
-  plus 9 screen-level skeletons (StudentDashboard, TeacherDashboard, Chat,
-  SubjectOverview, Materials, Analytics, Progress, QuizCreateEdit).
+  scope-panel skeleton, plus 9 screen-level skeletons (StudentDashboard,
+  TeacherDashboard, Chat, SubjectOverview, Materials, Analytics, Progress,
+  QuizCreateEdit).
 - `frontend/src/api/{materials,quizzes,flashcards}.js` — invalidation helpers
   called on every write path.
 - All 10 data-heavy pages wired with cache keys + skeleton loading branches:
@@ -84,15 +85,17 @@ Outcome, verified by the full frontend gate (`npm run lint`, `npm run build`,
   `contain-intrinsic-size`).
 - `frontend/docs/performance-run.md` — after-measurements + decision log.
 - Tests: `src/lib/apiCache.test.js`, `src/lib/useApi.test.js`,
-  `src/App.routes.test.jsx`, `src/pages/StudentDashboard.test.jsx`, and a
+  `src/App.routes.test.jsx`, `src/pages/StudentDashboard.test.jsx`,
+  `src/components/layout/RouteFallback.test.jsx`, and a
   `window.matchMedia` polyfill in `src/test/setup.js`.
 
 ## Tests and checks run
 
-- `cd frontend && npm run test` → 50/50 pass (31 existing + 19 new: cache
+- `cd frontend && npm run test` → 52/52 pass (31 existing + 21 new: cache
   freshness/dedup/invalidation/identity-scoping, hook cached-vs-uncached/
-  stale-revalidate/`reload`, lazy route rendering for student + teacher,
-  unauthenticated and role-guard redirects, skeleton→content transition).
+  stale-revalidate/`reload`/stale-response cancellation, lazy route rendering
+  for student + teacher, unauthenticated and role-guard redirects, route
+  fallback rendering, skeleton→content transition).
 - `npm run lint` (oxlint) → clean (only pre-existing warnings; the
   `LoadingState` undefined-reference warnings introduced by earlier edits were
   fixed by restoring the import where the small panel spinners are still used).

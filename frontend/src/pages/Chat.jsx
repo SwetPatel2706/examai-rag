@@ -3,8 +3,8 @@ import AppLayout from '@/components/layout/AppLayout';
 import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
-import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
-import { ChatSkeleton } from '@/components/ui/skeletons';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { ChatSkeleton, SkeletonScopePanel } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import { listSubjects, listSubjectMaterials } from '@/api/subjects';
 import { askQuestion } from '@/api/chat';
@@ -230,7 +230,7 @@ export default function Chat() {
           )}
         >
           {materialsApi.loading ? (
-            <LoadingState label="Loading materials…" className="py-8" />
+            <div className="pt-2"><SkeletonScopePanel /></div>
           ) : materialsApi.error ? (
             <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} className="py-8" />
           ) : (

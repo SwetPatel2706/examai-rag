@@ -107,6 +107,30 @@ describe('apiCache', () => {
     expect(readCache(key)).toEqual({ state: 'missing' });
   });
 
+  it('refetches when invalidate fires while a request is in flight', async () => {
+    useAuthStore.setState({ user: { id: 'u1', role: 'student' }, role: 'student' });
+    const d1 = deferred();
+    const d2 = deferred();
+    const fetcher = vi
+      .fn()
+      .mockImplementationOnce(() => d1.promise)
+      .mockImplementationOnce(() => d2.promise);
+    const key = buildCacheKey(['subjects']);
+
+    const p = getOrFetch(key, fetcher, { staleMs: 60_000 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    invalidate(['subjects']);
+    d1.resolve([{ id: 'old' }]);
+    await Promise.resolve();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+
+    d2.resolve([{ id: 'new' }]);
+
+    await expect(p).resolves.toEqual([{ id: 'new' }]);
+    expect(readCache(key)).toEqual({ state: 'fresh', data: [{ id: 'new' }] });
+  });
+
   it('does not cache a failed fetch', async () => {
     useAuthStore.setState({ user: { id: 'u1', role: 'student' }, role: 'student' });
     const key = buildCacheKey(['subjects']);

@@ -77,10 +77,7 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
             <button
               type="button"
               className="lg:hidden p-1 rounded-lg hover:bg-surface-container-low text-secondary"
-              onClick={() => {
-                markNavigationStart(item.to);
-                closeDrawer();
-              }}
+              onClick={closeDrawer}
               aria-label="Close navigation menu"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -94,7 +91,10 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={closeDrawer}
+              onClick={() => {
+                markNavigationStart(item.to);
+                closeDrawer();
+              }}
               onMouseEnter={() => preloadRoute(item.to)}
               onFocus={() => preloadRoute(item.to)}
               onPointerDown={() => {

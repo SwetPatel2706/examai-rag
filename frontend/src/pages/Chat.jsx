@@ -69,15 +69,15 @@ export default function Chat() {
   const { currentSubjectId, setCurrentSubject, setSubjects } = useSubjectStore();
   const { selectedIds, deselectAll, getSelectedArray } = useMaterialScopeStore();
 
-  const subjectsApi = useApi(async () => {
-    const list = await listSubjects();
-    setSubjects(list);
-    return list;
-  }, [], { key: ['subjects'], staleMs: 60_000 });
+  const subjectsApi = useApi(listSubjects, [], { key: ['subjects'], staleMs: 60_000 });
 
   const subjects = subjectsApi.data || [];
   const activeSubjectId = currentSubjectId ?? subjects[0]?.id;
   const activeSubject = subjects.find((s) => s.id === activeSubjectId);
+
+  useEffect(() => {
+    if (subjectsApi.data) setSubjects(subjectsApi.data);
+  }, [subjectsApi.data, setSubjects]);
 
   const materialsApi = useApi(
     () => listSubjectMaterials(activeSubjectId, { status: 'ready', size: 100 }),

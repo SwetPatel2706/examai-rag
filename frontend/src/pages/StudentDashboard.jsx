@@ -14,11 +14,11 @@ export default function StudentDashboard() {
   const setSubjects = useSubjectStore((s) => s.setSubjects);
 
   const stats = useApi(getStudentStats, [], { key: ['students', 'me', 'stats'], staleMs: 30_000 });
-  const subjects = useApi(async () => {
-    const list = await getStudentSubjects();
-    setSubjects(list);
-    return list;
-  }, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+  const subjects = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+
+  React.useEffect(() => {
+    if (subjects.data) setSubjects(subjects.data);
+  }, [subjects.data, setSubjects]);
 
   if (stats.loading || subjects.loading) {
     return (

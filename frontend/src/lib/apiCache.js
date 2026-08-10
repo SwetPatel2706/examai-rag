@@ -14,7 +14,9 @@ import useAuthStore from '@/store/authStore';
  *   once for an immediate render while a background revalidation runs.
  * - Concurrent readers of the same key share a single in-flight request.
  * - `invalidate(prefix)` drops matching entries (current identity only)
- *   after uploads, deletes, retries, quiz mutations, and other writes.
+ *   after uploads, deletes, retries, quiz mutations, and other writes. It
+ *   also bumps a generation counter so an already in-flight request for an
+ *   invalidated prefix refetches instead of resolving stale data.
  * - `clear()` is called on logout / session replacement / role change via
  *   an authStore subscription below.
  *
@@ -26,6 +28,12 @@ const DEFAULT_STALE_MS = 60_000;
 
 // cacheKey -> { value, expiresAt, inflight }
 const store = new Map();
+
+// Bumped by `invalidate` so an in-flight request knows its prefix was
+// invalidated while it ran. Bumped by `clear` separately so a fetch that
+// finishes after logout never repopulates the cleared cache.
+let generation = 0;
+let clearCount = 0;
 
 function identity() {
   const { user, role } = useAuthStore.getState();
@@ -52,8 +60,10 @@ export function readCache(cacheKey) {
  * Return a promise that resolves with data for `cacheKey`, deduplicating
  * concurrent in-flight requests. Fresh entries short-circuit. Stale entries
  * are refetched (the hook renders the stale value while this runs).
- * A stale fetch that resolves after the entry was invalidated is discarded
- * so an obsolete result never repopulates the cache.
+ * If the prefix is invalidated while a request is in flight, the request is
+ * restarted (or adopts a newer in-flight request) so an obsolete result never
+ * reaches the caller; a fetch that resolves after `clear()` is discarded
+ * entirely.
  */
 export function getOrFetch(cacheKey, fetcher, { staleMs = DEFAULT_STALE_MS } = {}) {
   const existing = store.get(cacheKey);
@@ -63,10 +73,21 @@ export function getOrFetch(cacheKey, fetcher, { staleMs = DEFAULT_STALE_MS } = {
   if (existing?.inflight) return existing.inflight;
 
   let inflight;
-  inflight = fetcher()
+  const clearAtStart = clearCount;
+  const load = () => {
+    const attemptGeneration = generation;
+    return fetcher().then((value) => {
+      if (generation === attemptGeneration) return value;
+      const current = store.get(cacheKey);
+      if (current?.inflight && current.inflight !== inflight) return current.inflight;
+      return load();
+    });
+  };
+
+  inflight = load()
     .then((value) => {
       const current = store.get(cacheKey);
-      if (current?.inflight === inflight) {
+      if (clearCount === clearAtStart && (current?.inflight === inflight || current === undefined)) {
         store.set(cacheKey, { value, expiresAt: Date.now() + staleMs });
       }
       return value;
@@ -98,9 +119,11 @@ export function prefetch(parts, fetcher, options = {}) {
 /**
  * Drop every entry whose parts start with the given prefix, for the current
  * identity only. Deleting the entry also drops its in-flight promise, so a
- * later read starts a fresh request.
+ * later read starts a fresh request; the generation bump makes requests that
+ * were already in flight refetch instead of resolving stale data.
  */
 export function invalidate(parts) {
+  generation += 1;
   const prefix = buildCacheKey(parts);
   for (const cacheKey of store.keys()) {
     if (cacheKey === prefix || cacheKey.startsWith(`${prefix}/`)) {
@@ -111,6 +134,7 @@ export function invalidate(parts) {
 
 /** Drop the whole cache — used on logout, session expiry, role change. */
 export function clear() {
+  clearCount += 1;
   store.clear();
 }
 

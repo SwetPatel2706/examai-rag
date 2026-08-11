@@ -19,7 +19,7 @@ from app.schemas.analytics import (
     TeacherDashboardStatsOut,
     TeacherSubjectOut,
 )
-from app.services.analytics.quiz_analytics import GRADE_BANDS, get_grade_distribution
+from app.services.analytics.quiz_analytics import GRADE_BANDS, build_grade_bands
 from app.services.analytics.student_progress import at_risk_map
 from app.services.material_service import serialize_material
 from app.services.subject_service import get_user_subjects
@@ -37,7 +37,7 @@ _BAND_CASE = case(
 
 
 def _empty_bands() -> list[GradeBandOut]:
-    return get_grade_distribution([])
+    return build_grade_bands({})
 
 
 def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStatsOut:
@@ -82,18 +82,7 @@ def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStat
         .group_by(_BAND_CASE)
         .all()
     )
-    counts_by_band = dict(band_rows)
-    total = sum(count for _, count in band_rows)
-    grade_distribution = [
-        GradeBandOut(
-            band=band,
-            min_score=low,
-            max_score=high,
-            count=counts_by_band.get(band, 0),
-            pct=round(counts_by_band.get(band, 0) / total * 100) if total else 0,
-        )
-        for band, low, high in GRADE_BANDS
-    ]
+    grade_distribution = build_grade_bands(dict(band_rows))
 
     recent = (
         db.query(QuizAttempt)

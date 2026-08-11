@@ -25,11 +25,12 @@ FastAPI. Routes are thin (HTTP only); logic lives in `app/services/`.
   synthetic material content so Chat/Flashcards resolve real citations (needs
   Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
 - Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
-- Tests: `./venv/bin/pytest` from `backend/` — **offline, 83 tests pass
-  (~1.5 s)**, no external services required. Single file:
+- Tests: `./venv/bin/pytest` from `backend/` — **offline, 82 tests pass
+  (~0.8 s)**, no external services required. Single file:
   `./venv/bin/pytest tests/test_smoke.py -q`.
-- No project-level Python linter/typecheck config; `pytest` is the gate. Code
-  carries `# pyrefly: ignore` comments for the in-editor pyrefly checker.
+- No project-level Python linter/typecheck config; `pytest` is the gate.
+  The `.vscode/settings.json` interpreter is pinned to `backend/venv/bin/python`
+  so the in-editor pyrefly checker uses the real venv.
 
 ## Folder structure
 ```
@@ -255,13 +256,12 @@ Client config: full `https://` scheme, `timeout=60` (free-tier cold start),
   default.**  Never log raw LLM output in staging or production.
   When enabled for debugging:
   - Gate behind an explicit env flag: `LLM_DEBUG_LOGGING=true` (default:
-    `false`; ignore in any non-local `APP_ENV`).
-  - Bound output size: truncate at 2 000 characters in the log entry.
-  - Redact before writing: strip or mask the user's question, any source
-    material excerpts (chunk_text), API keys, and any field that could
-    contain PII.  Log only structure metadata (model name, finish reason,
-    token counts, timing) in non-debug mode.
-  - Production must never enable this logging regardless of env-var value.
+    `false`). `config.py` forces it off in any non-local `APP_ENV`, so
+    production can never enable it regardless of env-var value.
+  - Implemented once in `app/utils/gemini_client.py` (`generate_json`): the
+    raw model reply is logged to the `app.llm_debug` logger, truncated at
+    2 000 characters. The prompt, the user's question, and source-material
+    excerpts are never logged.
 - Known JSON failure modes to guard against: markdown code fences, trailing
   prose, wrong field types (`"0"` vs `0`), short option lists.
 

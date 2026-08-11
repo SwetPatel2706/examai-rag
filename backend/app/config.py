@@ -110,10 +110,25 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     GEMINI_MODEL: str = "gemini-2.5-flash"
     GEMINI_TIMEOUT_MS: int = Field(default=30000, ge=1000)
+    # Opt-in local-dev debugging: logs LLM structured-output responses
+    # (truncated, redacted). Forced off in any non-local APP_ENV.
+    LLM_DEBUG_LOGGING: bool = False
+
+    @field_validator("LLM_DEBUG_LOGGING", mode="after")
+    @classmethod
+    def gate_llm_debug_logging_to_local(cls, v: bool, info) -> bool:
+        if v and info.data.get("APP_ENV") != "local":
+            return False
+        return v
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
-        """Extra checks that apply only in production."""
+        """Guard rails that only apply in production.
+
+        Currently: reject TODO_ placeholders in GEMINI_MODEL. Live model-name
+        verification against the Gemini models endpoint is intentionally out
+        of scope here — it needs a client round-trip, not a settings check.
+        """
         if self.APP_ENV == "production":
             # Reject TODO_ placeholders in Gemini model name.
             if _PLACEHOLDER_RE.match(self.GEMINI_MODEL.strip()):
@@ -121,10 +136,6 @@ class Settings(BaseSettings):
                     "GEMINI_MODEL contains a TODO_ placeholder — "
                     "set a verified model name before deploying to production."
                 )
-            # Warn loudly if the model looks like a dev default that hasn't
-            # been confirmed against the models endpoint.
-            # (Full live-verification requires a Gemini client round-trip;
-            #  do that in an explicit startup check, not here.)
         return self
 
 

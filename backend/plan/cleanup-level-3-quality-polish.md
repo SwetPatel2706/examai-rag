@@ -217,17 +217,23 @@ rg -n "77 tests|83 tests|31 tests|No frontend test suite" README.md backend/READ
 
 ## Completion criteria
 
-- [ ] `retriever` single method; `build_context` param resolved
-- [ ] Quiz serialization deduplicated; `_attempt_out` removed
-- [ ] Single `HTTPBearer`
-- [ ] Sync-DB handlers converted to `def` where appropriate
-- [ ] `user.py` UUID type consistent with the codebase
-- [ ] Grade-band helper extracted and shared
-- [ ] `config.py` validator docstring truthful
-- [ ] Package `__init__` docstrings added
-- [ ] Trailing-whitespace / long-line pass done
-- [ ] Docs (READMEs, agents.md, to-do.md) reconciled with reality
-- [ ] Full backend + frontend gates green
+- [x] `retriever` single method; `build_context` param resolved
+- [x] Quiz serialization deduplicated; `_attempt_out` removed
+- [x] Single `HTTPBearer`
+- [x] Sync-DB handlers converted to `def` where appropriate
+- [x] `user.py` UUID type consistent with the codebase
+- [x] Grade-band helper extracted and shared
+- [x] `config.py` validator docstring truthful
+- [x] Package `__init__` docstrings added
+- [x] Trailing-whitespace / long-line pass done
+- [x] Docs (READMEs, agents.md, to-do.md) reconciled with reality
+- [x] Full backend + frontend gates green
+
+**Done — ready for commit.** Verification: backend `82 passed` (1 pre-existing
+StarletteDeprecationWarning), frontend lint 0 errors (11 pre-existing warnings),
+`npm run build` OK, `npm test` 63 passed. `LLM_DEBUG_LOGGING` implemented as a
+minimal opt-in flag in `app/config.py` + `app/utils/gemini_client.py`, forced off
+in any non-local `APP_ENV`.
 
 **After commit: report Level 3 done.** Then remaining work: `examai-resume-detail.md`,
 temp/cache cleanup, root `.gitignore` update, and the Phase 7.10 walkthrough.

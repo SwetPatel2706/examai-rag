@@ -29,7 +29,7 @@ async def create_material(
     return StandardResponse.ok(data=serialize_material(material).model_dump(mode="json"))
 
 @router.get("", response_model=StandardResponse)
-async def list_all_materials(
+def list_all_materials(
     subject_id: Optional[UUID] = Query(None),
     teacher_id: Optional[UUID] = Query(None),
     material_status: Optional[str] = Query(None, alias="status"),
@@ -64,7 +64,7 @@ async def list_all_materials(
 
 
 @router.get("/{material_id}", response_model=StandardResponse)
-async def get_material(
+def get_material(
     material_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -75,7 +75,7 @@ async def get_material(
     return StandardResponse.ok(data=response_data.model_dump())
 
 @router.get("/{material_id}/status", response_model=StandardResponse)
-async def material_status(material_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def material_status(material_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     material = get_material_by_id(db, material_id, current_user)
     return StandardResponse.ok(data=MaterialStatusResponse.model_validate(material).model_dump(mode="json"))
 
@@ -114,7 +114,7 @@ async def delete_material(material_id: UUID, current_user: User = Depends(get_cu
 
 
 @router.patch("/{material_id}", response_model=StandardResponse)
-async def update_material(
+def update_material(
     material_id: UUID,
     updates: MaterialUpdateRequest,
     current_user: User = Depends(get_current_user),

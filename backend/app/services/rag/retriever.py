@@ -41,33 +41,26 @@ class MaterialRetriever:
         self.qdrant = qdrant or QdrantStore()
         self.embedder = embedder or LocalEmbedder(settings.EMBEDDING_MODEL)
 
-    def retrieve(self, question: str, db: Session, user: User, subject_id: UUID, material_ids: list[UUID]) -> list[RetrievedChunk]:
+    def retrieve_for(self, question: str, db: Session, user: User, subject_id: UUID, material_ids: list[UUID]) -> list[RetrievedChunk]:
         authorized_ids = authorize_materials(db, user, subject_id, material_ids)
         query_vector = self.embedder.embed([question])[0]
         points = self.qdrant.query(query_vector, subject_id, authorized_ids, limit=settings.RAG_TOP_K)
         return [RetrievedChunk(i, point.payload or {}, getattr(point, "score", None)) for i, point in enumerate(points, 1)]
 
-    def retrieve_for(self, question: str, db: Session, user: User, subject_id: UUID, material_ids: list[UUID]) -> list[RetrievedChunk]:
-        return self.retrieve(question, db, user, subject_id, material_ids)
 
-
-def build_context(chunks: list[RetrievedChunk], max_chars: int | None = None) -> str:
-    if max_chars is None:
-        max_chars = settings.RAG_MAX_CONTEXT_CHARS
+def build_context(chunks: list[RetrievedChunk]) -> str:
     parts: list[str] = []
     used = 0
+    max_chars = settings.RAG_MAX_CONTEXT_CHARS
     for chunk in chunks:
         text = str(chunk.payload.get("chunk_text", "")).strip()
         if not text:
             continue
         item = f"[{chunk.number}] {text}"
-        
         separator_len = 2 if parts else 0
         remaining = max_chars - used - separator_len
-        
         if remaining <= 0:
             break
-            
         parts.append(item[:remaining])
         used += separator_len + min(len(item), remaining)
     return "\n\n".join(parts)

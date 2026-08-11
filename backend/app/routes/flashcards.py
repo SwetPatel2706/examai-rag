@@ -48,7 +48,12 @@ def get_cards(deck_id: UUID, current_user: User = Depends(require_student), db: 
 
 
 @router.patch("/flashcards/{flashcard_id}", response_model=StandardResponse)
-def update_card(flashcard_id: UUID, update: FlashcardMasteryUpdate, current_user: User = Depends(require_student), db: Session = Depends(get_db)):
+def update_card(
+    flashcard_id: UUID,
+    update: FlashcardMasteryUpdate,
+    current_user: User = Depends(require_student),
+    db: Session = Depends(get_db),
+):
     card = get_owned_card(db, current_user, flashcard_id)
     card.mastery_state = update.mastery_state
     db.commit()

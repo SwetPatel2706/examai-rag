@@ -66,7 +66,7 @@ def check_subject_access(db: Session, subject_id: UUID, user: User) -> Subject:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access forbidden. Unknown role."
         )
-    
+
     if not subject:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

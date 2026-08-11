@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db.session import get_db
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, security
+from fastapi.security import HTTPAuthorizationCredentials
 from app.auth.supabase_client import (
     SupabaseRateLimitError,
     SupabaseUpstreamError,
@@ -12,9 +13,7 @@ from app.auth.supabase_client import (
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, UserProfileResponse
 from app.schemas.common import StandardResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import httpx
-security = HTTPBearer()
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 

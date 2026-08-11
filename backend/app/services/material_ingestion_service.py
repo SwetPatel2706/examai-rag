@@ -7,7 +7,11 @@ from app.services.subject_service import check_subject_access
 from app.services.ingestion.pipeline import IngestionPipeline
 from app.utils.storage import StorageClient, safe_storage_path
 
-ALLOWED_TYPES = {"pdf": "application/pdf", "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+ALLOWED_TYPES = {
+    "pdf": "application/pdf",
+    "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 MAX_BYTES = 25 * 1024 * 1024
 MAX_BYTES_MESSAGE = "Material exceeds the 25 MiB size limit"
 

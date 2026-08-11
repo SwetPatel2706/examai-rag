@@ -119,7 +119,7 @@ function warmStudentMaterials() {
   return warmMany([
     warmStudentSubjects(),
     warm('../api/analytics', 'getStudentStats', ['students', 'me', 'stats'], [], 30_000),
-    warm('../api/analytics', 'getStudentMaterials', ['students', 'me', 'materials', 'all', 'all'], [{ size: 100 }]),
+    warm('../api/analytics', 'getStudentMaterials', ['students', 'me', 'materials', 'all', ''], [{ size: 100 }]),
   ]);
 }
 

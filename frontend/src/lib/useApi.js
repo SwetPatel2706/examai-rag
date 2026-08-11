@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { buildCacheKey, readCache, getOrFetch, invalidate } from './apiCache';
 
 function initialState(cacheKey, enabled) {
@@ -37,6 +37,11 @@ export function useApi(fetcher, deps = [], { key, staleMs, enabled = true } = {}
   const cacheKey = key ? buildCacheKey(key) : null;
   const [state, setState] = useState(() => initialState(cacheKey, enabled));
   const [reloadKey, setReloadKey] = useState(0);
+
+  // Track the latest key so `reload` can invalidate the current one without
+  // depending on the inline `key` array (whose identity changes every render).
+  const keyRef = useRef(key);
+  keyRef.current = key;
 
   // A route-param change can reuse the same component instance. Do not let
   // the previous resource flash while the effect switches to the new key.
@@ -114,10 +119,9 @@ export function useApi(fetcher, deps = [], { key, staleMs, enabled = true } = {}
   }, [cacheKey, staleMs, enabled, reloadKey, ...deps]);
 
   const reload = useCallback(() => {
-    if (cacheKey) invalidate(key);
+    if (cacheKey) invalidate(keyRef.current);
     setReloadKey((current) => current + 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cacheKey, key]);
+  }, [cacheKey]);
 
   return {
     data: visibleState.data,

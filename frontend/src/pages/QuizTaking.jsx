@@ -29,6 +29,18 @@ export default function QuizTaking() {
     { key: ['quizzes', 'detail', id], staleMs: 60_000 }
   );
 
+  // The route param can change while the component instance is reused
+  // (e.g. /student/quiz/1 → /student/quiz/2). Reset the session state so the
+  // new quiz starts clean and never inherits the previous quiz's index,
+  // answers, or submission status.
+  useEffect(() => {
+    setCurrent(0);
+    setAnswers({});
+    setSubmitting(false);
+    setSubmitError(null);
+    submittedRef.current = false;
+  }, [id]);
+
   useEffect(() => {
     clearInterval(timerRef.current);
     if (!quiz?.timeLimitSeconds) {

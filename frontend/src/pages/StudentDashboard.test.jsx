@@ -3,24 +3,13 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StudentDashboard from './StudentDashboard';
 import useAuthStore from '@/store/authStore';
-
-function jsonResponse(payload, status = 200) {
-  return { ok: status >= 200 && status < 300, status, json: async () => payload };
-}
-
-function deferred() {
-  let resolve;
-  let reject;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-}
+import { clear } from '@/lib/apiCache';
+import { jsonResponse, deferred } from '@/test/helpers';
 
 const STUDENT = { id: 'u1', email: 's@test.edu', role: 'student', name: 'Sam' };
 
 beforeEach(() => {
+  clear();
   useAuthStore.setState({ user: STUDENT, role: 'student', accessToken: 't' });
 });
 

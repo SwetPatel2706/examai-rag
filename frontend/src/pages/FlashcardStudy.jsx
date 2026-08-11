@@ -40,7 +40,7 @@ export default function FlashcardStudy() {
   // Self-assessment → backend mastery_state; best-effort, never blocks the session.
   async function persistMastery(cardId, result) {
     try {
-      await updateCardMastery(cardId, result === 'got_it' ? 'mastered' : 'learning');
+      await updateCardMastery(id, cardId, result === 'got_it' ? 'mastered' : 'learning');
     } catch (err) {
       console.debug('Could not persist flashcard mastery:', err);
     }

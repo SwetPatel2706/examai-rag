@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
@@ -26,13 +27,19 @@ const BAND_STYLES = {
 
 export default function Analytics() {
   const [selectedQuizId, setSelectedQuizId] = useState(null);
+  const location = useLocation();
+  const requestedSubjectId = location.state?.subjectId ?? null;
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
   const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
   const publishedQuizzes = (quizzesApi.data || []).filter((q) => q.status === 'published');
-  const firstPublishedQuizId = publishedQuizzes[0]?.id ?? null;
+  const firstPublishedQuizId = (requestedSubjectId
+    ? publishedQuizzes.find((q) => q.subjectId === requestedSubjectId)
+    : publishedQuizzes[0])?.id ?? null;
 
-  // Default to the first published quiz once loaded.
+  // Default to the subject's quiz when the dashboard routed us here; fall
+  // back to the first published quiz otherwise. The selector below still
+  // lists every published quiz.
   useEffect(() => {
     if (!selectedQuizId && firstPublishedQuizId) {
       setSelectedQuizId(firstPublishedQuizId);

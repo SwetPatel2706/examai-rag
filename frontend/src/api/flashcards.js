@@ -58,11 +58,11 @@ export async function getDeckCards(id) {
 }
 
 /** PATCH /api/flashcards/:id — update mastery state on self-assessment. */
-export async function updateCardMastery(cardId, masteryState) {
+export async function updateCardMastery(deckId, cardId, masteryState) {
   const data = await request(`/api/flashcards/${cardId}`, {
     method: 'PATCH',
     body: { mastery_state: masteryState },
   });
-  invalidate(['flashcards']);
+  invalidate(['flashcards', 'decks', deckId]);
   return mapCard(data);
 }

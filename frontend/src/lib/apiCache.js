@@ -73,11 +73,15 @@ export function getOrFetch(cacheKey, fetcher, { staleMs = DEFAULT_STALE_MS } = {
   if (existing?.inflight) return existing.inflight;
 
   let inflight;
+  let settledGeneration = null;
   const clearAtStart = clearCount;
   const load = () => {
     const attemptGeneration = generation;
     return fetcher().then((value) => {
-      if (generation === attemptGeneration) return value;
+      if (generation === attemptGeneration) {
+        settledGeneration = attemptGeneration;
+        return value;
+      }
       const current = store.get(cacheKey);
       if (current?.inflight && current.inflight !== inflight) return current.inflight;
       return load();
@@ -87,7 +91,11 @@ export function getOrFetch(cacheKey, fetcher, { staleMs = DEFAULT_STALE_MS } = {
   inflight = load()
     .then((value) => {
       const current = store.get(cacheKey);
-      if (clearCount === clearAtStart && (current?.inflight === inflight || current === undefined)) {
+      if (
+        generation === settledGeneration &&
+        clearCount === clearAtStart &&
+        (current?.inflight === inflight || current === undefined)
+      ) {
         store.set(cacheKey, { value, expiresAt: Date.now() + staleMs });
       }
       return value;
@@ -141,11 +149,12 @@ export function clear() {
 // Identity scoping: whenever the signed-in user (or role) changes, cached
 // protected data must not leak across identities. This fires on logout
 // (clearAuth), session expiry (handleUnauthorized -> clearAuth), role change
-// (setUser) and account replacement.
-let previousIdentity = undefined;
+// (setUser) and account replacement. `previousIdentity` is seeded from the
+// store's current state so even the first observed change clears.
+let previousIdentity = identity();
 useAuthStore.subscribe((state) => {
   const current = state.user?.id ?? (state.role ? `role:${state.role}` : 'anon');
-  if (previousIdentity !== undefined && current !== previousIdentity) {
+  if (current !== previousIdentity) {
     clear();
   }
   previousIdentity = current;

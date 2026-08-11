@@ -3,18 +3,9 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useApi } from '@/lib/useApi';
 import { clear } from '@/lib/apiCache';
 import useAuthStore from '@/store/authStore';
+import { deferred } from '@/test/helpers';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function deferred() {
-  let resolve;
-  let reject;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-}
 
 beforeEach(() => {
   clear();
@@ -106,6 +97,42 @@ describe('useApi', () => {
     await waitFor(() => expect(second.result.current.data).toBe('v2'));
     expect(second.result.current.validating).toBe(false);
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves stale data but sets error when background revalidation fails', async () => {
+    const fetcher = vi.fn().mockResolvedValue('v1');
+    const first = renderHook(() => useApi(fetcher, [], { key: ['subjects'], staleMs: 10 }));
+    await waitFor(() => expect(first.result.current.data).toBe('v1'));
+    first.unmount();
+
+    await sleep(40);
+
+    fetcher.mockRejectedValue(new Error('boom'));
+    const second = renderHook(() => useApi(fetcher, [], { key: ['subjects'], staleMs: 10 }));
+    expect(second.result.current.data).toBe('v1');
+    expect(second.result.current.validating).toBe(true);
+
+    await waitFor(() => expect(second.result.current.error?.message).toBe('boom'));
+    expect(second.result.current.data).toBe('v1');
+    expect(second.result.current.validating).toBe(false);
+  });
+
+  it('clears data and sets error when a cache-miss fetch fails', async () => {
+    const fetcher = vi.fn().mockRejectedValue(new Error('boom'));
+    const hook = renderHook(() => useApi(fetcher, [], { key: ['subjects'], staleMs: 60_000 }));
+
+    await waitFor(() => expect(hook.result.current.error?.message).toBe('boom'));
+    expect(hook.result.current.data).toBeUndefined();
+    expect(hook.result.current.loading).toBe(false);
+  });
+
+  it('clears data and sets error when an uncached fetch fails', async () => {
+    const fetcher = vi.fn().mockRejectedValue(new Error('boom'));
+    const hook = renderHook(() => useApi(fetcher, []));
+
+    await waitFor(() => expect(hook.result.current.error?.message).toBe('boom'));
+    expect(hook.result.current.data).toBeUndefined();
+    expect(hook.result.current.loading).toBe(false);
   });
 
   it('ignores a stale response when the key changes before it resolves', async () => {

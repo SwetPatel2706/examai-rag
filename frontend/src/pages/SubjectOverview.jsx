@@ -55,9 +55,12 @@ export default function SubjectOverview() {
   const attemptsApi = useApi(listMyAttempts, [], { key: ['students', 'me', 'attempts', 'all'], staleMs: 30_000 });
   const cardsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
 
+  // Only adopt the subject as the current chat/quiz context once the backend
+  // has validated it is accessible — an invalid or inaccessible subject must
+  // not overwrite the current subject context.
   useEffect(() => {
-    setCurrentSubject(id);
-  }, [id, setCurrentSubject]);
+    if (subjectApi.data) setCurrentSubject(id);
+  }, [id, subjectApi.data, setCurrentSubject]);
 
   // Attempts and the dashboard subject-card list only enrich the overview;
   // retain the previous behavior where their failure does not block the page.

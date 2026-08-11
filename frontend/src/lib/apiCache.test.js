@@ -2,20 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import useAuthStore from '@/store/authStore';
 import { buildCacheKey, readCache, getOrFetch, prefetch, invalidate, clear } from '@/lib/apiCache';
 import { createQuiz } from '@/api/quizzes';
-
-function jsonResponse(payload, status = 200) {
-  return { ok: status >= 200 && status < 300, status, json: async () => payload };
-}
-
-function deferred() {
-  let resolve;
-  let reject;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-}
+import { jsonResponse, deferred } from '@/test/helpers';
 
 beforeEach(() => {
   clear();
@@ -159,6 +146,22 @@ describe('apiCache', () => {
 
     useAuthStore.getState().clearAuth();
 
+    expect(readCache(key)).toEqual({ state: 'missing' });
+  });
+
+  it('does not repopulate the store when an in-flight request resolves after clear', async () => {
+    useAuthStore.setState({ user: { id: 'u1', role: 'student' }, role: 'student' });
+    const key = buildCacheKey(['subjects']);
+    const d = deferred();
+    const fetcher = vi.fn(() => d.promise);
+
+    const p = getOrFetch(key, fetcher, { staleMs: 60_000 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    clear();
+    d.resolve({ v: 1 });
+
+    await expect(p).resolves.toEqual({ v: 1 });
     expect(readCache(key)).toEqual({ state: 'missing' });
   });
 

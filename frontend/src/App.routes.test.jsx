@@ -4,13 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { AppRoutes } from '@/App';
 import { clear } from '@/lib/apiCache';
 import useAuthStore from '@/store/authStore';
+import { jsonResponse } from '@/test/helpers';
 
 const STUDENT = { id: 'u1', email: 's@test.edu', role: 'student', name: 'Sam' };
 const TEACHER = { id: 't1', email: 't@test.edu', role: 'teacher', name: 'Dr Lee' };
-
-function jsonResponse(payload, status = 200) {
-  return { ok: status >= 200 && status < 300, status, json: async () => payload };
-}
 
 function stubApi({ profile, subjects = [], stats = {}, teacherSubjects = [], dashboardStats = {}, refresh }) {
   const handler = vi.fn(async (url) => {

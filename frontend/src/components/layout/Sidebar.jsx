@@ -97,10 +97,7 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
               }}
               onMouseEnter={() => preloadRoute(item.to)}
               onFocus={() => preloadRoute(item.to)}
-              onPointerDown={() => {
-                markNavigationStart(item.to);
-                preloadRoute(item.to);
-              }}
+              onPointerDown={() => preloadRoute(item.to)}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-label-md text-label-md',

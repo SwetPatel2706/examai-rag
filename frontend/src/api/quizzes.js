@@ -178,9 +178,10 @@ export async function submitAttempt({ quizId, answers }) {
     body: { quiz_id: quizId, answers },
   });
   // A new graded attempt changes attempt lists, quiz completion status,
-  // student stats, and class-wide teacher analytics — drop all of them.
+  // student stats, subject progress, and class-wide teacher analytics — drop all of them.
   invalidate(['students', 'me', 'attempts']);
   invalidate(['students', 'me', 'stats']);
+  invalidate(['students', 'me', 'subjects']);
   invalidate(['quizzes']);
   invalidate(['subjects']);
   invalidate(['analytics']);

@@ -48,7 +48,7 @@ export default function StudentMaterials() {
       }),
     [courseFilter, debouncedSearch],
     {
-      key: ['students', 'me', 'materials', courseFilter === 'All' ? 'all' : courseFilter, debouncedSearch.trim() || 'all'],
+      key: ['students', 'me', 'materials', courseFilter === 'All' ? 'all' : courseFilter, debouncedSearch.trim()],
       staleMs: 60_000,
     }
   );

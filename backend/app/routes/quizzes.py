@@ -10,7 +10,6 @@ from app.models.user import User
 from app.schemas.common import StandardResponse
 from app.schemas.quiz import (
     QuizAttemptCreateRequest,
-    QuizAttemptResponse,
     QuizCreateRequest,
     QuizGenerateRequest,
     QuizGenerateResponse,

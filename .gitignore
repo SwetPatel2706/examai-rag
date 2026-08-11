@@ -11,3 +11,18 @@ dist/
 build/
 coverage/
 
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtualenvs (canonical: backend/venv/ — root .venv/ is stale)
+.venv/
+backend/venv/
+
+# macOS
+.DS_Store
+
+# Regenerable Stitch design exports (re-fetch via frontend/fetch_screens.cjs)
+frontend/.stitch/
+

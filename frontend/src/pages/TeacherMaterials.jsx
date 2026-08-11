@@ -74,18 +74,21 @@ export default function TeacherMaterials() {
 
   // Poll ingestion status for any 'processing' materials.
   const processingIds = materials.filter((m) => m.status === 'processing').map((m) => m.id);
+  const processingKey = processingIds.join(',');
+  const { reload: reloadMaterials } = materialsApi;
   useEffect(() => {
-    if (!processingIds.length) return undefined;
+    if (!processingKey) return undefined;
     const timer = setInterval(async () => {
       try {
-        const statuses = await Promise.all(processingIds.map(getMaterialStatus));
-        if (statuses.some((s) => s.status !== 'processing')) materialsApi.reload();
+        const ids = processingKey.split(',').filter(Boolean);
+        const statuses = await Promise.all(ids.map(getMaterialStatus));
+        if (statuses.some((s) => s.status !== 'processing')) reloadMaterials();
       } catch {
         // transient poll failure — keep polling
       }
     }, 4000);
     return () => clearInterval(timer);
-  }, [processingIds.join(','), materialsApi.reload]);
+  }, [processingKey, reloadMaterials]);
 
   function isFileSupported(file) {
     const ext = file.name.split('.').pop()?.toLowerCase();

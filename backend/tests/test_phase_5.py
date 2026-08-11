@@ -11,10 +11,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user
 from app.main import app
-from app.models.user import User
-from app.models.subject import Subject, SubjectTeacher, StudentSubject
-from app.models.quiz import Quiz, QuizAttempt, QuizQuestion
-from app.models.material import Material
+from app.models.subject import SubjectTeacher, StudentSubject
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 

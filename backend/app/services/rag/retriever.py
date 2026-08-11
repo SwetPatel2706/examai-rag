@@ -16,7 +16,6 @@ from app.utils.qdrant_client import QdrantStore
 class RetrievedChunk:
     number: int
     payload: dict
-    score: float | None = None
 
 
 def authorize_materials(db: Session, user: User, subject_id: UUID, material_ids: list[UUID]) -> list[UUID]:
@@ -45,7 +44,7 @@ class MaterialRetriever:
         authorized_ids = authorize_materials(db, user, subject_id, material_ids)
         query_vector = self.embedder.embed([question])[0]
         points = self.qdrant.query(query_vector, subject_id, authorized_ids, limit=settings.RAG_TOP_K)
-        return [RetrievedChunk(i, point.payload or {}, getattr(point, "score", None)) for i, point in enumerate(points, 1)]
+        return [RetrievedChunk(i, point.payload or {}) for i, point in enumerate(points, 1)]
 
 
 def build_context(chunks: list[RetrievedChunk]) -> str:

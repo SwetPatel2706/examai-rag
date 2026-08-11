@@ -8,7 +8,17 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
-from app.routes import health
+from app.routes import (
+    analytics,
+    auth,
+    chat,
+    flashcards,
+    health,
+    materials,
+    me,
+    quizzes,
+    subjects,
+)
 from app.schemas.common import StandardResponse
 
 
@@ -121,7 +131,6 @@ def _json_safe_validation_errors(errors: list) -> list:
 
 # Include routers
 app.include_router(health.router)
-from app.routes import auth, subjects, materials, chat, flashcards, quizzes, analytics, me
 app.include_router(auth.router)
 app.include_router(subjects.router)
 app.include_router(materials.router)

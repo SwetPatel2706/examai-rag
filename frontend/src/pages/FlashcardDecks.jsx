@@ -22,6 +22,10 @@ import { cn } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
 import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
+// Stable fallback so `subjects` keeps a constant identity while loading,
+// keeping the effect below from re-running on every render.
+const EMPTY_SUBJECTS = [];
+
 function DeckCard({ deck, onStudy }) {
   const cardCount = deck.cards.length;
   const mastered = deck.cards.filter((c) => c.masteryState === 'mastered').length;
@@ -79,7 +83,7 @@ export default function FlashcardDecks() {
   const decksApi = useApi(listDecks, [], { key: ['flashcards', 'decks'], staleMs: 30_000 });
   const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
 
-  const subjects = subjectsApi.data || [];
+  const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const activeGenSubjectId = genSubjectId ?? currentSubjectId ?? subjects[0]?.subjectId;
 
   const materialsApi = useApi(

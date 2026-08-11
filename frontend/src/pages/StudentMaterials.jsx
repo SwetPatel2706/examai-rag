@@ -17,6 +17,10 @@ import { formatDate } from '@/lib/format';
 
 const PAGE_SIZE = 5;
 
+// Stable fallback so `subjects` keeps a constant identity while loading,
+// keeping the memos below from re-computing on every render.
+const EMPTY_SUBJECTS = [];
+
 // Fixed-delay debounce: the server search request fires only after the user
 // pauses typing for `delay` ms, while the controlled input updates instantly.
 function useDebouncedValue(value, delay = 300) {
@@ -53,7 +57,7 @@ export default function StudentMaterials() {
     }
   );
 
-  const subjects = subjectsApi.data || [];
+  const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const courseFilters = useMemo(
     () => ['All', ...subjects.map((s) => s.subjectId)],
     [subjects]

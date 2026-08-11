@@ -36,7 +36,6 @@ class Settings(BaseSettings):
     )
 
     APP_ENV: str = "local"
-    LOG_LEVEL: str = "info"
     CORS_ORIGINS: str = "http://localhost:5173"
 
     @property

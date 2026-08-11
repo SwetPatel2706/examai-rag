@@ -4,6 +4,10 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  // Keep class-based dark mode so the shadcn `dark:` variant stays inert (the
+  // app ships light-only and never applies a `.dark` class). Removing this
+  // would fall back to a prefers-color-scheme media query and re-enable the
+  // unused dark styling on dark-OS browsers.
   darkMode: "class",
   theme: {
     extend: {
@@ -11,7 +15,6 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
           DEFAULT: "hsl(var(--card))",

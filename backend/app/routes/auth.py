@@ -144,7 +144,7 @@ async def logout(
 
 
 @router.get("/me", response_model=StandardResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: User = Depends(get_current_user)):
     """Get the current authenticated user's database profile."""
     profile = UserProfileResponse.model_validate(current_user)
     return StandardResponse.ok(data=profile.model_dump())

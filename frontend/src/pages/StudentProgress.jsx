@@ -16,8 +16,6 @@ function ScoreBadge({ score }) {
   return <span className={cn('px-2 py-0.5 rounded-full text-[13px] font-bold', style)}>{score}%</span>;
 }
 
-export { initials };
-
 export default function StudentProgress() {
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [search, setSearch] = useState('');

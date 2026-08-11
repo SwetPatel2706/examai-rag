@@ -11,6 +11,10 @@ import { askQuestion } from '@/api/chat';
 import { cn } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
 
+// Stable fallback so `subjects` keeps a constant identity while loading,
+// keeping the effect below from re-running on every render.
+const EMPTY_SUBJECTS = [];
+
 /**
  * Citation tooltip shown on hover over [N] markers.
  */
@@ -71,7 +75,7 @@ export default function Chat() {
 
   const subjectsApi = useApi(listSubjects, [], { key: ['subjects'], staleMs: 60_000 });
 
-  const subjects = subjectsApi.data || [];
+  const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const activeSubjectId = currentSubjectId ?? subjects[0]?.id;
   const activeSubject = subjects.find((s) => s.id === activeSubjectId);
 

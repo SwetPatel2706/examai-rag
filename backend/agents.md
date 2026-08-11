@@ -242,6 +242,12 @@ Client config: full `https://` scheme, `timeout=60` (free-tier cold start),
 - Sparse/title-only slides: prepend title to body or they lose meaning
 - Embeddings: local `all-MiniLM-L6-v2`, `.tolist()` to convert (newer
   sentence-transformers dropped the `convert_to_list` kwarg)
+- **Concurrency:** the upload/retry/delete handlers run the pipeline off the
+  event loop with `await asyncio.to_thread(...)` (the pipeline is thread-safe by
+  design — striped per-material `RLock`s, `SELECT … FOR UPDATE` guards,
+  version-safe conditional `UPDATE`s). The request's SQLAlchemy `db` session is
+  only ever touched from one thread at a time; never share it across threads
+  concurrently.
 - Hybrid dense+sparse search: flagged gap, not decided for Phase 1 — don't
   block on it
 

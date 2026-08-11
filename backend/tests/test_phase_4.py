@@ -13,8 +13,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user
 from app.main import app
-from app.models.user import User
-from app.models.subject import Subject, SubjectTeacher, StudentSubject
+from app.models.subject import SubjectTeacher, StudentSubject
 from app.models.quiz import Quiz, QuizAttempt, QuizQuestion
 from app.schemas.quiz import QuizGenerateRequest, QuizQuestionLLMItem, QuizQuestionLLMOutput
 from app.services.quiz.ai_generate_service import AIQuizGenerateService
@@ -568,7 +567,7 @@ def test_ai_generate_returns_draft_without_inserting(ctx):
     client, sf = ctx
     db = sf()
     users = seed_subject(db)
-    chunks = [RetrievedChunk(1, {"chunk_text": "Physics content."}, 0.9)]
+    chunks = [RetrievedChunk(1, {"chunk_text": "Physics content."})]
     service = AIQuizGenerateService(
         retriever=FakeRetriever(chunks),
         llm=FakeLLM([_llm_items(3)]),
@@ -587,7 +586,7 @@ def test_ai_generate_retries_on_malformed_output(ctx):
     client, sf = ctx
     db = sf()
     users = seed_subject(db)
-    chunks = [RetrievedChunk(1, {"chunk_text": "Physics content."}, 0.9)]
+    chunks = [RetrievedChunk(1, {"chunk_text": "Physics content."})]
     llm = FakeLLM([_llm_items(1), _llm_items(3)])  # first call wrong count
     service = AIQuizGenerateService(retriever=FakeRetriever(chunks), llm=llm)
 
@@ -602,7 +601,7 @@ def test_ai_generate_rejects_invalid_output_after_retries(ctx):
     client, sf = ctx
     db = sf()
     users = seed_subject(db)
-    chunks = [RetrievedChunk(1, {"chunk_text": "Physics content."}, 0.9)]
+    chunks = [RetrievedChunk(1, {"chunk_text": "Physics content."})]
     llm = FakeLLM([_llm_items(1), _llm_items(2)])
     service = AIQuizGenerateService(retriever=FakeRetriever(chunks), llm=llm)
 

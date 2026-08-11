@@ -1,9 +1,29 @@
-- **Alembic / SQLAlchemy Indexing**: Add indexes to `subject_id`, `teacher_id` in `Material` model, `subject_id`/`teacher_id` in `Quiz`, `student_id`/`subject_id` in `Flashcard`, etc. Generate the Alembic migration to create these indexes and downgrade them (Tasks 7, 10, 11). Still open — verified against `migrations/versions/`; no FK index exists yet.
-- **Alembic / SQLAlchemy PK Indexes**: Remove `index=True` from UUID primary key column `id` across `User`, `Subject`, `Material`, `Flashcard`, `Quiz` models to prevent redundant indexing, and update migrations (Tasks 27-32). Still open — `index=True` remains on every PK `id` column in `app/models/`.
-- **User Model Unique Index and Constraints**: Supplement `User.email` with a functional unique index on `lower(email)` in PostgreSQL, and enforce role values with a `CHECK` constraint (Task 30).
-- **Test Suite Updates**: The `test_material_status_transitions` extension (Task 22) is moot — `update_material_status` was removed in the Level-2 cleanup. The `app.dependency_overrides` → module-scoped fixture move (Task 23) was completed in Level 2 (`module_db_override` in `tests/test_phase_1.py`).
+# Backend to-do / known follow-ups
 
-backend/requirements.txt: Pinned constraints file / pip-audit CI workflow
-Deferred. This requires a full dependency audit and pinning exercise plus CI workflow creation — not a minimal code fix. No .github/ or CI files exist to update yet. Will document as a note.
+## Open — deferred structural work (not minimal fixes)
 
-Server-side time_limit enforcement — Requires a new started_at model field, a new migration, and a "start quiz" endpoint. This is a structural addition that belongs in its own task, not a minimal fix.
+- **Alembic / SQLAlchemy Indexing**: Add indexes to `subject_id`, `teacher_id`
+  in `Material`, `subject_id`/`teacher_id` in `Quiz`,
+  `student_id`/`subject_id` in `Flashcard`, etc. Generate forward/downgrade
+  migrations. Verified against `migrations/versions/` — no FK index exists yet.
+- **Alembic / SQLAlchemy PK Indexes**: Remove `index=True` from UUID primary-key
+  `id` columns across `User`, `Subject`, `Material`, `Flashcard`, `Quiz` to
+  prevent redundant indexing. `index=True` remains on every PK `id` in
+  `app/models/`.
+- **User Model Unique Index and Constraints**: Supplement `User.email` with a
+  functional unique index on `lower(email)` in Postgres, and enforce role values
+  with a `CHECK` constraint.
+- **requirements.txt pinned constraints / pip-audit CI**: requires a full
+  dependency audit + pinning exercise plus a CI workflow; no `.github/` exists
+  yet. Documented as a note; not a minimal code fix.
+- **Server-side `time_limit` enforcement**: requires a `started_at` model field,
+  a new migration, and a "start quiz" endpoint. Structural addition — belongs in
+  its own task.
+
+## Done / resolved in the Level 2 cleanup (kept for history)
+
+- ~~`update_material_status` / `MaterialNotFoundError` (tests-only dead code)~~
+  — removed in Cleanup Level 2; the `test_material_status_transitions`
+  extension was moot and removed with it.
+- ~~`app.dependency_overrides` → module-scoped fixture move~~ — completed in
+  Level 2 (`module_db_override` / shared helpers in `tests/conftest.py`).

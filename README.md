@@ -62,7 +62,8 @@ npm run dev
 
 ```bash
 cd backend
-./venv/bin/pytest          # full suite — 77 tests, runs offline (no external services)
+./venv/bin/pip install -r requirements-dev.txt   # test-only deps (reportlab, …)
+./venv/bin/pytest          # full suite — offline (no external services)
 ./venv/bin/pytest tests/test_smoke.py -q   # single file
 ```
 

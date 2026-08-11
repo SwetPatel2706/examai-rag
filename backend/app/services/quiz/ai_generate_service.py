@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -11,6 +9,7 @@ from app.schemas.quiz import (
 )
 from app.services.rag.retriever import MaterialRetriever, build_context
 from app.utils.gemini_client import GeminiClient, StructuredOutputError
+from app.utils.retry import generate_json_with_retry
 
 
 class AIQuizGenerateService:
@@ -33,32 +32,15 @@ class AIQuizGenerateService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Selected materials have no searchable content yet.",
             )
-        output = self._generate_with_retry(request, context)
-        return [QuizDraftQuestionOut(**item.model_dump()) for item in output.questions]
-
-    def _generate_with_retry(self, request: QuizGenerateRequest, context: str) -> QuizQuestionLLMOutput:
-        prompt = self._prompt(request, context)
-        for attempt in range(2):
-            try:
-                try:
-                    output = self.llm.generate_json(prompt, QuizQuestionLLMOutput)
-                except Exception as exc:
-                    if isinstance(exc, StructuredOutputError):
-                        raise
-                    raise StructuredOutputError(f"API Error: {exc}", "") from exc
-                
-                if len(output.questions) != request.question_count:
-                    raise StructuredOutputError(
-                        f"Expected {request.question_count} questions, got {len(output.questions)}",
-                        output.model_dump_json(),
-                    )
-                return output
-            except StructuredOutputError as exc:
-                prompt = self._retry_prompt(prompt, request, exc)
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="The quiz generation service returned an invalid response.",
+        output = generate_json_with_retry(
+            self.llm,
+            self._prompt(request, context),
+            QuizQuestionLLMOutput,
+            http_error_detail="The quiz generation service returned an invalid response.",
+            validate=lambda item: _check_question_count(item, request.question_count),
+            retry_instruction=f"Return exactly {request.question_count} questions.",
         )
+        return [QuizDraftQuestionOut(**item.model_dump()) for item in output.questions]
 
     @staticmethod
     def _prompt(request: QuizGenerateRequest, context: str) -> str:
@@ -71,12 +53,10 @@ class AIQuizGenerateService:
             f"TOPIC:\n{request.topic}\n\nCONTEXT:\n{context}"
         )
 
-    @staticmethod
-    def _retry_prompt(prompt: str, request: QuizGenerateRequest, error: Exception) -> str:
-        bad_response = getattr(error, "raw_response", "<response unavailable>")
-        return (
-            prompt
-            + "\n\nYour previous response failed validation. "
-            f"Verbatim validation error: {error}\nPrevious full response:\n{bad_response}\n"
-            f"Return exactly {request.question_count} questions as valid JSON matching the schema."
+
+def _check_question_count(output: QuizQuestionLLMOutput, expected: int) -> None:
+    if len(output.questions) != expected:
+        raise StructuredOutputError(
+            f"Expected {expected} questions, got {len(output.questions)}",
+            output.model_dump_json(),
         )

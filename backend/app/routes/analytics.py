@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 from typing import Optional
 from uuid import UUID
 

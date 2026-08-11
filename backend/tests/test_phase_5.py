@@ -46,79 +46,9 @@ def ctx():
     app.dependency_overrides.pop(get_current_user, None)
 
 
-def mock_auth(user: User):
-    app.dependency_overrides[get_current_user] = lambda: user
-
+from conftest import make_attempt, make_material, make_quiz, make_subject, make_user, mock_auth
 
 # ── Seed helpers ──────────────────────────────────────────────────────────────
-
-def make_user(db, role: str, email: str) -> User:
-    user = User(id=uuid.uuid4(), email=email, role=role, name=email)
-    db.add(user)
-    db.commit()
-    return user
-
-
-def make_subject(db, name: str) -> Subject:
-    subject = Subject(name=name)
-    db.add(subject)
-    db.commit()
-    return subject
-
-
-def make_quiz(db, subject: Subject, teacher: User, status: str = "published", topic: str = "Kinematics") -> Quiz:
-    quiz = Quiz(
-        subject_id=subject.id,
-        teacher_id=teacher.id,
-        topic=topic,
-        source="manual",
-        status=status,
-        time_limit_seconds=600,
-    )
-    quiz.questions = [
-        QuizQuestion(
-            question_text="What is 2+2?",
-            options=["3", "4", "5", "6"],
-            correct_option="4",
-            topic_tag="Arithmetic",
-            difficulty="easy",
-        )
-    ]
-    db.add(quiz)
-    db.commit()
-    return quiz
-
-
-def make_attempt(db, quiz: Quiz, student: User, answers, score: int, weak_topics, submitted_at) -> QuizAttempt:
-    attempt = QuizAttempt(
-        quiz_id=quiz.id,
-        student_id=student.id,
-        answers=answers,
-        score=score,
-        weak_topics=weak_topics,
-        submitted_at=submitted_at,
-    )
-    db.add(attempt)
-    db.commit()
-    return attempt
-
-
-def make_material(db, subject: Subject, teacher: User, filename: str = "notes.pdf", status: str = "ready") -> Material:
-    material = Material(
-        id=uuid.uuid4(),
-        subject_id=subject.id,
-        teacher_id=teacher.id,
-        filename=filename,
-        file_type="pdf",
-        storage_path=f"materials/{filename}",
-        status=status,
-        display_name=None,
-        notes=None,
-    )
-    db.add(material)
-    db.commit()
-    return material
-
 
 def seed_physics(db):
     """Two teachers + subject + three enrolled students."""

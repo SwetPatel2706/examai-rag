@@ -1,8 +1,6 @@
 import re
 from typing import List
-# pyrefly: ignore [missing-import]
 from pydantic import Field, field_validator, model_validator
-# pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _PLACEHOLDER_RE = re.compile(r"^TODO_", re.IGNORECASE)

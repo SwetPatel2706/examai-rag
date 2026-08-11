@@ -1,10 +1,7 @@
-# pyrefly: ignore [missing-import]
 from fastapi import Depends, HTTPException, status
-# pyrefly: ignore [missing-import]
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import uuid
-# pyrefly: ignore [missing-import]
 import httpx
 
 from app.db.session import get_db
@@ -76,4 +73,3 @@ class RoleChecker:
 # Common dependencies
 require_teacher = RoleChecker(["teacher"])
 require_student = RoleChecker(["student"])
-require_any_role = RoleChecker(["teacher", "student"])

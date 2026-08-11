@@ -1,6 +1,5 @@
-import datetime
 from uuid import UUID
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.material import Material
 from app.models.user import User
@@ -10,6 +9,7 @@ from app.utils.storage import StorageClient, safe_storage_path
 
 ALLOWED_TYPES = {"pdf": "application/pdf", "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
 MAX_BYTES = 25 * 1024 * 1024
+MAX_BYTES_MESSAGE = "Material exceeds the 25 MiB size limit"
 
 async def upload_material(db: Session, user: User, subject_id: UUID, filename: str, data: bytes, *, storage=None, pipeline=None) -> Material:
     if user.role != "teacher":
@@ -19,7 +19,7 @@ async def upload_material(db: Session, user: User, subject_id: UUID, filename: s
     if extension not in ALLOWED_TYPES:
         raise HTTPException(status_code=415, detail="Unsupported file type. Use PDF, PPTX, or DOCX.")
     if len(data) > MAX_BYTES:
-        raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
+        raise HTTPException(status_code=413, detail=MAX_BYTES_MESSAGE)
     material = Material(subject_id=subject_id, teacher_id=user.id, filename=filename, file_type=extension,
                         storage_path="pending", status="processing", ingestion_version=1)
     db.add(material)

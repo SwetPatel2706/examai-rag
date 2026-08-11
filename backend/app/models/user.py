@@ -1,7 +1,5 @@
 import datetime
-# pyrefly: ignore [missing-import]
 from sqlalchemy import Column, String, DateTime, Uuid
-# pyrefly: ignore [missing-import]
 from app.db.session import Base
 
 class User(Base):

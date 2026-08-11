@@ -1,8 +1,7 @@
-# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List, Optional
+from typing import Optional
 
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user

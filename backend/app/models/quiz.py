@@ -1,10 +1,7 @@
 import uuid
 import datetime
-# pyrefly: ignore [missing-import]
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, JSON, UniqueConstraint
-# pyrefly: ignore [missing-import]
 from sqlalchemy.dialects.postgresql import UUID
-# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import relationship, backref
 from app.db.session import Base
 

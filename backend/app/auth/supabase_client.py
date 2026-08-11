@@ -1,6 +1,5 @@
 import logging
 from typing import Dict, Any, Optional
-# pyrefly: ignore [missing-import]
 import httpx
 from app.config import settings
 

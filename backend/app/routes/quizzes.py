@@ -1,6 +1,5 @@
 from uuid import UUID
 
-# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 

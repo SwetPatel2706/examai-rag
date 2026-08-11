@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.flashcard import FlashcardGenerationRequest, FlashcardLLMOutput
 from app.services.rag.retriever import MaterialRetriever, build_context
 from app.utils.gemini_client import GeminiClient, StructuredOutputError
+from app.utils.retry import generate_json_with_retry
 
 
 class FlashcardService:
@@ -22,26 +23,21 @@ class FlashcardService:
             raise HTTPException(status_code=409, detail="Selected materials have no searchable content yet.")
         prompt = (f"Create {request.card_count} concise study flashcards from only this context. "
                   "Do not invent facts. Return JSON matching the schema.\n\nCONTEXT:\n" + context)
-        try:
-            output = self.llm.generate_json(prompt, FlashcardLLMOutput)
+
+        def validate(output: FlashcardLLMOutput) -> None:
             if len(output.cards) != request.card_count:
                 raise StructuredOutputError(
                     f"Expected {request.card_count} cards, got {len(output.cards)}",
                     output.model_dump_json()
                 )
-        except StructuredOutputError as exc:
-            bad_response = getattr(exc, "raw_response", "<response unavailable>")
-            retry = prompt + (f"\n\nPrevious response validation error: {exc}\n"
-                              f"Previous full response:\n{bad_response}\nReturn only valid JSON.")
-            try:
-                output = self.llm.generate_json(retry, FlashcardLLMOutput)
-                if len(output.cards) != request.card_count:
-                    raise StructuredOutputError(
-                        f"Expected {request.card_count} cards, got {len(output.cards)}",
-                        output.model_dump_json()
-                    )
-            except StructuredOutputError as retry_exc:
-                raise HTTPException(status_code=502, detail="The flashcard service returned an invalid response.") from retry_exc
+
+        output = generate_json_with_retry(
+            self.llm,
+            prompt,
+            FlashcardLLMOutput,
+            http_error_detail="The flashcard service returned an invalid response.",
+            validate=validate,
+        )
 
         deck = FlashcardDeck(student_id=user.id, subject_id=request.subject_id,
                              source_material_ids=[str(value) for value in request.material_ids],

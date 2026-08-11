@@ -89,6 +89,8 @@ backend/
       qdrant_client.py
       gemini_client.py
       retry.py                   # error-aware structured-output retry helper
+                                 # (generate_json_with_retry + error_aware_retry_prompt)
+                                 # shared by chat, quiz, and flashcard services
 ```
 
 ## Data model (SQL, Supabase/Postgres)

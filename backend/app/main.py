@@ -1,8 +1,7 @@
 import uuid
 import time
-# pyrefly: ignore [missing-import]
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -10,14 +9,24 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.routes import health
-from app.schemas.common import ErrorDetail, StandardResponse
+from app.schemas.common import StandardResponse
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    # Close shared httpx client used by StorageClient
+    from app.utils.storage import close_shared_client
+    await close_shared_client()
+
 
 app = FastAPI(
     title="ExamAI API",
     description="Backend API for ExamAI RAG-based exam prep platform",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -109,12 +118,6 @@ def _json_safe_validation_errors(errors: list) -> list:
         safe.append(error)
     return safe
 
-
-# Shutdown hook — close shared httpx client used by StorageClient
-@app.on_event("shutdown")
-async def _shutdown_storage_client():
-    from app.utils.storage import close_shared_client
-    await close_shared_client()
 
 # Include routers
 app.include_router(health.router)

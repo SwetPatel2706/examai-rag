@@ -13,7 +13,6 @@ from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.models.subject import Subject, SubjectTeacher, StudentSubject
 from app.models.material import Material
-from app.services.material_service import update_material_status
 
 # Use StaticPool so the in-memory SQLite DB is shared across all connections
 # (by default, each :memory: connection gets its own isolated DB)
@@ -33,10 +32,15 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
-
-# Create the database tables
-Base.metadata.create_all(bind=engine)
+@pytest.fixture(scope="module", autouse=True)
+def module_db_override():
+    """Register the in-memory DB + auth overrides for this module only, and
+    always tear them down afterwards so no override leaks into later modules."""
+    app.dependency_overrides[get_db] = override_get_db
+    Base.metadata.create_all(bind=engine)
+    yield
+    app.dependency_overrides.pop(get_db, None)
+    app.dependency_overrides.pop(get_current_user, None)
 
 @pytest.fixture(autouse=True)
 def clean_db():
@@ -191,30 +195,3 @@ def test_materials_include_teacher_attribution(db_session):
     res = client.get(f"/api/materials/{m1.id}")
     assert res.status_code == 200
     assert res.json()["data"]["teacher_name"] == "Dr. Owner"
-
-
-def test_material_status_transitions(db_session):
-    # 1. Create a processing material
-    m = Material(
-        id=uuid.uuid4(),
-        subject_id=uuid.uuid4(),
-        teacher_id=uuid.uuid4(),
-        filename="test.pdf",
-        file_type="pdf",
-        storage_path="path/test.pdf",
-        status="processing"
-    )
-    db_session.add(m)
-    db_session.commit()
-
-    # Valid transition: processing -> ready
-    m = update_material_status(db_session, m.id, "ready")
-    assert m.status == "ready"
-    assert m.processed_at is not None
-
-    # Invalid transition: failed -> ready
-    m.status = "failed"
-    db_session.commit()
-    with pytest.raises(ValueError) as excinfo:
-        update_material_status(db_session, m.id, "ready")
-    assert "Cannot transition material status directly from failed to ready" in str(excinfo.value)

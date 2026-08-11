@@ -1,5 +1,4 @@
-# pyrefly: ignore [missing-import]
-from fastapi import APIRouter, Depends, Query, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File, Form
 from typing import Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -13,7 +12,7 @@ from app.services.ingestion.pipeline import IngestionPipeline
 from app.utils.storage import StorageClient
 from app.schemas.material import MaterialUpdateRequest, MaterialsListResponse, MaterialStatusResponse
 from app.schemas.common import StandardResponse
-from app.services.material_ingestion_service import MAX_BYTES
+from app.services.material_ingestion_service import MAX_BYTES, MAX_BYTES_MESSAGE
 
 router = APIRouter(prefix="/api/materials", tags=["Materials"])
 
@@ -25,7 +24,7 @@ async def create_material(
     # Bounded read: reject oversized files without materializing the full body.
     data = await file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
-        raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
+        raise HTTPException(status_code=413, detail=MAX_BYTES_MESSAGE)
     material = await upload_material(db, current_user, subject_id, file.filename or "upload", data)
     return StandardResponse.ok(data=serialize_material(material).model_dump(mode="json"))
 

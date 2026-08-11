@@ -8,7 +8,6 @@ server or real external services.  They cover:
   - GET /health/dependencies  →  200 or 503, correct envelope shape
 """
 import os
-# pyrefly: ignore [missing-import]
 import pytest
 
 # Ensure a test environment so Settings validation doesn't fail on missing
@@ -42,7 +41,6 @@ def test_config_loading():
 @pytest.fixture(scope="module")
 def client():
     # httpx.TestClient (via starlette) — in-process, no network.
-    # pyrefly: ignore [missing-import]
     from fastapi.testclient import TestClient
     from app.main import app as _app
     with TestClient(_app, raise_server_exceptions=False) as c:

@@ -118,7 +118,7 @@ async def _shutdown_storage_client():
 
 # Include routers
 app.include_router(health.router)
-from app.routes import auth, subjects, materials, stubs, chat, flashcards, quizzes, analytics, me
+from app.routes import auth, subjects, materials, chat, flashcards, quizzes, analytics, me
 app.include_router(auth.router)
 app.include_router(subjects.router)
 app.include_router(materials.router)
@@ -127,4 +127,3 @@ app.include_router(flashcards.router)
 app.include_router(quizzes.router)
 app.include_router(analytics.router)
 app.include_router(me.router)
-app.include_router(stubs.router)

@@ -55,9 +55,11 @@ function mapGradeBand(b) {
   return { band: b.band, minScore: b.min_score, maxScore: b.max_score, count: b.count, pct: b.pct };
 }
 
-/** GET /api/teacher/dashboard-stats */
-export async function getTeacherDashboardStats() {
-  const data = await request('/api/teacher/dashboard-stats');
+/** GET /api/teacher/dashboard-stats — optional subjectId filters all stats to a single subject. */
+export async function getTeacherDashboardStats({ subjectId } = {}) {
+  const data = await request('/api/teacher/dashboard-stats', {
+    params: subjectId ? { subject_id: subjectId } : undefined,
+  });
   return {
     activeStudents: data.active_students,
     subjectMaterials: data.subject_materials,

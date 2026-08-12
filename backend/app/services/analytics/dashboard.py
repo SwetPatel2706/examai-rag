@@ -3,6 +3,8 @@
 All aggregation is done in SQL (no per-row Python loops over large sets) and
 recent-activity flags reuse the documented at-risk policy.
 """
+from uuid import UUID
+
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 
@@ -40,9 +42,11 @@ def _empty_bands() -> list[GradeBandOut]:
     return build_grade_bands({})
 
 
-def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStatsOut:
-    subject_ids = [subject.id for subject in get_user_subjects(db, user)]
-    if not subject_ids:
+def get_teacher_dashboard_stats(
+    db: Session, user: User, subject_id: UUID | None = None
+) -> TeacherDashboardStatsOut:
+    all_subject_ids = [subject.id for subject in get_user_subjects(db, user)]
+    if not all_subject_ids:
         return TeacherDashboardStatsOut(
             active_students=0,
             subject_materials=0,
@@ -51,6 +55,11 @@ def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStat
             grade_distribution=_empty_bands(),
             recent_activity=[],
         )
+    # Scope to the requested subject (must belong to this teacher).
+    if subject_id is not None and subject_id in all_subject_ids:
+        subject_ids = [subject_id]
+    else:
+        subject_ids = all_subject_ids
 
     active_students = (
         db.query(func.count(func.distinct(QuizAttempt.student_id)))

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
@@ -46,7 +46,16 @@ export default function TeacherDashboard() {
   const user = useAuthStore((s) => s.user);
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
-  const statsApi = useApi(getTeacherDashboardStats, [], { key: ['teacher', 'dashboard-stats'], staleMs: 30_000 });
+
+  const subjects = subjectsApi.data || [];
+  // null = all subjects; set to a subjectId to scope the dashboard to one subject.
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+
+  const statsApi = useApi(
+    () => getTeacherDashboardStats({ subjectId: selectedSubjectId }),
+    [],
+    { key: ['teacher', 'dashboard-stats', selectedSubjectId], staleMs: 30_000 },
+  );
 
   if (subjectsApi.loading || statsApi.loading) {
     return (
@@ -68,7 +77,6 @@ export default function TeacherDashboard() {
     );
   }
 
-  const subjects = subjectsApi.data || [];
   const stats = statsApi.data;
   const first = user?.name ? user.name.split(' ')[0] : 'Teacher';
 
@@ -97,20 +105,36 @@ export default function TeacherDashboard() {
           </button>
         </div>
 
-        {/* Subject Tabs */}
+        {/* Subject Tabs — toggle to scope dashboard data to one subject */}
         {subjects.length > 0 && (
-          <div className="flex items-center gap-sp-xs border-b border-surface-container-high flex-wrap">
-            {subjects.map((subj) => (
-              <button
-                key={subj.subjectId}
-                {...navigationIntentProps('/teacher/analytics')}
-                onClick={() => navigateWithIntent(navigate, '/teacher/analytics', { state: { subjectId: subj.subjectId } })}
-                className="px-sp-md py-sp-sm rounded-t-xl font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
-                title={`View analytics for ${subj.name}`}
-              >
-                {subj.name}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 flex-wrap mt-sp-sm">
+            {/* "All" pill */}
+            <button
+              onClick={() => setSelectedSubjectId(null)}
+              className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-all cursor-pointer ${
+                selectedSubjectId === null
+                  ? 'bg-primary text-on-primary shadow-sm'
+                  : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+              }`}
+            >
+              All Subjects
+            </button>
+            {subjects.map((subj) => {
+              const isActive = selectedSubjectId === subj.subjectId;
+              return (
+                <button
+                  key={subj.subjectId}
+                  onClick={() => setSelectedSubjectId(isActive ? null : subj.subjectId)}
+                  className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                  }`}
+                >
+                  {subj.name}
+                </button>
+              );
+            })}
           </div>
         )}
       </section>

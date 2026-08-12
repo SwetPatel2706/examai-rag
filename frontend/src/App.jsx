@@ -2,7 +2,7 @@ import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import Login from './pages/Login';
-import { loaders } from './lib/lazyRoutes';
+import { loaders, preloadRoleData } from './lib/lazyRoutes';
 import useAuthStore from './store/authStore';
 import { fetchMe, refreshSession } from './api/auth';
 import { LoadingState } from './components/ui/states';
@@ -81,7 +81,13 @@ function SessionBootstrap({ children }) {
         if (token) {
           try {
             const user = await fetchMe();
-            if (!cancelled) setUser(user);
+            if (!cancelled) {
+              setUser(user);
+              // Token + identity are known: warm the cache for every screen
+              // the role can reach so first-click navigation renders from
+              // fresh data instead of mounting with skeletons.
+              void preloadRoleData(user.role);
+            }
           } catch {
             // 401 handler in the API client already cleared auth + redirected.
           }

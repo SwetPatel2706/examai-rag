@@ -123,6 +123,25 @@ function warmStudentMaterials() {
   ]);
 }
 
+function warmSubjectMaterials(subjectId) {
+  return warm('../api/subjects', 'listSubjectMaterials', ['subjects', subjectId, 'materials', 'ready'], [subjectId, { status: 'ready', size: 100 }]);
+}
+
+/**
+ * Warm the ready-materials cache for every enrolled subject. Reuses the same
+ * deduplicated subjects request as the other student warmers, then warms each
+ * subject's materials list so Chat's subject-switcher toggle and Subject
+ * Overview render instantly on first visit.
+ */
+function warmStudentSubjectMaterials() {
+  return warmStudentSubjects()
+    .then((subjects) => {
+      if (!Array.isArray(subjects)) return;
+      return warmMany(subjects.map((subject) => warmSubjectMaterials(subject.subjectId)));
+    })
+    .catch(() => null);
+}
+
 function warmTeacherHome() {
   return warmMany([
     warmTeacherSubjects(),
@@ -175,4 +194,43 @@ export function preloadRoute(path) {
 export function getRouteParams(path) {
   const match = findRoute(path);
   return match?.params || null;
+}
+
+/**
+ * Eagerly fetch every route chunk up front (both roles). Chunks are small
+ * (~2–14 KB each), so this trades a little startup network for the guarantee
+ * that no navigation ever waits on a dynamic import or flashes the Suspense
+ * fallback. Fired from app boot while the login/bootstrap path renders.
+ */
+export function preloadAllChunks() {
+  return Promise.all(routeEntries.map((entry) => entry.loader().catch(() => null))).then(() => undefined);
+}
+
+/**
+ * Warm the reusable safe-GET cache for every screen the role can navigate to,
+ * fired once the session (and therefore auth token) is known. Each warmer
+ * swallows its own failures so startup is never blocked by a slow endpoint;
+ * navigation simply falls back to the normal on-mount fetch.
+ */
+export function preloadRoleData(role) {
+  if (role === 'teacher') {
+    return warmMany([
+      warmTeacherHome(),
+      warmTeacherMaterials(),
+      warmTeacherQuizEditor(),
+      warmTeacherAnalytics(),
+      warmTeacherProgress(),
+    ]);
+  }
+  if (role === 'student') {
+    return warmMany([
+      warmStudentHome(),
+      warmChat(),
+      warmStudentQuizzes(),
+      warmFlashcards(),
+      warmStudentMaterials(),
+      warmStudentSubjectMaterials(),
+    ]);
+  }
+  return Promise.resolve(null);
 }

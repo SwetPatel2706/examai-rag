@@ -91,6 +91,7 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
             <NavLink
               key={item.to}
               to={item.to}
+              end
               onClick={() => {
                 markNavigationStart(item.to);
                 closeDrawer();

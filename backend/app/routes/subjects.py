@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.services.subject_service import get_user_subjects, check_subject_access, get_subject_teachers
-from app.services.material_service import get_materials
+from app.services.material_service import get_materials, serialize_material
 from app.schemas.subject import SubjectResponse, SubjectDetailResponse, TeacherRosterResponse
 from app.schemas.material import MaterialResponse, MaterialsListResponse
 from app.schemas.common import StandardResponse
@@ -69,7 +69,7 @@ def list_subject_materials(
     )
 
     pages = (total + size - 1) // size
-    items_data = [MaterialResponse.model_validate(m) for m in items]
+    items_data = [serialize_material(m) for m in items]
     resp = MaterialsListResponse(
         items=items_data,
         total=total,

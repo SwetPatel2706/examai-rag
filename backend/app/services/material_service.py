@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from fastapi import HTTPException, status
 from uuid import UUID
@@ -43,7 +43,7 @@ def get_materials(
         return [], 0
 
     # 2. Build Query
-    query = db.query(Material).filter(Material.subject_id.in_(allowed_subject_ids))
+    query = db.query(Material).options(joinedload(Material.teacher)).filter(Material.subject_id.in_(allowed_subject_ids))
 
     if teacher_id:
         query = query.filter(Material.teacher_id == teacher_id)

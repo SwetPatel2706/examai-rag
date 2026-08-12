@@ -191,6 +191,11 @@ def test_materials_include_teacher_attribution(db_session):
     items = res.json()["data"]["items"]
     assert items[0]["teacher_name"] == "Dr. Owner"
 
+    res = client.get(f"/api/subjects/{subject.id}/materials")
+    assert res.status_code == 200
+    subj_items = res.json()["data"]["items"]
+    assert subj_items[0]["teacher_name"] == "Dr. Owner"
+
     res = client.get(f"/api/materials/{m1.id}")
     assert res.status_code == 200
     assert res.json()["data"]["teacher_name"] == "Dr. Owner"

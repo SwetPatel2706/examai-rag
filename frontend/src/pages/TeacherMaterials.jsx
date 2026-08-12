@@ -364,44 +364,83 @@ export default function TeacherMaterials() {
 
       {/* Upload dialog — pick subject + file */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg w-full">
           <DialogHeader>
             <DialogTitle>Upload Material</DialogTitle>
           </DialogHeader>
 
-          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sp-sm">Subject</p>
-          <div className="flex items-center gap-2 flex-wrap mb-sp-md">
-            {subjects.map((subj) => (
-              <button
-                key={subj.subjectId}
-                onClick={() => setTargetSubjectId(subj.subjectId)}
-                className={cn(
-                  'px-3 py-1 rounded-full font-label-md text-label-md transition-all',
-                  targetSubjectId === subj.subjectId
-                    ? 'bg-primary text-on-primary'
-                    : 'bg-surface-container-low text-secondary hover:bg-primary-fixed'
-                )}
-              >
-                {subj.name}
-              </button>
-            ))}
+          {/* Subject selector */}
+          <div className="space-y-1">
+            <label
+              htmlFor="upload-subject-select"
+              className="font-label-sm text-label-sm text-secondary uppercase tracking-wider"
+            >
+              Subject
+            </label>
+            <select
+              id="upload-subject-select"
+              value={targetSubjectId ?? ''}
+              onChange={(e) => setTargetSubjectId(e.target.value)}
+              className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 font-label-md text-label-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+            >
+              {subjects.map((subj) => (
+                <option key={subj.subjectId} value={subj.subjectId}>
+                  {subj.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <label
-            className={cn(
-              'block border-2 border-dashed rounded-2xl p-sp-md text-center cursor-pointer transition-colors',
-              selectedFile ? 'border-tertiary bg-tertiary-fixed/20' : 'border-outline-variant hover:border-primary/50'
-            )}
-          >
-            <input ref={fileInputRef} type="file" accept={ACCEPTED_FORMATS} className="hidden" onChange={handleFileInput} />
-            {selectedFile ? (
-              <span className="font-label-md text-label-md text-tertiary font-semibold">{selectedFile.name}</span>
-            ) : (
-              <span className="font-label-md text-label-md text-secondary">Click to choose a file ({SUPPORTED_FORMATS})</span>
-            )}
-          </label>
+          {/* File picker */}
+          <div className="space-y-1">
+            <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">
+              File
+            </span>
+            <label
+              className={cn(
+                'flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-6 px-sp-md text-center cursor-pointer transition-colors',
+                selectedFile
+                  ? 'border-tertiary bg-tertiary-fixed/20'
+                  : 'border-outline-variant hover:border-primary/50 hover:bg-primary-fixed/5'
+              )}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_FORMATS}
+                className="hidden"
+                onChange={handleFileInput}
+              />
+              {selectedFile ? (
+                <>
+                  <span className="material-symbols-outlined text-[32px] text-tertiary">description</span>
+                  <span className="font-label-md text-label-md text-tertiary font-semibold break-all max-w-xs">
+                    {selectedFile.name}
+                  </span>
+                  <span className="font-body-sm text-body-sm text-secondary">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB — click to change
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[40px] text-secondary">cloud_upload</span>
+                  <span className="font-label-md text-label-md text-on-surface">
+                    Click to choose a file
+                  </span>
+                  <span className="font-body-sm text-body-sm text-secondary">
+                    {SUPPORTED_FORMATS} supported
+                  </span>
+                </>
+              )}
+            </label>
+          </div>
 
-          {uploadError && <p className="text-error font-label-sm text-label-sm mt-2">{uploadError.message}</p>}
+          {uploadError && (
+            <div className="flex items-center gap-2 rounded-xl bg-error-container p-3">
+              <span className="material-symbols-outlined text-[18px] text-error">error</span>
+              <p className="text-error font-label-sm text-label-sm">{uploadError.message}</p>
+            </div>
+          )}
 
           <DialogFooter>
             <button

@@ -10,6 +10,8 @@ node_modules/
 dist/
 build/
 coverage/
+htmlcov/
+.coverage
 
 # Python bytecode & caches
 __pycache__/
@@ -25,4 +27,4 @@ backend/venv/
 
 # Regenerable Stitch design exports (re-fetch via frontend/fetch_screens.cjs)
 frontend/.stitch/
-
+INTERVIEW_PREPARATION_GUIDE.md

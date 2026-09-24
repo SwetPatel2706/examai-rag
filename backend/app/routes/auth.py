@@ -55,6 +55,15 @@ async def login(request_body: LoginRequest, response: Response, db: Session = De
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
         )
+    except SupabaseRateLimitError as e:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(e)) from e
+    except SupabaseUpstreamError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e)) from e
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable. Please check your Supabase project status or network connection.",
+        ) from e
 
     import uuid
     # Fetch corresponding database profile

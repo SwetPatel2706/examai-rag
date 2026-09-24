@@ -12,8 +12,8 @@ from app.schemas.material import MaterialResponse, MaterialUpdateRequest
 def serialize_material(material: Material) -> MaterialResponse:
     """Serialize a material including owner attribution (`teacher_name`)."""
     data = MaterialResponse.model_validate(material)
-    if getattr(material, "teacher", None) is not None and material.teacher.name:
-        data.teacher_name = material.teacher.name
+    if getattr(material, "teacher", None) is not None:
+        data.teacher_name = material.teacher.name or material.teacher.email
     return data
 
 def get_materials(

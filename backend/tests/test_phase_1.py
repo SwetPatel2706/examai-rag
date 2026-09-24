@@ -181,12 +181,17 @@ def test_materials_include_teacher_attribution(db_session):
     db_session.add(m1)
     db_session.commit()
 
-    # Student sees the owner's name on both the list and detail endpoints.
+    # Student sees the owner's name on materials list, subject-materials list, and detail endpoints.
     mock_auth(student)
     res = client.get(f"/api/materials?subject_id={subject.id}")
     assert res.status_code == 200
     items = res.json()["data"]["items"]
     assert items[0]["teacher_name"] == "Dr. Owner"
+
+    res = client.get(f"/api/subjects/{subject.id}/materials")
+    assert res.status_code == 200
+    subject_items = res.json()["data"]["items"]
+    assert subject_items[0]["teacher_name"] == "Dr. Owner"
 
     res = client.get(f"/api/materials/{m1.id}")
     assert res.status_code == 200

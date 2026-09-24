@@ -218,3 +218,21 @@ def test_material_status_transitions(db_session):
     with pytest.raises(ValueError) as excinfo:
         update_material_status(db_session, m.id, "ready")
     assert "Cannot transition material status directly from failed to ready" in str(excinfo.value)
+
+
+def test_login_upstream_network_error(monkeypatch):
+    client = TestClient(app)
+    import httpx
+    from app.auth.supabase_client import supabase_auth
+
+    async def mock_network_error(*args, **kwargs):
+        raise httpx.ConnectError("Could not resolve host")
+
+    monkeypatch.setattr(supabase_auth, "login", mock_network_error)
+    res = client.post("/api/auth/login", json={"email": "teacher1@examai.com", "password": "pass"})
+    assert res.status_code == 503
+    payload = res.json()
+    assert payload["success"] is False
+    assert payload["error"]["code"] == "HTTP_ERROR"
+    assert "Authentication service unavailable" in payload["error"]["message"]
+

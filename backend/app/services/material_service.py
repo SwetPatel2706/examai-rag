@@ -2,12 +2,17 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from fastapi import HTTPException, status
 from uuid import UUID
+import datetime
+from datetime import timezone
 from typing import Optional, Tuple, List
 
 from app.models.user import User
 from app.models.material import Material
 from app.services.subject_service import check_subject_access, get_user_subjects
 from app.schemas.material import MaterialResponse, MaterialUpdateRequest
+
+class MaterialNotFoundError(Exception):
+    pass
 
 def serialize_material(material: Material) -> MaterialResponse:
     """Serialize a material including owner attribution (`teacher_name`)."""
@@ -110,6 +115,42 @@ def update_material_metadata(
     if "notes" in update_data:
         material.notes = update_data["notes"]
 
+    db.add(material)
+    db.commit()
+    db.refresh(material)
+    return material
+
+
+def update_material_status(
+    db: Session,
+    material_id: UUID,
+    new_status: str,
+) -> Material:
+    """Update a material's processing status while enforcing valid transitions."""
+    material = db.query(Material).filter(Material.id == material_id).first()
+    if not material:
+        raise MaterialNotFoundError(f"Material {material_id} not found")
+
+    if new_status not in ("processing", "ready", "failed", "deleting"):
+        raise ValueError(f"Invalid status: {new_status}")
+
+    current_status = material.status
+    if new_status == current_status:
+        return material
+    if current_status == "deleting":
+        raise ValueError("Cannot transition a deleting material to another status")
+    if (current_status, new_status) in {
+        ("ready", "processing"),
+        ("ready", "failed"),
+        ("failed", "ready"),
+    }:
+        raise ValueError(
+            f"Cannot transition material status directly from {current_status} to {new_status}"
+        )
+
+    material.status = new_status
+    if new_status in ("ready", "failed"):
+        material.processed_at = datetime.datetime.now(timezone.utc)
     db.add(material)
     db.commit()
     db.refresh(material)

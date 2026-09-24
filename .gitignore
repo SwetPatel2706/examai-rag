@@ -27,4 +27,5 @@ backend/venv/
 
 # Regenerable Stitch design exports (re-fetch via frontend/fetch_screens.cjs)
 frontend/.stitch/
+
 INTERVIEW_PREPARATION_GUIDE.md

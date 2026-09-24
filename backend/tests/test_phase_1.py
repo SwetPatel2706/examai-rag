@@ -12,6 +12,7 @@ from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.models.subject import Subject, SubjectTeacher, StudentSubject
 from app.models.material import Material
+from app.services.material_service import update_material_status
 
 # Use StaticPool so the in-memory SQLite DB is shared across all connections
 # (by default, each :memory: connection gets its own isolated DB)

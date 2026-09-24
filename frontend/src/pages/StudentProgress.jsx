@@ -240,17 +240,29 @@ export default function StudentProgress() {
                   </div>
 
                   {/* No messaging — out of scope per agents.md */}
-                  {selectedStudent.atRisk && (
-                    <div className="mt-sp-md p-3 bg-error-container rounded-xl">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="material-symbols-outlined text-error text-[18px]">warning</span>
-                        <span className="font-label-md text-label-md text-error font-bold">At Risk</span>
+                  {selectedStudent.atRisk && (() => {
+                    const reasons = [];
+                    if (selectedStudent.avgScore !== null && selectedStudent.avgScore < 60)
+                      reasons.push(`average score is ${selectedStudent.avgScore}%, which is below 60%`);
+                    if (selectedStudent.completionPct < 50)
+                      reasons.push(`quiz completion is ${selectedStudent.completionPct}%, which is under 50%`);
+                    const reasonText = reasons.length === 1
+                      ? `This student's ${reasons[0]}.`
+                      : reasons.length >= 2
+                      ? `This student's ${reasons.slice(0, -1).join(', ')} and ${reasons[reasons.length - 1]}.`
+                      : 'This student has been flagged as at-risk.';
+                    return (
+                      <div className="mt-sp-md p-3 bg-error-container rounded-xl">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="material-symbols-outlined text-error text-[18px]">warning</span>
+                          <span className="font-label-md text-label-md text-error font-bold">At Risk</span>
+                        </div>
+                        <p className="font-label-sm text-label-sm text-on-error-container">
+                          {reasonText} Consider reaching out through your institution's channels.
+                        </p>
                       </div>
-                      <p className="font-label-sm text-label-sm text-on-error-container">
-                        This student's average is below 60% or completion is under 50%. Consider reaching out through your institution's channels.
-                      </p>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </>
               ) : null}
             </div>

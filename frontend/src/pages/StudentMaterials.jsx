@@ -11,6 +11,8 @@ import { MaterialsSkeleton } from '@/components/ui/skeletons';
 import { RecentlyAccessedCard } from '@/components/materials/RecentlyAccessedCard';
 import { MaterialsTable } from '@/components/materials/MaterialsTable';
 import { useApi } from '@/lib/useApi';
+import { preloadStudentMaterialsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { getStudentMaterials, getStudentSubjects, getStudentStats } from '@/api/analytics';
 import { getMaterialDownloadUrl } from '@/api/materials';
 import { formatDate } from '@/lib/format';
@@ -58,6 +60,15 @@ export default function StudentMaterials() {
   );
 
   const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
+
+  // The "All" default was already warmed on the dashboard; while the student
+  // reads this page, warm the remaining per-subject filter variants plus the
+  // sibling defaults (quizzes, flashcards, chat) during idle time.
+  React.useEffect(() => {
+    if (!subjectsApi.data?.length) return;
+    const list = subjectsApi.data;
+    runWhenIdle(() => preloadStudentMaterialsIdle(list));
+  }, [subjectsApi.data]);
   const courseFilters = useMemo(
     () => ['All', ...subjects.map((s) => s.subjectId)],
     [subjects]

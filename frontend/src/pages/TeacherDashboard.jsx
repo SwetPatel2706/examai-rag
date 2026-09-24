@@ -6,6 +6,8 @@ import { ErrorState } from '@/components/ui/states';
 import { TeacherDashboardSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import useAuthStore from '@/store/authStore';
+import { preloadTeacherDashboardIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { getTeacherDashboardStats, getTeacherSubjects } from '@/api/analytics';
 import { cn, initials } from '@/lib/utils';
 import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
@@ -56,6 +58,15 @@ export default function TeacherDashboard() {
     [],
     { key: ['teacher', 'dashboard-stats', selectedSubjectId], staleMs: 30_000 },
   );
+
+  // While the teacher reads the dashboard, warm the per-subject tabs
+  // (dashboard scope, materials pages, roster filters) and the sibling
+  // defaults (quiz editor, analytics, progress) during idle time.
+  const subjectOptions = subjectsApi.data;
+  React.useEffect(() => {
+    if (!subjectOptions?.length) return;
+    runWhenIdle(() => preloadTeacherDashboardIdle(subjectOptions));
+  }, [subjectOptions]);
 
   if (subjectsApi.loading || statsApi.loading) {
     return (

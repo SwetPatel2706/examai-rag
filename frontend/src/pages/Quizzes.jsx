@@ -5,6 +5,8 @@ import { SectionHeader } from '@/components/ui/shared';
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { SkeletonCardGrid } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
+import { preloadStudentSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { listQuizzes, listMyAttempts } from '@/api/quizzes';
 import { getStudentSubjects } from '@/api/analytics';
 import { cn } from '@/lib/utils';
@@ -72,6 +74,13 @@ export default function Quizzes() {
   const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
   const attemptsApi = useApi(listMyAttempts, [], { key: ['students', 'me', 'attempts', 'all'], staleMs: 30_000 });
   const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+
+  // Sibling defaults (dashboard, materials, flashcards, chat) were warmed at
+  // login; re-warm idly so a deep link straight here still fills them.
+  React.useEffect(() => {
+    runWhenIdle(() => preloadStudentSiblingsIdle());
+  }, []);
+
   const loading = quizzesApi.loading || attemptsApi.loading || subjectsApi.loading;
   const error = quizzesApi.error || attemptsApi.error || subjectsApi.error;
   const reload = () => {

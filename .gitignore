@@ -10,4 +10,16 @@ node_modules/
 dist/
 build/
 coverage/
+htmlcov/
+.coverage
 
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+INTERVIEW_PREPARATION_GUIDE.md

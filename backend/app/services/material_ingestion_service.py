@@ -1,6 +1,6 @@
-import datetime
+import asyncio
 from uuid import UUID
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.material import Material
 from app.models.user import User
@@ -8,8 +8,13 @@ from app.services.subject_service import check_subject_access
 from app.services.ingestion.pipeline import IngestionPipeline
 from app.utils.storage import StorageClient, safe_storage_path
 
-ALLOWED_TYPES = {"pdf": "application/pdf", "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+ALLOWED_TYPES = {
+    "pdf": "application/pdf",
+    "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 MAX_BYTES = 25 * 1024 * 1024
+MAX_BYTES_MESSAGE = "Material exceeds the 25 MiB size limit"
 
 async def upload_material(db: Session, user: User, subject_id: UUID, filename: str, data: bytes, *, storage=None, pipeline=None) -> Material:
     if user.role != "teacher":
@@ -19,7 +24,7 @@ async def upload_material(db: Session, user: User, subject_id: UUID, filename: s
     if extension not in ALLOWED_TYPES:
         raise HTTPException(status_code=415, detail="Unsupported file type. Use PDF, PPTX, or DOCX.")
     if len(data) > MAX_BYTES:
-        raise HTTPException(status_code=413, detail="Material exceeds the 25 MiB size limit")
+        raise HTTPException(status_code=413, detail=MAX_BYTES_MESSAGE)
     material = Material(subject_id=subject_id, teacher_id=user.id, filename=filename, file_type=extension,
                         storage_path="pending", status="processing", ingestion_version=1)
     db.add(material)
@@ -30,7 +35,11 @@ async def upload_material(db: Session, user: User, subject_id: UUID, filename: s
     try:
         storage_client = storage or StorageClient()
         await storage_client.upload(material.storage_path, data, ALLOWED_TYPES[extension])
-        (pipeline or IngestionPipeline()).process(db, material.id, data, version=material.ingestion_version)
+        # Parse/chunk/embed + Qdrant upsert are CPU/network-bound and
+        # thread-safe by design (striped per-material locks + version guards);
+        # run them off the event loop so the server keeps serving requests.
+        pipeline_instance = pipeline or IngestionPipeline()
+        await asyncio.to_thread(pipeline_instance.process, db, material.id, data, version=material.ingestion_version)
         return db.query(Material).filter(Material.id == material.id).first()
     except Exception as exc:
         # Best-effort cleanup of a source object when a later stage fails.

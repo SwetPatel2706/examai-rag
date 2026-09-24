@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
 import { Pagination } from '@/components/ui/pagination';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { MaterialsSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 import { getTypeConfig } from '@/lib/materials';
 import { formatDate } from '@/lib/format';
@@ -41,11 +42,12 @@ export default function TeacherMaterials() {
   const [rejectionMsg, setRejectionMsg] = useState(null);
   const fileInputRef = useRef(null);
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
 
   const materialsApi = useApi(
-    () => (activeSubjectId ? listMaterials({ subjectId: activeSubjectId, page, size: 100 }) : Promise.resolve({ items: [], total: 0, pages: 0 })),
-    [activeSubjectId, page]
+    () => listMaterials({ subjectId: activeSubjectId, page, size: 100 }),
+    [activeSubjectId, page],
+    { key: ['materials', activeSubjectId, page], staleMs: 60_000, enabled: !!activeSubjectId }
   );
   const materials = materialsApi.data?.items || [];
   const totalMaterials = materialsApi.data?.total ?? 0;
@@ -72,18 +74,21 @@ export default function TeacherMaterials() {
 
   // Poll ingestion status for any 'processing' materials.
   const processingIds = materials.filter((m) => m.status === 'processing').map((m) => m.id);
+  const processingKey = processingIds.join(',');
+  const { reload: reloadMaterials } = materialsApi;
   useEffect(() => {
-    if (!processingIds.length) return undefined;
+    if (!processingKey) return undefined;
     const timer = setInterval(async () => {
       try {
-        const statuses = await Promise.all(processingIds.map(getMaterialStatus));
-        if (statuses.some((s) => s.status !== 'processing')) materialsApi.reload();
+        const ids = processingKey.split(',').filter(Boolean);
+        const statuses = await Promise.all(ids.map(getMaterialStatus));
+        if (statuses.some((s) => s.status !== 'processing')) reloadMaterials();
       } catch {
         // transient poll failure — keep polling
       }
     }, 4000);
     return () => clearInterval(timer);
-  }, [processingIds.join(','), materialsApi.reload]);
+  }, [processingKey, reloadMaterials]);
 
   function isFileSupported(file) {
     const ext = file.name.split('.').pop()?.toLowerCase();
@@ -164,7 +169,7 @@ export default function TeacherMaterials() {
   if (subjectsApi.loading || (!subjectsApi.data && materialsApi.loading)) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading materials…" />
+        <MaterialsSkeleton />
       </AppLayout>
     );
   }
@@ -279,7 +284,7 @@ export default function TeacherMaterials() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high">
+                <tbody className="divide-y divide-surface-container-high cv-auto">
                   {materials.map((mat) => {
                     const typeConfig = getTypeConfig(mat.fileType);
                     const isOwn = mat.teacherId === user?.id;
@@ -359,44 +364,83 @@ export default function TeacherMaterials() {
 
       {/* Upload dialog — pick subject + file */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg w-full">
           <DialogHeader>
             <DialogTitle>Upload Material</DialogTitle>
           </DialogHeader>
 
-          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sp-sm">Subject</p>
-          <div className="flex items-center gap-2 flex-wrap mb-sp-md">
-            {subjects.map((subj) => (
-              <button
-                key={subj.subjectId}
-                onClick={() => setTargetSubjectId(subj.subjectId)}
-                className={cn(
-                  'px-3 py-1 rounded-full font-label-md text-label-md transition-all',
-                  targetSubjectId === subj.subjectId
-                    ? 'bg-primary text-on-primary'
-                    : 'bg-surface-container-low text-secondary hover:bg-primary-fixed'
-                )}
-              >
-                {subj.name}
-              </button>
-            ))}
+          {/* Subject selector */}
+          <div className="space-y-1">
+            <label
+              htmlFor="upload-subject-select"
+              className="font-label-sm text-label-sm text-secondary uppercase tracking-wider"
+            >
+              Subject
+            </label>
+            <select
+              id="upload-subject-select"
+              value={targetSubjectId ?? ''}
+              onChange={(e) => setTargetSubjectId(e.target.value)}
+              className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 font-label-md text-label-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+            >
+              {subjects.map((subj) => (
+                <option key={subj.subjectId} value={subj.subjectId}>
+                  {subj.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <label
-            className={cn(
-              'block border-2 border-dashed rounded-2xl p-sp-md text-center cursor-pointer transition-colors',
-              selectedFile ? 'border-tertiary bg-tertiary-fixed/20' : 'border-outline-variant hover:border-primary/50'
-            )}
-          >
-            <input ref={fileInputRef} type="file" accept={ACCEPTED_FORMATS} className="hidden" onChange={handleFileInput} />
-            {selectedFile ? (
-              <span className="font-label-md text-label-md text-tertiary font-semibold">{selectedFile.name}</span>
-            ) : (
-              <span className="font-label-md text-label-md text-secondary">Click to choose a file ({SUPPORTED_FORMATS})</span>
-            )}
-          </label>
+          {/* File picker */}
+          <div className="space-y-1">
+            <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">
+              File
+            </span>
+            <label
+              className={cn(
+                'flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-6 px-sp-md text-center cursor-pointer transition-colors',
+                selectedFile
+                  ? 'border-tertiary bg-tertiary-fixed/20'
+                  : 'border-outline-variant hover:border-primary/50 hover:bg-primary-fixed/5'
+              )}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_FORMATS}
+                className="hidden"
+                onChange={handleFileInput}
+              />
+              {selectedFile ? (
+                <>
+                  <span className="material-symbols-outlined text-[32px] text-tertiary">description</span>
+                  <span className="font-label-md text-label-md text-tertiary font-semibold break-all max-w-xs">
+                    {selectedFile.name}
+                  </span>
+                  <span className="font-body-sm text-body-sm text-secondary">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB — click to change
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[40px] text-secondary">cloud_upload</span>
+                  <span className="font-label-md text-label-md text-on-surface">
+                    Click to choose a file
+                  </span>
+                  <span className="font-body-sm text-body-sm text-secondary">
+                    {SUPPORTED_FORMATS} supported
+                  </span>
+                </>
+              )}
+            </label>
+          </div>
 
-          {uploadError && <p className="text-error font-label-sm text-label-sm mt-2">{uploadError.message}</p>}
+          {uploadError && (
+            <div className="flex items-center gap-2 rounded-xl bg-error-container p-3">
+              <span className="material-symbols-outlined text-[18px] text-error">error</span>
+              <p className="text-error font-label-sm text-label-sm">{uploadError.message}</p>
+            </div>
+          )}
 
           <DialogFooter>
             <button

@@ -1,30 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-// Auth
 import Login from './pages/Login';
-
-// Student pages
-import StudentDashboard from './pages/StudentDashboard';
-import SubjectOverview from './pages/SubjectOverview';
-import Chat from './pages/Chat';
-import Quizzes from './pages/Quizzes';
-import QuizTaking from './pages/QuizTaking';
-import QuizResults from './pages/QuizResults';
-import FlashcardDecks from './pages/FlashcardDecks';
-import FlashcardStudy from './pages/FlashcardStudy';
-import StudentMaterials from './pages/StudentMaterials';
-
-// Teacher pages
-import TeacherDashboard from './pages/TeacherDashboard';
-import TeacherMaterials from './pages/TeacherMaterials';
-import QuizCreateEdit from './pages/QuizCreateEdit';
-import Analytics from './pages/Analytics';
-import StudentProgress from './pages/StudentProgress';
-
+import { loaders, preloadRoleData } from './lib/lazyRoutes';
 import useAuthStore from './store/authStore';
 import { fetchMe, refreshSession } from './api/auth';
 import { LoadingState } from './components/ui/states';
+import AppLayout from './components/layout/AppLayout';
+import RouteFallback from './components/layout/RouteFallback';
+import { markNavigationReady } from './lib/navigationPerformance';
+
+// Lazy page components. Only the Login/bootstrap path is loaded eagerly, so
+// the initial bundle stays small and route chunks load on demand.
+const StudentDashboard = lazy(loaders['/student']);
+const SubjectOverview = lazy(loaders['/student/subject/:id']);
+const Chat = lazy(loaders['/student/chat']);
+const Quizzes = lazy(loaders['/student/quizzes']);
+const QuizTaking = lazy(loaders['/student/quiz/:id']);
+const QuizResults = lazy(loaders['/student/quiz/:id/results']);
+const FlashcardDecks = lazy(loaders['/student/flashcards']);
+const FlashcardStudy = lazy(loaders['/student/flashcards/:id/study']);
+const StudentMaterials = lazy(loaders['/student/materials']);
+const TeacherDashboard = lazy(loaders['/teacher']);
+const TeacherMaterials = lazy(loaders['/teacher/materials']);
+const QuizCreateEdit = lazy(loaders['/teacher/quiz/create']);
+const Analytics = lazy(loaders['/teacher/analytics']);
+const StudentProgress = lazy(loaders['/teacher/students']);
 
 function RequireAuth({ children }) {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -80,7 +81,13 @@ function SessionBootstrap({ children }) {
         if (token) {
           try {
             const user = await fetchMe();
-            if (!cancelled) setUser(user);
+            if (!cancelled) {
+              setUser(user);
+              // Token + identity are known: warm the cache for every screen
+              // the role can reach so first-click navigation renders from
+              // fresh data instead of mounting with skeletons.
+              void preloadRoleData(user.role);
+            }
           } catch {
             // 401 handler in the API client already cleared auth + redirected.
           }
@@ -112,163 +119,83 @@ function RedirectIfAuthed() {
   return <Login />;
 }
 
+function RouteReady({ children }) {
+  const location = useLocation();
+
+  useEffect(() => {
+    markNavigationReady(location.pathname);
+  }, [location.pathname]);
+
+  return children;
+}
+
+function StandardRoute({ role, Page }) {
+  return (
+    <RequireAuth>
+      <RequireRole role={role}>
+        <AppLayout role={role}>
+          <Suspense fallback={<RouteFallback fullScreen={false} />}>
+            <RouteReady><Page /></RouteReady>
+          </Suspense>
+        </AppLayout>
+      </RequireRole>
+    </RequireAuth>
+  );
+}
+
+function FocusRoute({ role, Page }) {
+  return (
+    <RequireAuth>
+      <RequireRole role={role}>
+        <Suspense fallback={<RouteFallback />}>
+          <RouteReady><Page /></RouteReady>
+        </Suspense>
+      </RequireRole>
+    </RequireAuth>
+  );
+}
+
+/**
+ * Session bootstrap + lazy routes. Exported separately from the default
+ * `App` so tests can wrap the routes in a MemoryRouter.
+ */
+export function AppRoutes() {
+  return (
+    <SessionBootstrap>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<RedirectIfAuthed />} />
+
+        {/* ── Student ── */}
+        <Route path="/student" element={<StandardRoute role="student" Page={StudentDashboard} />} />
+        <Route path="/student/subject/:id" element={<StandardRoute role="student" Page={SubjectOverview} />} />
+        <Route path="/student/chat" element={<StandardRoute role="student" Page={Chat} />} />
+        <Route path="/student/quizzes" element={<StandardRoute role="student" Page={Quizzes} />} />
+        <Route path="/student/quiz/:id" element={<FocusRoute role="student" Page={QuizTaking} />} />
+        <Route path="/student/quiz/:id/results" element={<FocusRoute role="student" Page={QuizResults} />} />
+        <Route path="/student/flashcards" element={<StandardRoute role="student" Page={FlashcardDecks} />} />
+        <Route path="/student/flashcards/:id/study" element={<FocusRoute role="student" Page={FlashcardStudy} />} />
+        <Route path="/student/materials" element={<StandardRoute role="student" Page={StudentMaterials} />} />
+
+        {/* ── Teacher ── */}
+        <Route path="/teacher" element={<StandardRoute role="teacher" Page={TeacherDashboard} />} />
+        <Route path="/teacher/materials" element={<StandardRoute role="teacher" Page={TeacherMaterials} />} />
+        <Route path="/teacher/quiz/create" element={<StandardRoute role="teacher" Page={QuizCreateEdit} />} />
+        <Route path="/teacher/analytics" element={<StandardRoute role="teacher" Page={Analytics} />} />
+        <Route path="/teacher/students" element={<StandardRoute role="teacher" Page={StudentProgress} />} />
+
+        {/* Legacy redirects for old routes */}
+        <Route path="/student-old" element={<Navigate to="/student" replace />} />
+        <Route path="/teacher-old" element={<Navigate to="/teacher" replace />} />
+      </Routes>
+    </SessionBootstrap>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <SessionBootstrap>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<RedirectIfAuthed />} />
-
-          {/* ── Student ── */}
-          <Route
-            path="/student"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <StudentDashboard />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/subject/:id"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <SubjectOverview />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/chat"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <Chat />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/quizzes"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <Quizzes />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/quiz/:id"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <QuizTaking />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/quiz/:id/results"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <QuizResults />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/flashcards"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <FlashcardDecks />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/flashcards/:id/study"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <FlashcardStudy />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/student/materials"
-            element={
-              <RequireAuth>
-                <RequireRole role="student">
-                  <StudentMaterials />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-
-          {/* ── Teacher ── */}
-          <Route
-            path="/teacher"
-            element={
-              <RequireAuth>
-                <RequireRole role="teacher">
-                  <TeacherDashboard />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/teacher/materials"
-            element={
-              <RequireAuth>
-                <RequireRole role="teacher">
-                  <TeacherMaterials />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/teacher/quiz/create"
-            element={
-              <RequireAuth>
-                <RequireRole role="teacher">
-                  <QuizCreateEdit />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/teacher/analytics"
-            element={
-              <RequireAuth>
-                <RequireRole role="teacher">
-                  <Analytics />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/teacher/students"
-            element={
-              <RequireAuth>
-                <RequireRole role="teacher">
-                  <StudentProgress />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
-
-          {/* Legacy redirects for old routes */}
-          <Route path="/student-old" element={<Navigate to="/student" replace />} />
-          <Route path="/teacher-old" element={<Navigate to="/teacher" replace />} />
-        </Routes>
-      </SessionBootstrap>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

@@ -1,4 +1,15 @@
 import { request } from './client';
+import { invalidate } from '@/lib/apiCache';
+
+/**
+ * Drop cached GET data that teacher quiz authoring makes stale: quiz lists
+ * and the subject-overview bundle, plus teacher dashboard aggregates.
+ */
+function invalidateQuizData() {
+  invalidate(['quizzes']);
+  invalidate(['subjects']);
+  invalidate(['teacher', 'dashboard-stats']);
+}
 
 // ── Quiz summaries / detail ────────────────────────────────────────────────
 
@@ -81,6 +92,7 @@ export async function createQuiz({ subjectId, topic, source = 'manual', timeLimi
       questions: questions.map(toQuestionInput),
     },
   });
+  invalidateQuizData();
   return data.id;
 }
 
@@ -90,17 +102,23 @@ export async function updateQuiz(id, { topic, timeLimitSeconds, questions } = {}
   if (topic !== undefined) body.topic = topic;
   if (timeLimitSeconds !== undefined) body.time_limit_seconds = timeLimitSeconds;
   if (questions !== undefined) body.questions = questions.map(toQuestionInput);
-  return request(`/api/quizzes/${id}`, { method: 'PATCH', body });
+  const result = await request(`/api/quizzes/${id}`, { method: 'PATCH', body });
+  invalidateQuizData();
+  return result;
 }
 
 /** DELETE /api/quizzes/:id */
 export async function deleteQuiz(id) {
-  return request(`/api/quizzes/${id}`, { method: 'DELETE' });
+  const result = await request(`/api/quizzes/${id}`, { method: 'DELETE' });
+  invalidateQuizData();
+  return result;
 }
 
 /** POST /api/quizzes/:id/publish */
 export async function publishQuiz(id) {
-  return request(`/api/quizzes/${id}/publish`, { method: 'POST' });
+  const result = await request(`/api/quizzes/${id}/publish`, { method: 'POST' });
+  invalidateQuizData();
+  return result;
 }
 
 /** POST /api/quiz/generate — AI draft, not persisted. */
@@ -159,6 +177,16 @@ export async function submitAttempt({ quizId, answers }) {
     method: 'POST',
     body: { quiz_id: quizId, answers },
   });
+  // A new graded attempt changes attempt lists, quiz completion status,
+  // student stats, subject progress, and class-wide teacher analytics — drop all of them.
+  invalidate(['students', 'me', 'attempts']);
+  invalidate(['students', 'me', 'stats']);
+  invalidate(['students', 'me', 'subjects']);
+  invalidate(['quizzes']);
+  invalidate(['subjects']);
+  invalidate(['analytics']);
+  invalidate(['student-progress']);
+  invalidate(['teacher', 'dashboard-stats']);
   return mapAttempt(data);
 }
 

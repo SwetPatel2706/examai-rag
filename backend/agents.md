@@ -25,11 +25,12 @@ FastAPI. Routes are thin (HTTP only); logic lives in `app/services/`.
   synthetic material content so Chat/Flashcards resolve real citations (needs
   Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
 - Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
-- Tests: `./venv/bin/pytest` from `backend/` — **offline, 83 tests pass
-  (~1.5 s)**, no external services required. Single file:
+- Tests: `./venv/bin/pytest` from `backend/` — **offline, 82 tests pass
+  (~0.8 s)**, no external services required. Single file:
   `./venv/bin/pytest tests/test_smoke.py -q`.
-- No project-level Python linter/typecheck config; `pytest` is the gate. Code
-  carries `# pyrefly: ignore` comments for the in-editor pyrefly checker.
+- No project-level Python linter/typecheck config; `pytest` is the gate.
+  The `.vscode/settings.json` interpreter is pinned to `backend/venv/bin/python`
+  so the in-editor pyrefly checker uses the real venv.
 
 ## Folder structure
 ```
@@ -89,6 +90,8 @@ backend/
       qdrant_client.py
       gemini_client.py
       retry.py                   # error-aware structured-output retry helper
+                                 # (generate_json_with_retry + error_aware_retry_prompt)
+                                 # shared by chat, quiz, and flashcard services
 ```
 
 ## Data model (SQL, Supabase/Postgres)
@@ -239,6 +242,12 @@ Client config: full `https://` scheme, `timeout=60` (free-tier cold start),
 - Sparse/title-only slides: prepend title to body or they lose meaning
 - Embeddings: local `all-MiniLM-L6-v2`, `.tolist()` to convert (newer
   sentence-transformers dropped the `convert_to_list` kwarg)
+- **Concurrency:** the upload/retry/delete handlers run the pipeline off the
+  event loop with `await asyncio.to_thread(...)` (the pipeline is thread-safe by
+  design — striped per-material `RLock`s, `SELECT … FOR UPDATE` guards,
+  version-safe conditional `UPDATE`s). The request's SQLAlchemy `db` session is
+  only ever touched from one thread at a time; never share it across threads
+  concurrently.
 - Hybrid dense+sparse search: flagged gap, not decided for Phase 1 — don't
   block on it
 
@@ -253,13 +262,12 @@ Client config: full `https://` scheme, `timeout=60` (free-tier cold start),
   default.**  Never log raw LLM output in staging or production.
   When enabled for debugging:
   - Gate behind an explicit env flag: `LLM_DEBUG_LOGGING=true` (default:
-    `false`; ignore in any non-local `APP_ENV`).
-  - Bound output size: truncate at 2 000 characters in the log entry.
-  - Redact before writing: strip or mask the user's question, any source
-    material excerpts (chunk_text), API keys, and any field that could
-    contain PII.  Log only structure metadata (model name, finish reason,
-    token counts, timing) in non-debug mode.
-  - Production must never enable this logging regardless of env-var value.
+    `false`). `config.py` forces it off in any non-local `APP_ENV`, so
+    production can never enable it regardless of env-var value.
+  - Implemented once in `app/utils/gemini_client.py` (`generate_json`): the
+    raw model reply is logged to the `app.llm_debug` logger, truncated at
+    2 000 characters. The prompt, the user's question, and source-material
+    excerpts are never logged.
 - Known JSON failure modes to guard against: markdown code fences, trailing
   prose, wrong field types (`"0"` vs `0`), short option lists.
 

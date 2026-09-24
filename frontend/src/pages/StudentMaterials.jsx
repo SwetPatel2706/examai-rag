@@ -6,7 +6,8 @@ import { FilterChipGroup, TeacherFilterCheckbox } from '@/components/ui/filter-c
 import { ViewToggle } from '@/components/ui/view-toggle';
 import { Pagination } from '@/components/ui/pagination';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { MaterialsSkeleton } from '@/components/ui/skeletons';
 import { RecentlyAccessedCard } from '@/components/materials/RecentlyAccessedCard';
 import { MaterialsTable } from '@/components/materials/MaterialsTable';
 import { useApi } from '@/lib/useApi';
@@ -15,6 +16,10 @@ import { getMaterialDownloadUrl } from '@/api/materials';
 import { formatDate } from '@/lib/format';
 
 const PAGE_SIZE = 5;
+
+// Stable fallback so `subjects` keeps a constant identity while loading,
+// keeping the memos below from re-computing on every render.
+const EMPTY_SUBJECTS = [];
 
 // Fixed-delay debounce: the server search request fires only after the user
 // pauses typing for `delay` ms, while the controlled input updates instantly.
@@ -36,8 +41,8 @@ export default function StudentMaterials() {
   const [page, setPage] = useState(1);
   const [downloadError, setDownloadError] = useState(null);
 
-  const subjectsApi = useApi(getStudentSubjects, []);
-  const statsApi = useApi(getStudentStats, []);
+  const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+  const statsApi = useApi(getStudentStats, [], { key: ['students', 'me', 'stats'], staleMs: 30_000 });
   const materialsApi = useApi(
     () =>
       getStudentMaterials({
@@ -45,10 +50,14 @@ export default function StudentMaterials() {
         search: debouncedSearch.trim() || undefined,
         size: 100,
       }),
-    [courseFilter, debouncedSearch]
+    [courseFilter, debouncedSearch],
+    {
+      key: ['students', 'me', 'materials', courseFilter === 'All' ? 'all' : courseFilter, debouncedSearch.trim()],
+      staleMs: 60_000,
+    }
   );
 
-  const subjects = subjectsApi.data || [];
+  const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const courseFilters = useMemo(
     () => ['All', ...subjects.map((s) => s.subjectId)],
     [subjects]
@@ -130,7 +139,7 @@ export default function StudentMaterials() {
   if (subjectsApi.loading || materialsApi.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading resources…" />
+        <MaterialsSkeleton />
       </AppLayout>
     );
   }

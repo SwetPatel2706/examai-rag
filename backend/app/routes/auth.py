@@ -1,10 +1,10 @@
-# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db.session import get_db
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, security
+from fastapi.security import HTTPAuthorizationCredentials
 from app.auth.supabase_client import (
     SupabaseRateLimitError,
     SupabaseUpstreamError,
@@ -13,9 +13,7 @@ from app.auth.supabase_client import (
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, UserProfileResponse
 from app.schemas.common import StandardResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import httpx
-security = HTTPBearer()
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -155,7 +153,7 @@ async def logout(
 
 
 @router.get("/me", response_model=StandardResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: User = Depends(get_current_user)):
     """Get the current authenticated user's database profile."""
     profile = UserProfileResponse.model_validate(current_user)
     return StandardResponse.ok(data=profile.model_dump())

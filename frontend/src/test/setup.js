@@ -29,6 +29,20 @@ const memoryStorage = createMemoryStorage();
 Object.defineProperty(globalThis, 'localStorage', { value: memoryStorage, configurable: true });
 Object.defineProperty(window, 'localStorage', { value: memoryStorage, configurable: true });
 
+// jsdom lacks matchMedia; the responsive sidebar queries it on mount.
+window.matchMedia =
+  window.matchMedia ||
+  ((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }));
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();

@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, ErrorState } from '@/components/ui/states';
+import { ErrorState } from '@/components/ui/states';
+import { TeacherDashboardSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import useAuthStore from '@/store/authStore';
 import { getTeacherDashboardStats, getTeacherSubjects } from '@/api/analytics';
 import { cn, initials } from '@/lib/utils';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 function timeAgo(iso) {
   if (!iso) return '—';
@@ -43,13 +45,22 @@ export default function TeacherDashboard() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
-  const statsApi = useApi(getTeacherDashboardStats, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
+
+  const subjects = subjectsApi.data || [];
+  // null = all subjects; set to a subjectId to scope the dashboard to one subject.
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+
+  const statsApi = useApi(
+    () => getTeacherDashboardStats({ subjectId: selectedSubjectId }),
+    [],
+    { key: ['teacher', 'dashboard-stats', selectedSubjectId], staleMs: 30_000 },
+  );
 
   if (subjectsApi.loading || statsApi.loading) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading dashboard…" />
+        <TeacherDashboardSkeleton />
       </AppLayout>
     );
   }
@@ -66,7 +77,6 @@ export default function TeacherDashboard() {
     );
   }
 
-  const subjects = subjectsApi.data || [];
   const stats = statsApi.data;
   const first = user?.name ? user.name.split(' ')[0] : 'Teacher';
 
@@ -86,7 +96,8 @@ export default function TeacherDashboard() {
             <h1 className="font-headline-lg text-headline-lg text-on-surface">Dashboard Overview</h1>
           </div>
           <button
-            onClick={() => navigate('/teacher/quiz/create')}
+            {...navigationIntentProps('/teacher/quiz/create')}
+            onClick={() => navigateWithIntent(navigate, '/teacher/quiz/create')}
             className="h-10 px-6 bg-primary text-on-primary font-label-md text-label-md rounded-full flex items-center gap-2 hover:scale-95 transition-all duration-150 shadow-md"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
@@ -94,19 +105,36 @@ export default function TeacherDashboard() {
           </button>
         </div>
 
-        {/* Subject Tabs */}
+        {/* Subject Tabs — toggle to scope dashboard data to one subject */}
         {subjects.length > 0 && (
-          <div className="flex items-center gap-sp-xs border-b border-surface-container-high flex-wrap">
-            {subjects.map((subj) => (
-              <button
-                key={subj.subjectId}
-                onClick={() => navigate('/teacher/analytics', { state: { subjectId: subj.subjectId } })}
-                className="px-sp-md py-sp-sm rounded-t-xl font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
-                title={`View analytics for ${subj.name}`}
-              >
-                {subj.name}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 flex-wrap mt-sp-sm">
+            {/* "All" pill */}
+            <button
+              onClick={() => setSelectedSubjectId(null)}
+              className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-all cursor-pointer ${
+                selectedSubjectId === null
+                  ? 'bg-primary text-on-primary shadow-sm'
+                  : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+              }`}
+            >
+              All Subjects
+            </button>
+            {subjects.map((subj) => {
+              const isActive = selectedSubjectId === subj.subjectId;
+              return (
+                <button
+                  key={subj.subjectId}
+                  onClick={() => setSelectedSubjectId(isActive ? null : subj.subjectId)}
+                  className={`px-4 py-1.5 rounded-full font-label-md text-label-md transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                  }`}
+                >
+                  {subj.name}
+                </button>
+              );
+            })}
           </div>
         )}
       </section>
@@ -145,7 +173,8 @@ export default function TeacherDashboard() {
             title="Recent Activity"
             action={
               <button
-                onClick={() => navigate('/teacher/students')}
+                {...navigationIntentProps('/teacher/students')}
+                onClick={() => navigateWithIntent(navigate, '/teacher/students')}
                 className="text-primary font-label-md text-label-md hover:underline"
               >
                 Student Progress
@@ -166,7 +195,7 @@ export default function TeacherDashboard() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high">
+                <tbody className="divide-y divide-surface-container-high cv-auto">
                   {stats.recentActivity.map((row) => (
                     <tr key={row.attemptId} className="hover:bg-surface-container-low transition-colors group">
                       <td className="px-sp-md py-sp-md">
@@ -182,7 +211,8 @@ export default function TeacherDashboard() {
                       <td className="px-sp-md py-sp-md"><ScoreBadge score={row.score} atRisk={row.atRisk} /></td>
                       <td className="px-sp-md py-sp-md text-right">
                         <button
-                          onClick={() => navigate('/teacher/students')}
+                          {...navigationIntentProps('/teacher/students')}
+                          onClick={() => navigateWithIntent(navigate, '/teacher/students')}
                           title="View student progress"
                           aria-label="View student progress"
                           className="p-sp-xs text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
@@ -229,7 +259,8 @@ export default function TeacherDashboard() {
             <p className="font-label-sm text-label-sm uppercase tracking-wider mb-sp-xs opacity-80 text-on-primary">AI Insights</p>
             <h4 className="font-headline-md text-headline-md leading-tight mb-sp-sm text-on-primary">Class Performance</h4>
             <button
-              onClick={() => navigate('/teacher/analytics')}
+              {...navigationIntentProps('/teacher/analytics')}
+              onClick={() => navigateWithIntent(navigate, '/teacher/analytics')}
               className="bg-white/20 backdrop-blur-md px-sp-md py-sp-xs rounded-full text-label-sm font-bold border border-white/30 hover:bg-white/40 transition-colors text-on-primary w-fit"
             >
               Explore Analytics

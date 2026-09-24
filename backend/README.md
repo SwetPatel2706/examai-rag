@@ -51,8 +51,9 @@ The server will be available at: [http://localhost:8000](http://localhost:8000)
 API docs can be accessed at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ### 7. Run Tests
-To run the test suite:
+Install the dev/test extras, then run the test suite:
 ```bash
+./venv/bin/pip install -r requirements-dev.txt   # test-only deps (reportlab, …)
 ./venv/bin/pytest
 ```
 

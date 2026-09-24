@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LoadingState, ErrorState } from '@/components/ui/states';
 import { getQuiz, submitAttempt } from '@/api/quizzes';
+import { useApi } from '@/lib/useApi';
 
 function formatTime(secs) {
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
@@ -14,8 +15,6 @@ export default function QuizTaking() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [quiz, setQuiz] = useState(null);
-  const [loadError, setLoadError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({}); // { questionId: optionIndex }
@@ -24,27 +23,37 @@ export default function QuizTaking() {
   const timerRef = useRef(null);
   const submittedRef = useRef(false);
 
+  const { data: quiz, loading, error: loadError, reload } = useApi(
+    () => getQuiz(id),
+    [id],
+    { key: ['quizzes', 'detail', id], staleMs: 60_000 }
+  );
+
+  // The route param can change while the component instance is reused
+  // (e.g. /student/quiz/1 → /student/quiz/2). Reset the session state so the
+  // new quiz starts clean and never inherits the previous quiz's index,
+  // answers, or submission status.
   useEffect(() => {
-    let cancelled = false;
-    getQuiz(id)
-      .then((data) => {
-        if (cancelled) return;
-        setQuiz(data);
-        if (data.timeLimitSeconds) {
-          setTimeLeft(data.timeLimitSeconds);
-          timerRef.current = setInterval(() => {
-            setTimeLeft((t) => (t <= 1 ? 0 : t - 1));
-          }, 1000);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) setLoadError(err);
-      });
-    return () => {
-      cancelled = true;
-      clearInterval(timerRef.current);
-    };
+    setCurrent(0);
+    setAnswers({});
+    setSubmitting(false);
+    setSubmitError(null);
+    submittedRef.current = false;
   }, [id]);
+
+  useEffect(() => {
+    clearInterval(timerRef.current);
+    if (!quiz?.timeLimitSeconds) {
+      setTimeLeft(null);
+      return undefined;
+    }
+
+    setTimeLeft(quiz.timeLimitSeconds);
+    timerRef.current = setInterval(() => {
+      setTimeLeft((currentTime) => (currentTime <= 1 ? 0 : currentTime - 1));
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [quiz]);
 
   const submitQuiz = useCallback(async () => {
     if (submittedRef.current || !quiz) return;
@@ -75,12 +84,12 @@ export default function QuizTaking() {
   if (loadError) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center px-sp-md">
-        <ErrorState message={loadError.message} onRetry={() => window.location.reload()} />
+        <ErrorState message={loadError.message} onRetry={reload} />
       </div>
     );
   }
 
-  if (!quiz) {
+  if (loading || !quiz) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <LoadingState label="Loading quiz…" />

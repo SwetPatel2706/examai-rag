@@ -2,7 +2,6 @@ import datetime
 from typing import Literal
 from uuid import UUID
 
-# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 QuizSource = Literal["manual", "ai_generated"]

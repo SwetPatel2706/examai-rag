@@ -21,8 +21,8 @@ npm run dev
 ```
 
 Starts the Vite dev server with HMR. The app expects the FastAPI backend to be
-running separately for live API calls; many screens still use mock data during
-Phase 1 development.
+running separately for live API calls. See `Frontend Placeholder & Mock Data
+Register.md` for the history of mock-data replacement.
 
 The dev server has **no proxy** — it calls the API directly at
 `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
@@ -59,8 +59,9 @@ npm run lint
 
 Uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for fast static checks.
 
-> There is no automated frontend test suite yet. Run `npm run lint` and
-> `npm run build` as your verification gate before handing off changes.
+> Automated test suite: Vitest + Testing Library, **63 tests** across 14 files
+> (`npm run test`). Run `npm run lint`, `npm run build`, and `npm run test` as
+> your verification gate before handing off changes.
 
 ## Architecture overview
 
@@ -70,7 +71,7 @@ src/
 ├── components/
 │   ├── layout/       # AppLayout, Sidebar, TopAppBar
 │   ├── materials/    # MaterialsTable, cards, type icons
-│   └── ui/           # shadcn/base-ui primitives (Button, Tabs, …)
+│   └── ui/           # shadcn/base-ui primitives (Button, Dialog, …)
 ├── pages/            # Route-level screens (Chat, Quizzes, …)
 ├── store/            # Zustand slices (authStore, subjectStore, …)
 ├── lib/utils.js      # cn() and shared helpers

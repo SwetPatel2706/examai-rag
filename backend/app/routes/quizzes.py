@@ -1,6 +1,5 @@
 from uuid import UUID
 
-# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -11,7 +10,6 @@ from app.models.user import User
 from app.schemas.common import StandardResponse
 from app.schemas.quiz import (
     QuizAttemptCreateRequest,
-    QuizAttemptResponse,
     QuizCreateRequest,
     QuizGenerateRequest,
     QuizGenerateResponse,
@@ -44,32 +42,28 @@ router = APIRouter(prefix="/api", tags=["Quizzes"])
 
 # ── Serialization helpers ─────────────────────────────────────────────────────
 
+def _base_fields(quiz: Quiz) -> dict:
+    """Shared quiz fields used by the summary and detail outputs."""
+    return {
+        "id": quiz.id,
+        "subject_id": quiz.subject_id,
+        "teacher_id": quiz.teacher_id,
+        "teacher_name": quiz.teacher.name if quiz.teacher else None,
+        "topic": quiz.topic,
+        "source": quiz.source,
+        "status": quiz.status,
+        "time_limit_seconds": quiz.time_limit_seconds,
+        "created_at": quiz.created_at,
+    }
+
+
 def _summary_out(quiz: Quiz) -> QuizSummaryOut:
-    return QuizSummaryOut(
-        id=quiz.id,
-        subject_id=quiz.subject_id,
-        teacher_id=quiz.teacher_id,
-        teacher_name=quiz.teacher.name if quiz.teacher else None,
-        topic=quiz.topic,
-        source=quiz.source,
-        status=quiz.status,
-        time_limit_seconds=quiz.time_limit_seconds,
-        question_count=len(quiz.questions),
-        created_at=quiz.created_at,
-    )
+    return QuizSummaryOut(**_base_fields(quiz), question_count=len(quiz.questions))
 
 
 def _teacher_detail_out(quiz: Quiz) -> QuizTeacherDetailOut:
     return QuizTeacherDetailOut(
-        id=quiz.id,
-        subject_id=quiz.subject_id,
-        teacher_id=quiz.teacher_id,
-        teacher_name=quiz.teacher.name if quiz.teacher else None,
-        topic=quiz.topic,
-        source=quiz.source,
-        status=quiz.status,
-        time_limit_seconds=quiz.time_limit_seconds,
-        created_at=quiz.created_at,
+        **_base_fields(quiz),
         questions=[QuizQuestionOut.model_validate(q) for q in quiz.questions],
     )
 
@@ -78,21 +72,9 @@ def _student_detail_out(quiz: Quiz) -> QuizStudentDetailOut:
     """Student-facing detail. Uses QuizQuestionStudentOut exclusively so
     `correct_option` is never serialised."""
     return QuizStudentDetailOut(
-        id=quiz.id,
-        subject_id=quiz.subject_id,
-        teacher_id=quiz.teacher_id,
-        teacher_name=quiz.teacher.name if quiz.teacher else None,
-        topic=quiz.topic,
-        source=quiz.source,
-        status=quiz.status,
-        time_limit_seconds=quiz.time_limit_seconds,
-        created_at=quiz.created_at,
+        **_base_fields(quiz),
         questions=[QuizQuestionStudentOut.model_validate(q) for q in quiz.questions],
     )
-
-
-def _attempt_out(attempt) -> QuizAttemptResponse:
-    return serialize_attempt(attempt)
 
 
 # ── Quiz list / detail (role-aware) ───────────────────────────────────────────
@@ -203,7 +185,7 @@ def create_attempt(
         request.quiz_id,
         {str(question_id): option for question_id, option in request.answers.items()},
     )
-    return StandardResponse.ok(data=_attempt_out(attempt).model_dump(mode="json"))
+    return StandardResponse.ok(data=serialize_attempt(attempt).model_dump(mode="json"))
 
 
 @router.get("/quiz-attempts/{attempt_id}", response_model=StandardResponse)
@@ -213,4 +195,4 @@ def get_attempt(
     db: Session = Depends(get_db),
 ):
     attempt = get_own_attempt(db, current_user, attempt_id)
-    return StandardResponse.ok(data=_attempt_out(attempt).model_dump(mode="json"))
+    return StandardResponse.ok(data=serialize_attempt(attempt).model_dump(mode="json"))

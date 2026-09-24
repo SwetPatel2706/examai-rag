@@ -6,10 +6,8 @@ server or real external services.  They cover:
   - Module/config imports
   - GET /health  →  200, success=True
   - GET /health/dependencies  →  200 or 503, correct envelope shape
-  - All stub routes  →  501, success=False, NOT_IMPLEMENTED code
 """
 import os
-# pyrefly: ignore [missing-import]
 import pytest
 
 # Ensure a test environment so Settings validation doesn't fail on missing
@@ -43,7 +41,6 @@ def test_config_loading():
 @pytest.fixture(scope="module")
 def client():
     # httpx.TestClient (via starlette) — in-process, no network.
-    # pyrefly: ignore [missing-import]
     from fastapi.testclient import TestClient
     from app.main import app as _app
     with TestClient(_app, raise_server_exceptions=False) as c:
@@ -98,36 +95,6 @@ class TestHealthDependenciesEndpoint:
 
     def test_has_request_id_header(self, client):
         r = client.get("/health/dependencies")
-        assert "x-request-id" in r.headers
-
-
-class TestStubEndpoints:
-    """
-    All stub routes must return 501 with a NOT_IMPLEMENTED error envelope.
-    """
-
-    _STUBS = (
-        ("GET",  "/api/flashcards"),
-    )
-
-    @pytest.mark.parametrize("method,path", _STUBS)
-    def test_stub_returns_501(self, client, method, path):
-        r = client.request(method, path)
-        assert r.status_code == 501, f"{method} {path} expected 501, got {r.status_code}"
-
-    @pytest.mark.parametrize("method,path", _STUBS)
-    def test_stub_success_false(self, client, method, path):
-        body = client.request(method, path).json()
-        assert body["success"] is False, f"{method} {path}: expected success=False"
-
-    @pytest.mark.parametrize("method,path", _STUBS)
-    def test_stub_error_code_not_implemented(self, client, method, path):
-        body = client.request(method, path).json()
-        assert body["error"]["code"] == "NOT_IMPLEMENTED"
-
-    @pytest.mark.parametrize("method,path", _STUBS)
-    def test_stub_has_request_id_header(self, client, method, path):
-        r = client.request(method, path)
         assert "x-request-id" in r.headers
 
 

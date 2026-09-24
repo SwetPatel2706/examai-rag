@@ -10,7 +10,7 @@ export default function FlashcardStudy() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: deck, loading, error, reload } = useApi(() => getDeck(id), [id]);
+  const { data: deck, loading, error, reload } = useApi(() => getDeck(id), [id], { key: ['flashcards', 'decks', id], staleMs: 30_000 });
 
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -40,7 +40,7 @@ export default function FlashcardStudy() {
   // Self-assessment → backend mastery_state; best-effort, never blocks the session.
   async function persistMastery(cardId, result) {
     try {
-      await updateCardMastery(cardId, result === 'got_it' ? 'mastered' : 'learning');
+      await updateCardMastery(id, cardId, result === 'got_it' ? 'mastered' : 'learning');
     } catch (err) {
       console.debug('Could not persist flashcard mastery:', err);
     }

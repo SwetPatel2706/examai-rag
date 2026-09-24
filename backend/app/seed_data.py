@@ -92,35 +92,32 @@ SUBJECT_TEACHERS = {
     "Natural Language Processing": ["teacher5@examai.com"],
 }
 
-# Explicit enrollment sets: 16–17 students per subject, each student in 2–3
-# subjects. Kept hand-written so the demo roster is predictable.
-SUBJECT_ENROLLMENTS = {
+# Middle-ground enrollment: every one of the 26 demo students is enrolled in
+# all four subjects, except a deliberate ~2-student exclusion set per subject.
+# This keeps teacher rosters near-identical and comparable across subjects
+# while preserving a live "not enrolled" path (403 / excluded from the class
+# roster) for demos and review. No student is excluded from more than one
+# subject, so every student ends up in 3–4 subjects: 18 students in all 4,
+# 8 students in exactly 3. Exclusions are hand-picked so the demo roster stays
+# predictable; adjust a list below to change who cannot access a subject.
+_ALL_STUDENT_EMAILS = [student["email"] for student in STUDENTS]
+
+_SUBJECT_EXCLUSIONS = {
     "Software Engineering": [
-        f"student{i}@examai.com" for i in range(1, 17)
+        "student11@examai.com",  # Isabella Costa
+        "student22@examai.com",  # Mateo Silva
     ],
     "Advanced Database Systems": [
-        "student2@examai.com", "student5@examai.com", "student6@examai.com",
-        "student7@examai.com", "student9@examai.com", "student10@examai.com",
-        "student12@examai.com", "student13@examai.com", "student14@examai.com",
-        "student15@examai.com", "student17@examai.com", "student18@examai.com",
-        "student19@examai.com", "student20@examai.com", "student21@examai.com",
-        "student22@examai.com", "student23@examai.com",
+        "student1@examai.com",   # Charlie Student
+        "student13@examai.com",  # Mia Andersen
     ],
     "Data Structures & Algorithms": [
-        "student1@examai.com", "student3@examai.com", "student4@examai.com",
-        "student6@examai.com", "student8@examai.com", "student9@examai.com",
-        "student11@examai.com", "student12@examai.com", "student14@examai.com",
-        "student16@examai.com", "student18@examai.com", "student20@examai.com",
-        "student22@examai.com", "student24@examai.com", "student25@examai.com",
-        "student26@examai.com",
+        "student8@examai.com",   # Liam O'Connor
+        "student19@examai.com",  # Elena Petrova
     ],
     "Operating Systems": [
-        "student2@examai.com", "student4@examai.com", "student5@examai.com",
-        "student7@examai.com", "student8@examai.com", "student10@examai.com",
-        "student11@examai.com", "student13@examai.com", "student15@examai.com",
-        "student17@examai.com", "student19@examai.com", "student21@examai.com",
-        "student23@examai.com", "student24@examai.com", "student25@examai.com",
-        "student26@examai.com",
+        "student5@examai.com",   # Jordan Rivera
+        "student26@examai.com",  # Tom Nguyen
     ],
     "Natural Language Processing": [
         "student1@examai.com", "student3@examai.com", "student4@examai.com",
@@ -128,6 +125,15 @@ SUBJECT_ENROLLMENTS = {
         "student11@examai.com", "student13@examai.com", "student16@examai.com",
         "student18@examai.com", "student22@examai.com", "student25@examai.com",
     ],
+}
+
+SUBJECT_ENROLLMENTS = {
+    subject: [
+        email
+        for email in _ALL_STUDENT_EMAILS
+        if email not in _SUBJECT_EXCLUSIONS.get(subject, [])
+    ]
+    for subject in SUBJECTS
 }
 
 # ── Materials (metadata + synthetic content for RAG) ───────────────────────────

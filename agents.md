@@ -60,18 +60,18 @@ Backend one-time setup (all from `backend/`):
 Backend tests (fully offline — no external services required):
 ```bash
 cd backend
-./venv/bin/pytest                     # full suite: 83 tests pass (~1.5 s)
+./venv/bin/pytest                     # full suite: 82 tests pass (~0.8 s)
 ./venv/bin/pytest tests/test_smoke.py -q   # single file
 ```
 There is no project-level Python linter/typecheck config; `pytest` is the
-backend gate. (Code carries `# pyrefly: ignore` comments for the in-editor
-pyrefly checker.)
+backend gate. (The `.vscode/settings.json` interpreter is pinned to
+`backend/venv/bin/python` for the in-editor pyrefly checker.)
 
 Frontend (all in `frontend/`):
 - Requires Node 20.19+ or 22.12+ (repo currently runs on v25).
 - `npm install` → `npm run dev` (HMR on :5173) · `npm run lint` (oxlint) ·
   `npm run build` (dist/) · `npm run preview` · `npm run test` (Vitest +
-  Testing Library, 31 tests).
+  Testing Library, 63 tests).
 - The Vite dev server has **no proxy** — it calls the API directly at
   `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
   `frontend/.env.local`). Keep the backend running and ports in sync.

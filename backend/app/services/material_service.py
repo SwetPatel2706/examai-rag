@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_, select
+from sqlalchemy import or_
 from fastapi import HTTPException, status
 from uuid import UUID
 import datetime
@@ -48,11 +48,7 @@ def get_materials(
         return [], 0
 
     # 2. Build Query
-    query = (
-        db.query(Material)
-        .options(joinedload(Material.teacher))
-        .filter(Material.subject_id.in_(allowed_subject_ids))
-    )
+    query = db.query(Material).options(joinedload(Material.teacher)).filter(Material.subject_id.in_(allowed_subject_ids))
 
     if teacher_id:
         query = query.filter(Material.teacher_id == teacher_id)
@@ -130,41 +126,31 @@ def update_material_status(
     material_id: UUID,
     new_status: str,
 ) -> Material:
-    """
-    Update status of a material (internal service/ingestion method).
-    Enforces valid state transitions:
-    - processing -> ready
-    - processing -> failed
-    - failed cannot transition directly to ready
-    """
+    """Update a material's processing status while enforcing valid transitions."""
     material = db.query(Material).filter(Material.id == material_id).first()
     if not material:
         raise MaterialNotFoundError(f"Material {material_id} not found")
 
-    # Validate status first
     if new_status not in ("processing", "ready", "failed", "deleting"):
         raise ValueError(f"Invalid status: {new_status}")
 
     current_status = material.status
     if new_status == current_status:
         return material
-
     if current_status == "deleting":
         raise ValueError("Cannot transition a deleting material to another status")
-
-    # Validate state transition rules
-    invalid_transitions = [
+    if (current_status, new_status) in {
         ("ready", "processing"),
         ("ready", "failed"),
         ("failed", "ready"),
-    ]
-    if (current_status, new_status) in invalid_transitions:
-        raise ValueError(f"Cannot transition material status directly from {current_status} to {new_status}")
+    }:
+        raise ValueError(
+            f"Cannot transition material status directly from {current_status} to {new_status}"
+        )
 
     material.status = new_status
     if new_status in ("ready", "failed"):
         material.processed_at = datetime.datetime.now(timezone.utc)
-
     db.add(material)
     db.commit()
     db.refresh(material)

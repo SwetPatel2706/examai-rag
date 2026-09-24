@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import { AnalyticsSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/lib/useApi';
 import { getQuizAnalytics, getTeacherSubjects } from '@/api/analytics';
@@ -25,13 +27,19 @@ const BAND_STYLES = {
 
 export default function Analytics() {
   const [selectedQuizId, setSelectedQuizId] = useState(null);
+  const location = useLocation();
+  const requestedSubjectId = location.state?.subjectId ?? null;
 
-  const subjectsApi = useApi(getTeacherSubjects, []);
-  const quizzesApi = useApi(listQuizzes, []);
+  const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
+  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
   const publishedQuizzes = (quizzesApi.data || []).filter((q) => q.status === 'published');
-  const firstPublishedQuizId = publishedQuizzes[0]?.id ?? null;
+  const firstPublishedQuizId = (requestedSubjectId
+    ? publishedQuizzes.find((q) => q.subjectId === requestedSubjectId)
+    : publishedQuizzes[0])?.id ?? null;
 
-  // Default to the first published quiz once loaded.
+  // Default to the subject's quiz when the dashboard routed us here; fall
+  // back to the first published quiz otherwise. The selector below still
+  // lists every published quiz.
   useEffect(() => {
     if (!selectedQuizId && firstPublishedQuizId) {
       setSelectedQuizId(firstPublishedQuizId);
@@ -39,8 +47,9 @@ export default function Analytics() {
   }, [selectedQuizId, firstPublishedQuizId]);
 
   const analyticsApi = useApi(
-    () => (selectedQuizId ? getQuizAnalytics(selectedQuizId) : Promise.resolve(null)),
-    [selectedQuizId]
+    () => getQuizAnalytics(selectedQuizId),
+    [selectedQuizId],
+    { key: ['analytics', selectedQuizId], staleMs: 30_000, enabled: !!selectedQuizId }
   );
 
   const pageError = subjectsApi.error || quizzesApi.error;
@@ -55,7 +64,7 @@ export default function Analytics() {
   if (subjectsApi.loading || quizzesApi.loading) {
     return (
       <AppLayout role="teacher">
-        <LoadingState label="Loading analytics…" />
+        <AnalyticsSkeleton />
       </AppLayout>
     );
   }

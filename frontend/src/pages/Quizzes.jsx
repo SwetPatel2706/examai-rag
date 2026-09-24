@@ -2,11 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { SkeletonCardGrid } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import { listQuizzes, listMyAttempts } from '@/api/quizzes';
 import { getStudentSubjects } from '@/api/analytics';
 import { cn } from '@/lib/utils';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 const STATUS_CONFIG = {
   completed: { label: 'Completed', bg: 'bg-tertiary-fixed/30 text-tertiary', icon: 'check_circle' },
@@ -16,6 +18,7 @@ const STATUS_CONFIG = {
 
 function QuizCard({ quiz, onAction }) {
   const cfg = STATUS_CONFIG[quiz.status] ?? STATUS_CONFIG.not_started;
+  const target = quiz.status === 'completed' ? `/student/quiz/${quiz.id}/results` : `/student/quiz/${quiz.id}`;
   return (
     <div className="bg-white rounded-2xl ambient-shadow card-hover p-sp-md flex flex-col gap-3">
       {/* Subject + Status */}
@@ -48,6 +51,7 @@ function QuizCard({ quiz, onAction }) {
 
       {/* Action */}
       <button
+        {...navigationIntentProps(target)}
         onClick={() => onAction(quiz)}
         className={cn(
           'mt-auto h-10 rounded-xl font-label-md text-label-md transition-all hover:scale-[0.98]',
@@ -65,23 +69,31 @@ function QuizCard({ quiz, onAction }) {
 export default function Quizzes() {
   const navigate = useNavigate();
 
-  const { data, loading, error, reload } = useApi(async () => {
-    const [quizzes, attempts, subjects] = await Promise.all([listQuizzes(), listMyAttempts(), getStudentSubjects()]);
-    return { quizzes, attempts, subjects };
-  }, []);
+  const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
+  const attemptsApi = useApi(listMyAttempts, [], { key: ['students', 'me', 'attempts', 'all'], staleMs: 30_000 });
+  const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+  const loading = quizzesApi.loading || attemptsApi.loading || subjectsApi.loading;
+  const error = quizzesApi.error || attemptsApi.error || subjectsApi.error;
+  const reload = () => {
+    quizzesApi.reload();
+    attemptsApi.reload();
+    subjectsApi.reload();
+  };
 
   function handleAction(quiz) {
     if (quiz.status === 'completed') {
-      navigate(`/student/quiz/${quiz.id}/results`);
+      navigateWithIntent(navigate, `/student/quiz/${quiz.id}/results`);
     } else {
-      navigate(`/student/quiz/${quiz.id}`);
+      navigateWithIntent(navigate, `/student/quiz/${quiz.id}`);
     }
   }
 
   if (loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading quizzes…" />
+        <div className="space-y-sp-lg">
+          <SkeletonCardGrid count={6} cardClassName="h-52" />
+        </div>
       </AppLayout>
     );
   }
@@ -94,14 +106,14 @@ export default function Quizzes() {
     );
   }
 
-  const subjectNames = new Map((data.subjects || []).map((s) => [s.subjectId, s.name]));
+  const subjectNames = new Map((subjectsApi.data || []).map((s) => [s.subjectId, s.name]));
   const attemptsByQuiz = new Map();
-  for (const attempt of data.attempts?.items || []) {
+  for (const attempt of attemptsApi.data?.items || []) {
     const previous = attemptsByQuiz.get(attempt.quizId);
     if (!previous || new Date(attempt.submittedAt || 0) > new Date(previous.submittedAt || 0)) attemptsByQuiz.set(attempt.quizId, attempt);
   }
 
-  const quizCards = (data.quizzes || []).map((quiz) => {
+  const quizCards = (quizzesApi.data || []).map((quiz) => {
     const attempt = attemptsByQuiz.get(quiz.id);
     return {
       id: quiz.id,

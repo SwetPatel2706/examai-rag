@@ -5,7 +5,8 @@ import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
 import { SectionHeader } from '@/components/ui/shared';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { SkeletonCardGrid, SkeletonScopePanel } from '@/components/ui/skeletons';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,11 @@ import { getStudentSubjects } from '@/api/analytics';
 import { listSubjectMaterials } from '@/api/subjects';
 import { cn } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
+import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
+
+// Stable fallback so `subjects` keeps a constant identity while loading,
+// keeping the effect below from re-running on every render.
+const EMPTY_SUBJECTS = [];
 
 function DeckCard({ deck, onStudy }) {
   const cardCount = deck.cards.length;
@@ -54,6 +60,7 @@ function DeckCard({ deck, onStudy }) {
       </div>
 
       <button
+        {...navigationIntentProps(`/student/flashcards/${deck.id}/study`)}
         onClick={() => onStudy(deck.id)}
         className="mt-auto h-10 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:scale-[0.98] transition-all"
       >
@@ -73,15 +80,16 @@ export default function FlashcardDecks() {
   const [genLoading, setGenLoading] = useState(false);
   const [genError, setGenError] = useState(null);
 
-  const decksApi = useApi(listDecks, []);
-  const subjectsApi = useApi(getStudentSubjects, []);
+  const decksApi = useApi(listDecks, [], { key: ['flashcards', 'decks'], staleMs: 30_000 });
+  const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
 
-  const subjects = subjectsApi.data || [];
+  const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const activeGenSubjectId = genSubjectId ?? currentSubjectId ?? subjects[0]?.subjectId;
 
   const materialsApi = useApi(
-    () => (activeGenSubjectId ? listSubjectMaterials(activeGenSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
-    [activeGenSubjectId, generateOpen]
+    () => listSubjectMaterials(activeGenSubjectId, { status: 'ready', size: 100 }),
+    [activeGenSubjectId],
+    { key: ['subjects', activeGenSubjectId, 'materials', 'ready'], staleMs: 60_000, enabled: !!activeGenSubjectId }
   );
   const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
 
@@ -108,7 +116,7 @@ export default function FlashcardDecks() {
       setGenerateOpen(false);
       reset();
       decksApi.reload();
-      navigate(`/student/flashcards/${deck.id}/study`);
+      navigateWithIntent(navigate, `/student/flashcards/${deck.id}/study`);
     } catch (err) {
       setGenError(err);
       setGenLoading(false);
@@ -118,7 +126,9 @@ export default function FlashcardDecks() {
   if (decksApi.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading your decks…" />
+        <div className="space-y-sp-lg">
+          <SkeletonCardGrid count={6} cardClassName="h-52" />
+        </div>
       </AppLayout>
     );
   }
@@ -159,7 +169,7 @@ export default function FlashcardDecks() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
           {decks.map((deck) => (
-            <DeckCard key={deck.id} deck={deck} onStudy={(id) => navigate(`/student/flashcards/${id}/study`)} />
+            <DeckCard key={deck.id} deck={deck} onStudy={(id) => navigateWithIntent(navigate, `/student/flashcards/${id}/study`)} />
           ))}
         </div>
       )}
@@ -197,7 +207,7 @@ export default function FlashcardDecks() {
               </div>
 
               {materialsApi.loading ? (
-                <div className="py-6"><LoadingState label="Loading materials…" /></div>
+                <div className="py-6"><SkeletonScopePanel /></div>
               ) : materialsApi.error ? (
                 <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} />
               ) : (

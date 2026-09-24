@@ -45,4 +45,4 @@ Replace the frontend's placeholder data and navigation shortcuts with real API c
 
 ## Exit criteria
 
-All Phase 1–5 user journeys run through real APIs in a local environment, the frontend placeholder register is reconciled, and the integrated build is ready for Phase 7 hardening and deployment.
+All Phase 1–5 user journeys run through real APIs in a local environment, the frontend placeholder register is reconciled, and the integrated build is ready for the Phase 6.7 performance and loading pass. Phase 7 hardening and deployment follow Phases 6.7 and 6.8.

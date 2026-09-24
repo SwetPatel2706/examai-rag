@@ -7,7 +7,11 @@ const useMaterialScopeStore = create((set, get) => ({
   toggleMaterial: (id) =>
     set((s) => {
       const next = new Set(s.selectedIds);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return { selectedIds: next };
     }),
 

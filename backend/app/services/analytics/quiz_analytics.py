@@ -38,17 +38,26 @@ def _grade_band(score: int) -> str:
     return "F"
 
 
-def get_grade_distribution(scores: list[int]) -> list[GradeBandOut]:
-    total = len(scores)
-    counts = Counter(_grade_band(score) for score in scores)
+def build_grade_bands(counts_by_band: dict[str, int]) -> list[GradeBandOut]:
+    """Map band -> count into the canonical, ordered GradeBandOut list.
+
+    Shared by per-quiz analytics (Python Counter over scores) and the teacher
+    dashboard (SQL GROUP BY band), so the percentage math is single-sourced.
+    """
+    total = sum(counts_by_band.values())
     bands = []
     for band, low, high in GRADE_BANDS:
-        count = counts.get(band, 0)
+        count = counts_by_band.get(band, 0)
         pct = round(count / total * 100) if total else 0
         bands.append(
             GradeBandOut(band=band, min_score=low, max_score=high, count=count, pct=pct)
         )
     return bands
+
+
+def get_grade_distribution(scores: list[int]) -> list[GradeBandOut]:
+    counts = Counter(_grade_band(score) for score in scores)
+    return build_grade_bands(counts)
 
 
 def get_quiz_analytics(db: Session, user: User, quiz_id: UUID) -> QuizAnalyticsOut:

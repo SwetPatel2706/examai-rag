@@ -1,6 +1,5 @@
 import pytest
 import uuid
-import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -33,10 +32,15 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
-
-# Create the database tables
-Base.metadata.create_all(bind=engine)
+@pytest.fixture(scope="module", autouse=True)
+def module_db_override():
+    """Register the in-memory DB + auth overrides for this module only, and
+    always tear them down afterwards so no override leaks into later modules."""
+    app.dependency_overrides[get_db] = override_get_db
+    Base.metadata.create_all(bind=engine)
+    yield
+    app.dependency_overrides.pop(get_db, None)
+    app.dependency_overrides.pop(get_current_user, None)
 
 @pytest.fixture(autouse=True)
 def clean_db():
@@ -190,8 +194,8 @@ def test_materials_include_teacher_attribution(db_session):
 
     res = client.get(f"/api/subjects/{subject.id}/materials")
     assert res.status_code == 200
-    subject_items = res.json()["data"]["items"]
-    assert subject_items[0]["teacher_name"] == "Dr. Owner"
+    subj_items = res.json()["data"]["items"]
+    assert subj_items[0]["teacher_name"] == "Dr. Owner"
 
     res = client.get(f"/api/materials/{m1.id}")
     assert res.status_code == 200
@@ -240,4 +244,3 @@ def test_login_upstream_network_error(monkeypatch):
     assert payload["success"] is False
     assert payload["error"]["code"] == "HTTP_ERROR"
     assert "Authentication service unavailable" in payload["error"]["message"]
-

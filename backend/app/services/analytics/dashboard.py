@@ -3,6 +3,8 @@
 All aggregation is done in SQL (no per-row Python loops over large sets) and
 recent-activity flags reuse the documented at-risk policy.
 """
+from uuid import UUID
+
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 
@@ -19,7 +21,7 @@ from app.schemas.analytics import (
     TeacherDashboardStatsOut,
     TeacherSubjectOut,
 )
-from app.services.analytics.quiz_analytics import GRADE_BANDS, get_grade_distribution
+from app.services.analytics.quiz_analytics import GRADE_BANDS, build_grade_bands
 from app.services.analytics.student_progress import at_risk_map
 from app.services.material_service import serialize_material
 from app.services.subject_service import get_user_subjects
@@ -37,12 +39,14 @@ _BAND_CASE = case(
 
 
 def _empty_bands() -> list[GradeBandOut]:
-    return get_grade_distribution([])
+    return build_grade_bands({})
 
 
-def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStatsOut:
-    subject_ids = [subject.id for subject in get_user_subjects(db, user)]
-    if not subject_ids:
+def get_teacher_dashboard_stats(
+    db: Session, user: User, subject_id: UUID | None = None
+) -> TeacherDashboardStatsOut:
+    all_subject_ids = [subject.id for subject in get_user_subjects(db, user)]
+    if not all_subject_ids:
         return TeacherDashboardStatsOut(
             active_students=0,
             subject_materials=0,
@@ -51,6 +55,11 @@ def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStat
             grade_distribution=_empty_bands(),
             recent_activity=[],
         )
+    # Scope to the requested subject (must belong to this teacher).
+    if subject_id is not None and subject_id in all_subject_ids:
+        subject_ids = [subject_id]
+    else:
+        subject_ids = all_subject_ids
 
     active_students = (
         db.query(func.count(func.distinct(QuizAttempt.student_id)))
@@ -82,18 +91,7 @@ def get_teacher_dashboard_stats(db: Session, user: User) -> TeacherDashboardStat
         .group_by(_BAND_CASE)
         .all()
     )
-    counts_by_band = dict(band_rows)
-    total = sum(count for _, count in band_rows)
-    grade_distribution = [
-        GradeBandOut(
-            band=band,
-            min_score=low,
-            max_score=high,
-            count=counts_by_band.get(band, 0),
-            pct=round(counts_by_band.get(band, 0) / total * 100) if total else 0,
-        )
-        for band, low, high in GRADE_BANDS
-    ]
+    grade_distribution = build_grade_bands(dict(band_rows))
 
     recent = (
         db.query(QuizAttempt)

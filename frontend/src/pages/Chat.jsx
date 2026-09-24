@@ -3,12 +3,17 @@ import AppLayout from '@/components/layout/AppLayout';
 import MaterialScopePanel from '@/components/MaterialScopePanel';
 import useMaterialScopeStore from '@/store/materialScopeStore';
 import useSubjectStore from '@/store/subjectStore';
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui/states';
+import { EmptyState, ErrorState } from '@/components/ui/states';
+import { ChatSkeleton, SkeletonScopePanel } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import { listSubjects, listSubjectMaterials } from '@/api/subjects';
 import { askQuestion } from '@/api/chat';
 import { cn } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
+
+// Stable fallback so `subjects` keeps a constant identity while loading,
+// keeping the effect below from re-running on every render.
+const EMPTY_SUBJECTS = [];
 
 /**
  * Citation tooltip shown on hover over [N] markers.
@@ -68,19 +73,20 @@ export default function Chat() {
   const { currentSubjectId, setCurrentSubject, setSubjects } = useSubjectStore();
   const { selectedIds, deselectAll, getSelectedArray } = useMaterialScopeStore();
 
-  const subjectsApi = useApi(async () => {
-    const list = await listSubjects();
-    setSubjects(list);
-    return list;
-  }, []);
+  const subjectsApi = useApi(listSubjects, [], { key: ['subjects'], staleMs: 60_000 });
 
-  const subjects = subjectsApi.data || [];
+  const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const activeSubjectId = currentSubjectId ?? subjects[0]?.id;
   const activeSubject = subjects.find((s) => s.id === activeSubjectId);
 
+  useEffect(() => {
+    if (subjectsApi.data) setSubjects(subjectsApi.data);
+  }, [subjectsApi.data, setSubjects]);
+
   const materialsApi = useApi(
-    () => (activeSubjectId ? listSubjectMaterials(activeSubjectId, { status: 'ready', size: 100 }) : Promise.resolve({ items: [] })),
-    [activeSubjectId]
+    () => listSubjectMaterials(activeSubjectId, { status: 'ready', size: 100 }),
+    [activeSubjectId],
+    { key: ['subjects', activeSubjectId, 'materials', 'ready'], staleMs: 60_000, enabled: !!activeSubjectId }
   );
   const materialsByTeacher = groupByTeacher(materialsApi.data?.items);
 
@@ -190,7 +196,7 @@ export default function Chat() {
   if (subjectsApi.loading) {
     return (
       <AppLayout role="student">
-        <LoadingState label="Loading chat…" />
+        <ChatSkeleton />
       </AppLayout>
     );
   }
@@ -228,7 +234,7 @@ export default function Chat() {
           )}
         >
           {materialsApi.loading ? (
-            <LoadingState label="Loading materials…" className="py-8" />
+            <div className="pt-2"><SkeletonScopePanel /></div>
           ) : materialsApi.error ? (
             <ErrorState message={materialsApi.error.message} onRetry={materialsApi.reload} className="py-8" />
           ) : (

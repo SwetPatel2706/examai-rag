@@ -5,7 +5,6 @@ import datetime
 import random
 import sys
 import uuid
-# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from app.config import settings

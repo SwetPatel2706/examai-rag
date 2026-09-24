@@ -1,8 +1,7 @@
-# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List, Optional
+from typing import Optional
 
 from app.db.session import get_db
 from app.auth.dependencies import get_current_user
@@ -16,7 +15,7 @@ from app.schemas.common import StandardResponse
 router = APIRouter(prefix="/api/subjects", tags=["Subjects"])
 
 @router.get("", response_model=StandardResponse)
-async def list_subjects(
+def list_subjects(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -27,7 +26,7 @@ async def list_subjects(
 
 
 @router.get("/{subject_id}", response_model=StandardResponse)
-async def get_subject_detail(
+def get_subject_detail(
     subject_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -47,7 +46,7 @@ async def get_subject_detail(
 
 
 @router.get("/{subject_id}/materials", response_model=StandardResponse)
-async def list_subject_materials(
+def list_subject_materials(
     subject_id: UUID,
     teacher_id: Optional[UUID] = Query(None),
     status: Optional[str] = Query(None),

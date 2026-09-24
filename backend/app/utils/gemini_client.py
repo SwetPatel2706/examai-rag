@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -6,6 +7,22 @@ from pydantic import BaseModel
 from app.config import settings
 
 T = TypeVar("T", bound=BaseModel)
+
+# Local-development only: gated by settings.LLM_DEBUG_LOGGING (config.py
+# forces it off in any non-local APP_ENV). Never log the prompt, the user's
+# question, or source-material excerpts — the raw model reply is enough to
+# debug structured-output JSON failures.
+_llm_debug_logger = logging.getLogger("app.llm_debug")
+_LLM_DEBUG_MAX_CHARS = 2000
+
+
+def _log_llm_response(model_name: str, raw: str) -> None:
+    if not settings.LLM_DEBUG_LOGGING:
+        return
+    body = raw.strip()
+    if len(body) > _LLM_DEBUG_MAX_CHARS:
+        body = body[:_LLM_DEBUG_MAX_CHARS] + "…[truncated]"
+    _llm_debug_logger.info("model=%s response=%s", model_name, body)
 
 
 class StructuredOutputError(ValueError):
@@ -43,6 +60,7 @@ class GeminiClient:
             ),
         )
         text = getattr(response, "text", None)
+        _log_llm_response(self.model, text or "<empty>")
         if not text:
             raise ValueError("Gemini returned an empty response")
         try:

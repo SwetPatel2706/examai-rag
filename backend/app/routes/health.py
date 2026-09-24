@@ -1,7 +1,5 @@
 from typing import Any, Dict
-# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Request
-# pyrefly: ignore [missing-import]
 from fastapi.responses import JSONResponse
 from app.config import settings
 from app.schemas.common import StandardResponse
@@ -20,7 +18,7 @@ _REQUIRED_SETTINGS = {
 
 
 @router.get("", response_model=StandardResponse)
-async def health_check(request: Request) -> Dict[str, Any]:
+def health_check(request: Request) -> Dict[str, Any]:
     request_id = getattr(request.state, "request_id", "")
     return StandardResponse.ok(
         data={"status": "healthy", "environment": settings.APP_ENV}
@@ -28,7 +26,7 @@ async def health_check(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/dependencies", response_model=StandardResponse)
-async def health_dependencies(request: Request):
+def health_dependencies(request: Request):
     """
     Evaluate required integration settings and return 200 (all configured)
     or 503 (one or more missing).  Values are never echoed — only presence

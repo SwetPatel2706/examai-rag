@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 from typing import Optional
 from uuid import UUID
 
@@ -63,9 +62,10 @@ def student_progress_detail(
 @router.get("/teacher/dashboard-stats", response_model=StandardResponse)
 def teacher_dashboard_stats(
     response: Response,
+    subject_id: UUID | None = None,
     current_user=Depends(require_teacher),
     db: Session = Depends(get_db),
 ):
     response.headers["Cache-Control"] = "no-store"
-    data = get_teacher_dashboard_stats(db, current_user)
+    data = get_teacher_dashboard_stats(db, current_user, subject_id=subject_id)
     return StandardResponse.ok(data=data.model_dump(mode="json"))

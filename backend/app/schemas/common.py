@@ -1,5 +1,4 @@
 from typing import Any, Optional
-# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, model_validator
 
 

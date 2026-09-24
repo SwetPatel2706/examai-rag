@@ -35,6 +35,11 @@ TEACHERS = [
         "name": "Dr. Dana Patel",
         "role": "teacher",
     },
+    {
+        "email": "teacher5@examai.com",
+        "name": "Shreya Bhatt",
+        "role": "teacher",
+    },
 ]
 
 # student1 / student2 keep their original names so the Phase 2–5 README
@@ -75,6 +80,7 @@ SUBJECTS = [
     "Advanced Database Systems",
     "Data Structures & Algorithms",
     "Operating Systems",
+    "Natural Language Processing",
 ]
 
 # Every subject has two co-teachers (multi-teacher is load-bearing).
@@ -83,6 +89,7 @@ SUBJECT_TEACHERS = {
     "Advanced Database Systems": ["teacher1@examai.com", "teacher3@examai.com"],
     "Data Structures & Algorithms": ["teacher2@examai.com", "teacher4@examai.com"],
     "Operating Systems": ["teacher3@examai.com", "teacher4@examai.com"],
+    "Natural Language Processing": ["teacher5@examai.com"],
 }
 
 # Explicit enrollment sets: 16–17 students per subject, each student in 2–3
@@ -114,6 +121,12 @@ SUBJECT_ENROLLMENTS = {
         "student17@examai.com", "student19@examai.com", "student21@examai.com",
         "student23@examai.com", "student24@examai.com", "student25@examai.com",
         "student26@examai.com",
+    ],
+    "Natural Language Processing": [
+        "student1@examai.com", "student3@examai.com", "student4@examai.com",
+        "student5@examai.com", "student7@examai.com", "student9@examai.com",
+        "student11@examai.com", "student13@examai.com", "student16@examai.com",
+        "student18@examai.com", "student22@examai.com", "student25@examai.com",
     ],
 }
 

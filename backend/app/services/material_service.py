@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, select
 from fastapi import HTTPException, status
 from uuid import UUID
@@ -17,8 +17,8 @@ class MaterialNotFoundError(Exception):
 def serialize_material(material: Material) -> MaterialResponse:
     """Serialize a material including owner attribution (`teacher_name`)."""
     data = MaterialResponse.model_validate(material)
-    if getattr(material, "teacher", None) is not None and material.teacher.name:
-        data.teacher_name = material.teacher.name
+    if getattr(material, "teacher", None) is not None:
+        data.teacher_name = material.teacher.name or material.teacher.email
     return data
 
 def get_materials(
@@ -48,7 +48,11 @@ def get_materials(
         return [], 0
 
     # 2. Build Query
-    query = db.query(Material).filter(Material.subject_id.in_(allowed_subject_ids))
+    query = (
+        db.query(Material)
+        .options(joinedload(Material.teacher))
+        .filter(Material.subject_id.in_(allowed_subject_ids))
+    )
 
     if teacher_id:
         query = query.filter(Material.teacher_id == teacher_id)

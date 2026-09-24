@@ -42,8 +42,17 @@ class SupabaseAuthClient:
             "email": email,
             "password": password
         }
-        response = await self.client.post(url, headers=headers, json=data)
+        try:
+            response = await self.client.post(url, headers=headers, json=data)
+        except httpx.HTTPError:
+            raise
         if response.status_code != 200:
+            if response.status_code == 429:
+                raise SupabaseRateLimitError("Authentication provider rate limit exceeded")
+            if response.status_code >= 500:
+                raise SupabaseUpstreamError(
+                    f"Authentication provider returned HTTP {response.status_code}"
+                )
             try:
                 error_detail = response.json().get("error_description", "Invalid login credentials")
             except Exception:

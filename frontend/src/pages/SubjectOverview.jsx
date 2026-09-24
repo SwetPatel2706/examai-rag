@@ -12,6 +12,8 @@ import { listQuizzes, listMyAttempts } from '@/api/quizzes';
 import { getStudentSubjects } from '@/api/analytics';
 import { initials } from '@/lib/utils';
 import { groupByTeacher } from '@/lib/materials';
+import { preloadStudentSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 const STATUS_STYLES = {
@@ -61,6 +63,13 @@ export default function SubjectOverview() {
   useEffect(() => {
     if (subjectApi.data) setCurrentSubject(id);
   }, [id, subjectApi.data, setCurrentSubject]);
+
+  // Sibling defaults were warmed on the dashboard; re-warm idly so a deep
+  // link straight here still fills them. Quiz cards prefetch their own
+  // detail/results targets on hover via navigationIntentProps.
+  useEffect(() => {
+    runWhenIdle(() => preloadStudentSiblingsIdle());
+  }, []);
 
   // Attempts and the dashboard subject-card list only enrich the overview;
   // retain the previous behavior where their failure does not block the page.

@@ -7,6 +7,8 @@ import { StudentDashboardSkeleton } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
 import useSubjectStore from '@/store/subjectStore';
 import { getStudentStats, getStudentSubjects } from '@/api/analytics';
+import { preloadStudentDashboardIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { navigationIntentProps, navigateWithIntent } from '@/lib/navigationIntent';
 
 export default function StudentDashboard() {
@@ -19,6 +21,16 @@ export default function StudentDashboard() {
   React.useEffect(() => {
     if (subjects.data) setSubjects(subjects.data);
   }, [subjects.data, setSubjects]);
+
+  // While the student reads the dashboard, warm every subject card's
+  // overview bundle plus the sibling defaults (materials variants, quizzes,
+  // flashcards, chat) during browser idle time — the next click then renders
+  // from cache instead of mounting into skeletons.
+  const dashboardSubjects = subjects.data;
+  React.useEffect(() => {
+    if (!dashboardSubjects?.length) return;
+    runWhenIdle(() => preloadStudentDashboardIdle(dashboardSubjects));
+  }, [dashboardSubjects]);
 
   if (stats.loading || subjects.loading) {
     return (

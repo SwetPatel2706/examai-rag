@@ -6,6 +6,8 @@ import useSubjectStore from '@/store/subjectStore';
 import { EmptyState, ErrorState } from '@/components/ui/states';
 import { ChatSkeleton, SkeletonScopePanel } from '@/components/ui/skeletons';
 import { useApi } from '@/lib/useApi';
+import { preloadStudentSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { listSubjects, listSubjectMaterials } from '@/api/subjects';
 import { askQuestion } from '@/api/chat';
 import { cn } from '@/lib/utils';
@@ -74,6 +76,11 @@ export default function Chat() {
   const { selectedIds, deselectAll, getSelectedArray } = useMaterialScopeStore();
 
   const subjectsApi = useApi(listSubjects, [], { key: ['subjects'], staleMs: 60_000 });
+
+  // Sibling defaults were warmed at login; re-warm idly for deep-link arrivals.
+  useEffect(() => {
+    runWhenIdle(() => preloadStudentSiblingsIdle());
+  }, []);
 
   const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const activeSubjectId = currentSubjectId ?? subjects[0]?.id;

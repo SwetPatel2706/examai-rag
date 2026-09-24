@@ -6,6 +6,8 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
 import { AnalyticsSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/lib/useApi';
+import { preloadTeacherSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { getQuizAnalytics, getTeacherSubjects } from '@/api/analytics';
 import { listQuizzes } from '@/api/quizzes';
 
@@ -32,6 +34,11 @@ export default function Analytics() {
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
   const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
+
+  // Sibling defaults were warmed at login; re-warm idly for deep-link arrivals.
+  useEffect(() => {
+    runWhenIdle(() => preloadTeacherSiblingsIdle());
+  }, []);
   const publishedQuizzes = (quizzesApi.data || []).filter((q) => q.status === 'published');
   const firstPublishedQuizId = (requestedSubjectId
     ? publishedQuizzes.find((q) => q.subjectId === requestedSubjectId)

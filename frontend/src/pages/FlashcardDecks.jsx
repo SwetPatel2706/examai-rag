@@ -15,6 +15,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useApi } from '@/lib/useApi';
+import { preloadStudentSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { listDecks, generateDeck } from '@/api/flashcards';
 import { getStudentSubjects } from '@/api/analytics';
 import { listSubjectMaterials } from '@/api/subjects';
@@ -82,6 +84,11 @@ export default function FlashcardDecks() {
 
   const decksApi = useApi(listDecks, [], { key: ['flashcards', 'decks'], staleMs: 30_000 });
   const subjectsApi = useApi(getStudentSubjects, [], { key: ['students', 'me', 'subjects'], staleMs: 60_000 });
+
+  // Sibling defaults were warmed at login; re-warm idly for deep-link arrivals.
+  useEffect(() => {
+    runWhenIdle(() => preloadStudentSiblingsIdle());
+  }, []);
 
   const subjects = subjectsApi.data ?? EMPTY_SUBJECTS;
   const activeGenSubjectId = genSubjectId ?? currentSubjectId ?? subjects[0]?.subjectId;

@@ -17,6 +17,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { getTeacherSubjects } from '@/api/analytics';
+import { preloadTeacherMaterialsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { listMaterials, uploadMaterial, getMaterialStatus, retryMaterial, deleteMaterial, getMaterialDownloadUrl } from '@/api/materials';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'pptx', 'docx'];
@@ -61,6 +63,15 @@ export default function TeacherMaterials() {
       setActiveSubjectId(subjects[0].subjectId);
     }
   }, [activeSubjectId, subjectsApi.data]);
+
+  // The active tab's first page was already warmed on the dashboard; while
+  // the teacher reads this page, warm the remaining subject tabs' first
+  // pages plus the sibling defaults (dashboard, analytics, progress).
+  const loadedSubjects = subjectsApi.data;
+  useEffect(() => {
+    if (!loadedSubjects?.length) return;
+    runWhenIdle(() => preloadTeacherMaterialsIdle(loadedSubjects));
+  }, [loadedSubjects]);
 
   // Reset to the first page whenever the active subject changes.
   useEffect(() => {

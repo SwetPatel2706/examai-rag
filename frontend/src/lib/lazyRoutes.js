@@ -128,6 +128,65 @@ function warmSubjectMaterials(subjectId) {
 }
 
 /**
+ * Fan-out cap for per-subject idle warming. Dashboards can list many
+ * subjects; warming the first few covers the visible cards/tabs without
+ * flooding the API on login.
+ */
+const MAX_DEEP_SUBJECTS = 8;
+const MAX_DEEP_QUIZZES = 3;
+
+function takeSubjects(subjects) {
+  return (Array.isArray(subjects) ? subjects : []).slice(0, MAX_DEEP_SUBJECTS);
+}
+
+/** Student materials filtered to one subject — matches the course-filter key. */
+function warmStudentMaterialsVariant(subjectId) {
+  return warm(
+    '../api/analytics',
+    'getStudentMaterials',
+    ['students', 'me', 'materials', subjectId, ''],
+    [{ subjectId, size: 100 }]
+  );
+}
+
+/** Teacher dashboard scoped to one subject tab. */
+function warmTeacherDashboardSubject(subjectId) {
+  return warm(
+    '../api/analytics',
+    'getTeacherDashboardStats',
+    ['teacher', 'dashboard-stats', subjectId],
+    [{ subjectId }],
+    30_000
+  );
+}
+
+/** Teacher materials table, first page of one subject tab. */
+function warmTeacherMaterialsSubject(subjectId) {
+  return warm(
+    '../api/materials',
+    'listMaterials',
+    ['materials', subjectId, 1],
+    [{ subjectId, page: 1, size: 100 }]
+  );
+}
+
+/** Teacher roster filtered to one subject. */
+function warmTeacherProgressSubject(subjectId) {
+  return warm(
+    '../api/analytics',
+    'getStudentProgress',
+    ['student-progress', subjectId],
+    [{ subjectId }],
+    30_000
+  );
+}
+
+/** Teacher analytics for one published quiz. */
+function warmQuizAnalyticsDetail(quizId) {
+  return warm('../api/analytics', 'getQuizAnalytics', ['analytics', quizId], [quizId], 30_000);
+}
+
+/**
  * Warm the ready-materials cache for every enrolled subject. Reuses the same
  * deduplicated subjects request as the other student warmers, then warms each
  * subject's materials list so Chat's subject-switcher toggle and Subject
@@ -207,6 +266,56 @@ export function preloadAllChunks() {
 }
 
 /**
+ * Per-subject deep warm for students: every subject card on the dashboard
+ * links to a Subject Overview bundle (detail + ready materials + quizzes),
+ * and the materials page can filter to each subject. Runs after the subject
+ * list resolves; each entry is cache-shared with the page mount.
+ */
+function warmStudentDeep() {
+  return warmStudentSubjects()
+    .then((subjects) => {
+      const list = takeSubjects(subjects);
+      if (!list.length) return null;
+      return warmMany([
+        ...list.map((subject) => warmSubjectOverview({ id: subject.subjectId })),
+        ...list.map((subject) => warmStudentMaterialsVariant(subject.subjectId)),
+      ]);
+    })
+    .catch(() => null);
+}
+
+/**
+ * Per-subject deep warm for teachers: dashboard subject tabs, materials tabs
+ * (first page), roster subject filter, plus analytics for the first published
+ * quizzes. Runs after the subject/quiz lists resolve.
+ */
+function warmTeacherDeep() {
+  const subjectsWarm = warmTeacherSubjects()
+    .then((subjects) => {
+      const list = takeSubjects(subjects);
+      if (!list.length) return null;
+      const ids = list.map((s) => s.subjectId);
+      return warmMany([
+        ...ids.map(warmTeacherDashboardSubject),
+        ...ids.map(warmTeacherMaterialsSubject),
+        ...ids.map(warmTeacherProgressSubject),
+      ]);
+    })
+    .catch(() => null);
+  const quizzesWarm = warm('../api/quizzes', 'listQuizzes', ['quizzes', 'all'], [], 30_000)
+    .then((quizzes) => {
+      const ids = (Array.isArray(quizzes) ? quizzes : [])
+        .filter((q) => q.status === 'published')
+        .slice(0, MAX_DEEP_QUIZZES)
+        .map((q) => q.id);
+      if (!ids.length) return null;
+      return warmMany(ids.map(warmQuizAnalyticsDetail));
+    })
+    .catch(() => null);
+  return warmMany([subjectsWarm, quizzesWarm]);
+}
+
+/**
  * Warm the reusable safe-GET cache for every screen the role can navigate to,
  * fired once the session (and therefore auth token) is known. Each warmer
  * swallows its own failures so startup is never blocked by a slow endpoint;
@@ -220,6 +329,7 @@ export function preloadRoleData(role) {
       warmTeacherQuizEditor(),
       warmTeacherAnalytics(),
       warmTeacherProgress(),
+      warmTeacherDeep(),
     ]);
   }
   if (role === 'student') {
@@ -230,7 +340,106 @@ export function preloadRoleData(role) {
       warmFlashcards(),
       warmStudentMaterials(),
       warmStudentSubjectMaterials(),
+      warmStudentDeep(),
     ]);
   }
   return Promise.resolve(null);
+}
+
+/**
+ * Idle cascade while the student stays on the dashboard: subject cards
+ * (Advanced Database Systems, Software Engineering, …) resolve to Subject
+ * Overview bundles, and the main destinations (materials per-subject filter,
+ * quizzes, flashcards, chat) are already covered by preloadRoleData — this
+ * re-warms them idempotently so a deep link straight to /student also fills
+ * every default. Safe to call repeatedly; cache hits and in-flight dedupe
+ * make repeats free.
+ */
+export function preloadStudentDashboardIdle(subjects) {
+  const list = takeSubjects(subjects);
+  if (!list.length) return Promise.resolve(null);
+  return warmMany([
+    ...list.map((subject) => warmSubjectOverview({ id: subject.subjectId }).catch(() => null)),
+    ...list.map((subject) => warmStudentMaterialsVariant(subject.subjectId).catch(() => null)),
+    warmStudentQuizzes().catch(() => null),
+    warmFlashcards().catch(() => null),
+    warmChat().catch(() => null),
+  ]);
+}
+
+/**
+ * Idle cascade while the teacher stays on the dashboard: per-subject dashboard
+ * tabs, materials tabs, roster filters, and the sibling defaults (materials,
+ * quiz editor, analytics, progress) so the first click renders from cache.
+ */
+export function preloadTeacherDashboardIdle(subjects) {
+  const ids = takeSubjects(subjects).map((s) => s.subjectId);
+  if (!ids.length) return Promise.resolve(null);
+  return warmMany([
+    ...ids.map((id) => warmTeacherDashboardSubject(id).catch(() => null)),
+    ...ids.map((id) => warmTeacherMaterialsSubject(id).catch(() => null)),
+    ...ids.map((id) => warmTeacherProgressSubject(id).catch(() => null)),
+    warmTeacherQuizEditor().catch(() => null),
+    warmTeacherAnalytics().catch(() => null),
+    warmTeacherProgress().catch(() => null),
+  ]);
+}
+
+/**
+ * Idle cascade while the student stays on the materials page: its own
+ * per-subject filter variants (the default "All" was already warmed on the
+ * dashboard) plus the sibling defaults, so leaving the page never fetches.
+ */
+export function preloadStudentMaterialsIdle(subjects) {
+  const list = takeSubjects(subjects);
+  if (!list.length) return Promise.resolve(null);
+  return warmMany([
+    ...list.map((subject) => warmStudentMaterialsVariant(subject.subjectId).catch(() => null)),
+    warmStudentQuizzes().catch(() => null),
+    warmFlashcards().catch(() => null),
+    warmChat().catch(() => null),
+  ]);
+}
+
+/**
+ * Idle cascade while the teacher stays on the materials page: the remaining
+ * subject tabs' first pages plus the sibling defaults (dashboard, analytics,
+ * progress), which are re-warmed idempotently for deep-link arrivals.
+ */
+export function preloadTeacherMaterialsIdle(subjects) {
+  const ids = takeSubjects(subjects).map((s) => s.subjectId);
+  if (!ids.length) return Promise.resolve(null);
+  return warmMany([
+    ...ids.map((id) => warmTeacherMaterialsSubject(id).catch(() => null)),
+    warmTeacherHome().catch(() => null),
+    warmTeacherAnalytics().catch(() => null),
+    warmTeacherProgress().catch(() => null),
+  ]);
+}
+
+/**
+ * Sibling-default warmers for non-dashboard pages. Each main page fires one
+ * of these while idle so that arriving via deep link, reload, or back-button
+ * still fills every other default — the same guarantee the dashboard cascade
+ * gives to login arrivals. Fully idempotent: fresh cache entries and shared
+ * in-flight requests make repeats free.
+ */
+export function preloadStudentSiblingsIdle() {
+  return warmMany([
+    warmStudentHome().catch(() => null),
+    warmChat().catch(() => null),
+    warmStudentQuizzes().catch(() => null),
+    warmFlashcards().catch(() => null),
+    warmStudentMaterials().catch(() => null),
+  ]);
+}
+
+export function preloadTeacherSiblingsIdle() {
+  return warmMany([
+    warmTeacherHome().catch(() => null),
+    warmTeacherMaterials().catch(() => null),
+    warmTeacherQuizEditor().catch(() => null),
+    warmTeacherAnalytics().catch(() => null),
+    warmTeacherProgress().catch(() => null),
+  ]);
 }

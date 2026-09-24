@@ -6,6 +6,8 @@ import { ProgressSkeleton } from '@/components/ui/skeletons';
 import { cn, initials } from '@/lib/utils';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/useApi';
+import { preloadTeacherSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { getStudentProgress, getStudentProgressDetail, getTeacherSubjects } from '@/api/analytics';
 
 function ScoreBadge({ score }) {
@@ -22,6 +24,11 @@ export default function StudentProgress() {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
+
+  // Sibling defaults were warmed at login; re-warm idly for deep-link arrivals.
+  React.useEffect(() => {
+    runWhenIdle(() => preloadTeacherSiblingsIdle());
+  }, []);
   const rosterApi = useApi(
     () => getStudentProgress({ subjectId: subjectFilter === 'all' ? undefined : subjectFilter }),
     [subjectFilter],

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '@/store/authStore';
 import { login } from '@/api/auth';
+import { preloadRoleData, preloadRoute } from '@/lib/lazyRoutes';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +28,12 @@ export default function Login() {
       const from = location.state?.from?.pathname;
       const home = session.user.role === 'teacher' ? '/teacher' : '/student';
       const target = from?.startsWith(home) ? from : home;
+      // The dashboard mounts next: kick off its route chunk + every screen
+      // the role can reach while the router transitions, so the dashboard's
+      // own useApi hooks hit a fresh cache (or share the in-flight request)
+      // instead of mounting into skeletons. Never blocks the navigation.
+      void preloadRoute(target);
+      void preloadRoleData(session.user.role);
       navigate(target, { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');

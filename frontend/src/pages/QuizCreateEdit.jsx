@@ -4,6 +4,8 @@ import { EmptyState, ErrorState } from '@/components/ui/states';
 import { QuizCreateEditSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/lib/useApi';
+import { preloadTeacherSiblingsIdle } from '@/lib/lazyRoutes';
+import { runWhenIdle } from '@/lib/idlePrefetch';
 import { getTeacherSubjects } from '@/api/analytics';
 import {
   listQuizzes,
@@ -97,6 +99,11 @@ export default function QuizCreateEdit() {
 
   const subjectsApi = useApi(getTeacherSubjects, [], { key: ['teachers', 'me', 'subjects'], staleMs: 60_000 });
   const quizzesApi = useApi(listQuizzes, [], { key: ['quizzes', 'all'], staleMs: 30_000 });
+
+  // Sibling defaults were warmed at login; re-warm idly for deep-link arrivals.
+  useEffect(() => {
+    runWhenIdle(() => preloadTeacherSiblingsIdle());
+  }, []);
 
   // Ready materials for AI generation, scoped to the selected subject.
   const materialsApi = useApi(

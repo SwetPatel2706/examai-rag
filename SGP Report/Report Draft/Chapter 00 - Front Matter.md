@@ -56,14 +56,21 @@ The project was built incrementally over one academic semester, verified by 82 o
 | Figure 7.5 | Activity diagram — material ingestion |
 | Figure 7.6.1 | Data flow diagram — Level 0 |
 | Figure 7.6.2 | Data flow diagram — Level 1 |
-| Figure 8.1 | Login and role-based landing |
-| Figure 8.2a / 8.2b | Student dashboard; subject view grouped by teacher |
-| Figure 8.3a / 8.3b | Chat with material-scope panel; cited answer |
-| Figure 8.4a / 8.4b | Quiz taking; result with feedback and weak topics |
-| Figure 8.5a / 8.5b | Flashcard deck generation; flip-study view |
-| Figure 8.6 | Teacher materials with ingestion states |
-| Figure 8.7a / 8.7b | Manual quiz editor; AI-assisted draft review |
-| Figure 8.8a / 8.8b | Per-quiz analytics; student progress roster |
+| Figure 8.1 | Sign-in form (seeded login, no signup) |
+| Figure 8.2 | Student dashboard — hero, quick stats, enrolled subjects |
+| Figure 8.3 | Subject resources grouped by teacher |
+| Figure 8.4 | RAG chat — scope panel, citations, grounded refusal |
+| Figure 8.5 | Published quiz list with scores |
+| Figure 8.6 | Quiz taking view |
+| Figure 8.7 | Result card — grade, areas to review |
+| Figure 8.8 | Question review — correct vs wrong |
+| Figure 8.9 | Flashcard deck list with mastery progress |
+| Figure 8.10 | Flip-study view |
+| Figure 8.11 | Teacher materials with ingestion states |
+| Figure 8.12 | Teacher quiz list — draft/published, manual/AI |
+| Figure 8.13 | Per-quiz analytics — heatmap, distribution, weak topics |
+| Figure 8.14 | Student progress roster with at-risk flags |
+| Figure 8.15 | Teacher dashboard overview |
 
 ## List of Tables (proposed)
 

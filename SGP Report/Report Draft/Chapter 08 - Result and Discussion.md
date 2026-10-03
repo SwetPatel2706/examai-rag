@@ -11,55 +11,69 @@
 - SECURITY AND RELIABILITY RESULTS
 - OVERALL SYSTEM PERFORMANCE
 
-ExamAI was built, tested, and verified end to end as a local prototype: every feature described in the earlier chapters works as designed against the offline test suites (82 backend, 63 frontend) plus manual end-to-end passes over a local run. This chapter walks through the finished screens in the order a user meets them, with a short discussion of each one. (Online deployment is planned but not yet carried out, so all screens below are captured from the local build.)
+ExamAI was built, tested, and verified end to end as a local prototype: every feature described in the earlier chapters works as designed against the offline test suites (82 backend, 63 frontend) plus manual end-to-end passes over a local run. This chapter walks through the finished screens in the order a user meets them, with a short discussion of each one. (Online deployment is planned but not yet carried out, so all screens below are captured from the local build running against seeded demo accounts — the names visible are seed data, not real users.)
 
 ## 8.1 Login and Role-Based Access
 
-A provisioned user logs in with email and password; the backend derives the role from the stored profile and the frontend routes to the student or teacher workspace accordingly. There is no signup page and no client-side role selector — an unregistered email is rejected, and an authenticated user can never reach the other role's routes.
+A provisioned user logs in with email and password; the backend derives the role from the stored profile and the frontend routes to the student or teacher workspace accordingly. The sign-in form offers email and password fields only — there is no signup link and no client-side role selector, so an unregistered email is rejected and an authenticated user can never reach the other role's routes.
 
-[SCREENSHOT REQUIRED: Figure 8.1 — Login page, plus the student vs teacher landing views after login.]
+![Figure 8.1: Sign-in form — email and password only, no signup or role selector.](Screenshot/shared-login-page-signin-form.png)
 
 ## 8.2 Student Dashboard and Subject View
 
-The student dashboard lists enrolled subjects with quick statistics (materials available, quizzes open, decks created). Opening a subject shows its materials grouped by teacher, so multi-teacher subjects stay legible, alongside the subject's published quizzes and the student's flashcard decks. Only `ready` materials appear in the student-facing list; processing or failed items remain a teacher-side concern.
+The student home opens with a study hero panel leading into chat, followed by quick stats (quizzes taken, weak topics, average score) and enrolled-subject cards showing each subject's teachers and the student's progress. The demo account in Figure 8.2 shows three enrolled subjects — including a multi-teacher subject — with per-subject progress bars. Opening a subject (via Resources) shows its materials grouped by teacher with a course/teacher filter, and only `ready` materials appear in this student-facing list; processing or failed items remain a teacher-side concern.
 
-[SCREENSHOT REQUIRED: Figure 8.2a — Student dashboard with enrolled subjects. Figure 8.2b — Subject view with materials grouped by teacher.]
+![Figure 8.2: Student dashboard — study hero, quick stats, and enrolled subjects with teachers and progress.](Screenshot/Student/student-home-dashboard-enrolled-subjects-progress.png)
+
+![Figure 8.3: Subject resources — approved materials grouped by teacher with filter; only ready items are visible to students.](Screenshot/Student/student-resources-approved-materials-course-teacher-filter.png)
 
 ## 8.3 RAG Chat with Material Scope and Citations
 
-The chat view pairs the conversation with a visible material-scope panel: the student ticks which ready materials should ground the session, and the scope travels with every question. Answers render with numbered citation markers; each citation resolves to the teacher's name, the filename, and the page or slide locator, so a student who doubts a claim knows exactly which material — and whose — to revisit. Requesting material from a subject the student is not enrolled in is refused with a forbidden response before any retrieval runs.
+The chat view pairs the conversation with a visible study-materials panel: the student ticks which ready materials should ground the session (grouped under the owning teacher's name), with the active count always shown. Answers render with numbered citation markers; hovering a marker reveals the teacher and filename, and a citation footer under each answer names the source explicitly. Figure 8.4 demonstrates both halves of the attribution guarantee: the in-corpus question ("What is NLP") receives a grounded answer citing the teacher's file, while the off-corpus question ("who is Donald trump") is refused with "The provided context is insufficient…" instead of hallucinated — the system answers only from approved material.
 
-[SCREENSHOT REQUIRED: Figure 8.3a — Chat view with material-scope panel. Figure 8.3b — Answer with numbered citations and attribution.]
+![Figure 8.4: RAG chat — per-session material scope, numbered citations with teacher/file tooltip, and grounded refusal of an off-corpus question.](Screenshot/Student/student-chat-rag-nlp-cited-answer-teacher-attribution.png)
 
 ## 8.4 Quiz Taking and Feedback
 
-Published quizzes list with topic and question count; taking a quiz runs under its configured time limit. On submission the server grades the attempt and returns the score with per-question feedback (correct choice vs chosen choice) and the derived weak topics, which the student can carry back into chat or flashcards for targeted revision. Re-submitting an attempt is idempotent — the score is not duplicated.
+The quiz list shows published quizzes with completion state and scores; taking a quiz runs question by question under its configured flow. On submission the server grades the attempt and returns a grade card (Figure 8.7 shows a D at 50%, 3 of 6 correct) with an "Areas to Review" breakdown by topic tag (SDLC 67%, Requirements 33%), followed by a full question review marking each response correct or wrong with the correct choice shown. Re-submitting an attempt is idempotent — the score is not duplicated.
 
-[SCREENSHOT REQUIRED: Figure 8.4a — Published quiz list and quiz-taking view. Figure 8.4b — Result view with per-question feedback and weak topics.]
+![Figure 8.5: Published quiz list with completed scores.](Screenshot/Student/student-quizzes-available-list-completed-scores.png)
+
+![Figure 8.6: Quiz taking — one question at a time with selected option.](Screenshot/Student/student-quiz-taking-se-fundamentals-q1-design-phase.png)
+
+![Figure 8.7: Result card — grade, score, and per-topic areas to review.](Screenshot/Student/student-quiz-result-se-fundamentals-score-50pct-areas-to-review.png)
+
+![Figure 8.8: Question review — per-question correct/wrong marking against the correct choice.](Screenshot/Student/student-quiz-result-question-review-q1-q3-correct-vs-wrong.png)
 
 ## 8.5 Flashcard Generation and Study
 
-From any selected material set the student generates a named deck; cards are studied in a flip view and marked still-learning or mastered, moving the card between `new`, `learning`, and `mastered` states. Decks are personal to the student and record the source material identifiers used at generation, so a deck can always be traced back to what it was built from.
+From any selected material set the student generates a named deck; the deck list tracks per-deck mastery progress. Cards are studied in a flip view (question front, answer back) and marked still-learning or mastered, moving the card between `new`, `learning`, and `mastered` states. Decks are personal to the student and record the source material identifiers used at generation, so a deck can always be traced back to what it was built from.
 
-[SCREENSHOT REQUIRED: Figure 8.5a — Deck list and generation from selected materials. Figure 8.5b — Flip-study view with mastery controls.]
+![Figure 8.9: Flashcard deck list with mastery progress.](Screenshot/Student/student-flashcards-deck-list-mastery-progress.png)
+
+![Figure 8.10: Flip-study view — question front with answer reveal and mastery controls.](Screenshot/Student/student-flashcard-study-question-array-complexity.png)
 
 ## 8.6 Teacher Material Management
 
-The teacher materials view lists every file in the subject with owner, type, and live status. Uploads accept PDF, PPTX, and DOCX within the size limit and enter `processing`; successful ingestion flips them to `ready`, failures to `failed` with retry exposed, and deletion removes both the record and its vectors. Co-teachers of a subject see shared materials without gaining edit rights over another teacher's files.
+The teacher materials view lists every file in the subject with owner, type, and live ingestion status. Uploads accept PDF, PPTX, and DOCX within the size limit and enter `processing`; successful ingestion flips them to `ready`, failures to `failed` with retry exposed, and deletion removes both the record and its vectors. Co-teachers of a subject see shared materials without gaining edit rights over another teacher's files.
 
-[SCREENSHOT REQUIRED: Figure 8.6 — Teacher materials table showing processing / ready / failed states and retry/delete actions.]
+![Figure 8.11: Teacher materials — upload, owner/type columns, live status, retry and delete actions.](Screenshot/Teacher/teacher-resources-materials-upload-manage-ready-status.png)
 
 ## 8.7 Teacher Quiz Authoring and Publishing
 
-Teachers author quizzes manually question by question, or request an AI-assisted draft generated from ready material — both paths produce the same question shape (text, options, correct option, topic tag, difficulty). AI drafts land as drafts: the teacher edits, approves, and only then publishes, at which point the quiz becomes visible to every enrolled student in the subject.
+The quiz list states the fairness rule directly: "All students in a subject take the same published quiz." Each card carries a Draft/Published badge and a Manual/AI source tag, with Edit, Publish, and delete actions — drafts expose a Publish button while published quizzes do not. Teachers author manually question by question, or request an AI-assisted draft generated from ready material; both paths produce the same question shape, and AI drafts remain drafts until reviewed and published.
 
-[SCREENSHOT REQUIRED: Figure 8.7a — Manual quiz editor. Figure 8.7b — AI-assisted generation and draft review before publish.]
+![Figure 8.12: Teacher quiz list — draft/published badges, manual/AI source tags, publish flow.](Screenshot/Teacher/teacher-quizzes-list-draft-published-manual-ai.png)
 
 ## 8.8 Teacher Analytics and Student Progress
 
-The analytics design deliberately separates per-quiz analysis from cross-quiz student progress. Per-quiz analytics show a question-accuracy heatmap, grade distribution, and weak topics — answering "how did this quiz go?". Student progress shows a roster with average score, completion ratio, last activity, at-risk flags with stated reasons, and drill-down detail — answering "how is this student doing?". Keeping these read models separate avoids forcing two different questions into one overloaded query.
+The analytics design deliberately separates per-quiz analysis from cross-quiz student progress. The per-quiz view (Figure 8.13, captured on a 17-student class with 16/17 completion and a 79% average) shows a question-accuracy heatmap with a Good/OK/Weak/Poor key, an A–F grade distribution, and the derived weak topic ("Indexing" at 69% class accuracy) — answering "how did this quiz go?". The student progress roster (Figure 8.14) lists every student with average score, completion bar, last-active date, and an At Risk / On Track badge, with a "7 at-risk" summary counter, name search, and subject filter on top and a drill-down chevron per row — answering "how is this student doing?". The teacher dashboard adds an at-a-glance overview of active students and grade distribution. Keeping these read models separate avoids forcing two different questions into one overloaded query.
 
-[SCREENSHOT REQUIRED: Figure 8.8a — Per-quiz analytics (heatmap, grade distribution, weak topics). Figure 8.8b — Student progress roster with at-risk flags and drill-down.]
+![Figure 8.13: Per-quiz analytics — class stats, accuracy heatmap, grade distribution, weak topics.](Screenshot/Teacher/teacher-analytics-per-quiz-heatmap-grade-weak-topics.png)
+
+![Figure 8.14: Student progress roster — averages, completion, at-risk flags with drill-down.](Screenshot/Teacher/teacher-student-progress-roster-avg-score-at-risk.png)
+
+![Figure 8.15: Teacher dashboard overview — active students and grade distribution at a glance.](Screenshot/Teacher/teacher-dashboard-overview-active-students-grade-distribution.png)
 
 ## 8.9 Security and Reliability Results
 

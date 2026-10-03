@@ -33,7 +33,7 @@ The domain centres on Subject: teachers join it through membership, students thr
 
 ![Figure 7.3: Use-case diagram](figures/fig73_usecase.png)
 
-Both roles share the secure authentication boundary; every subject-scoped use case includes a membership/enrollment check.
+Both roles authenticate through the same sign-in flow. Subject-scoped requests are authorized against the caller’s teacher assignment or student enrollment before protected data is returned or changed.
 
 ## 7.4 Sequence Diagram
 
@@ -57,7 +57,7 @@ At the highest level, students and teachers interact with ExamAI. ExamAI communi
 
 ### 7.6.2 Level 1 DFD
 
-The level-one flow separates authentication, subject access, material ingestion, RAG chat, quiz management, flashcard generation, and analytics. Authorization is a cross-cutting control on every subject-scoped flow. Material metadata flows from Postgres into Qdrant payloads during ingestion and returns from Qdrant as citation metadata during chat.
+The level-one flow separates authentication, subject access, material ingestion, RAG chat, quiz management, flashcard generation, and analytics. Authorization is checked by the services handling subject-scoped requests. During ingestion, material, teacher, and subject identifiers are stored in each Qdrant payload; retrieval filters by subject and selected material identifiers, and citation resolution uses the returned payload metadata.
 
 ![Figure 7.6.2: Level 1 DFD](figures/fig762_dfd1.png)
 

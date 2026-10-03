@@ -21,7 +21,7 @@ A provisioned user logs in with email and password; the backend derives the role
 
 ## 8.2 Student Dashboard and Subject View
 
-The student home opens with a study hero panel leading into chat, followed by quick stats (quizzes taken, weak topics, average score) and enrolled-subject cards showing each subject's teachers and the student's progress. The demo account in Figure 8.2 shows three enrolled subjects — including a multi-teacher subject — with per-subject progress bars. Opening a subject (via Resources) shows its materials grouped by teacher with a course/teacher filter, and only `ready` materials appear in this student-facing list; processing or failed items remain a teacher-side concern.
+The student home opens with a study hero panel leading into chat, followed by quick stats (quizzes taken, weak topics, average score) and enrolled-subject cards showing each subject's teachers and the student's progress. The demo account in Figure 8.2 shows three enrolled subjects — including multi-teacher subjects — with per-subject progress bars. The Resources view (Figure 8.3) states the ownership promise directly — "Materials approved by your teachers, grouped by course" — with browse-by-course pills, filter-by-teacher checkboxes, a Recently Added strip, and an All Materials table (name, course, date, size, owner). Only `ready` materials appear in this student-facing list; processing or failed items remain a teacher-side concern.
 
 ![Figure 8.2: Student dashboard — study hero, quick stats, and enrolled subjects with teachers and progress.](Screenshot/Student/student-home-dashboard-enrolled-subjects-progress.png)
 
@@ -35,11 +35,11 @@ The chat view pairs the conversation with a visible study-materials panel: the s
 
 ## 8.4 Quiz Taking and Feedback
 
-The quiz list shows published quizzes with completion state and scores; taking a quiz runs question by question under its configured flow. On submission the server grades the attempt and returns a grade card (Figure 8.7 shows a D at 50%, 3 of 6 correct) with an "Areas to Review" breakdown by topic tag (SDLC 67%, Requirements 33%), followed by a full question review marking each response correct or wrong with the correct choice shown. Re-submitting an attempt is idempotent — the score is not duplicated.
+The quiz list (Figure 8.5) shows four published quizzes across the student's subjects, each naming its authoring teacher: completed ones carry a Completed badge with the score and a View Results action, while the unattempted one offers Start Quiz. Taking a quiz (Figure 8.6) presents one question at a time under a visible countdown timer with Previous/Next navigation and progress dots. On submission the server grades the attempt and returns a grade card (Figure 8.7 shows a D at 50%, 3 of 6 correct) with an "Areas to Review" breakdown by topic tag (SDLC 67%, Requirements 33%), followed by a full question review (Figure 8.8) marking each response — the student's wrong pick highlighted in red against the correct choice in green, as seen in Q2 where the chosen distractor and the correct answer are shown side by side. Re-submitting an attempt is idempotent — the score is not duplicated.
 
 ![Figure 8.5: Published quiz list with completed scores.](Screenshot/Student/student-quizzes-available-list-completed-scores.png)
 
-![Figure 8.6: Quiz taking — one question at a time with selected option.](Screenshot/Student/student-quiz-taking-se-fundamentals-q1-design-phase.png)
+![Figure 8.6: Quiz taking — one question at a time under a visible countdown with Previous/Next navigation.](Screenshot/Student/student-quiz-taking-se-fundamentals-q1-design-phase.png)
 
 ![Figure 8.7: Result card — grade, score, and per-topic areas to review.](Screenshot/Student/student-quiz-result-se-fundamentals-score-50pct-areas-to-review.png)
 
@@ -47,7 +47,7 @@ The quiz list shows published quizzes with completion state and scores; taking a
 
 ## 8.5 Flashcard Generation and Study
 
-From any selected material set the student generates a named deck; the deck list tracks per-deck mastery progress. Cards are studied in a flip view (question front, answer back) and marked still-learning or mastered, moving the card between `new`, `learning`, and `mastered` states. Decks are personal to the student and record the source material identifiers used at generation, so a deck can always be traced back to what it was built from.
+From any selected material set the student generates a named deck via the Generate New Deck action; the deck list (Figure 8.9) shows two personal decks with card counts, mastered counts, and mastery bars (8 cards / 4 mastered / 50%; 10 cards / 3 mastered / 30%). Cards are studied in a flip view (Figure 8.10 shows card 1 of 8 in "Data Structures Quick Cards" with tap-to-reveal) and marked still-learning or mastered, moving the card between `new`, `learning`, and `mastered` states. Decks are personal to the student and record the source material identifiers used at generation, so a deck can always be traced back to what it was built from.
 
 ![Figure 8.9: Flashcard deck list with mastery progress.](Screenshot/Student/student-flashcards-deck-list-mastery-progress.png)
 
@@ -55,9 +55,9 @@ From any selected material set the student generates a named deck; the deck list
 
 ## 8.6 Teacher Material Management
 
-The teacher materials view lists every file in the subject with owner, type, and live ingestion status. Uploads accept PDF, PPTX, and DOCX within the size limit and enter `processing`; successful ingestion flips them to `ready`, failures to `failed` with retry exposed, and deletion removes both the record and its vectors. Co-teachers of a subject see shared materials without gaining edit rights over another teacher's files.
+The teacher materials view ("Resources & Materials") states its sharing rule directly: "Co-teacher materials are visible but read-only." A drag-and-drop upload zone accepts PDF, PPTX, and DOCX with per-subject tabs, and the All Materials table lists file, subject, owner, status, and upload date. The Owner column distinguishes the teacher's own files ("You", editable) from a co-teacher's (visible only), and the captured rows show Ready badges — the `processing` and `failed` states with retry, plus deletion, are handled by the same pipeline (Section 7.5) and covered in testing (Chapter 6).
 
-![Figure 8.11: Teacher materials — upload, owner/type columns, live status, retry and delete actions.](Screenshot/Teacher/teacher-resources-materials-upload-manage-ready-status.png)
+![Figure 8.11: Teacher materials — upload dropzone, subject tabs, owner column separating own vs co-teacher files, Ready status badges.](Screenshot/Teacher/teacher-resources-materials-upload-manage-ready-status.png)
 
 ## 8.7 Teacher Quiz Authoring and Publishing
 
@@ -67,13 +67,13 @@ The quiz list states the fairness rule directly: "All students in a subject take
 
 ## 8.8 Teacher Analytics and Student Progress
 
-The analytics design deliberately separates per-quiz analysis from cross-quiz student progress. The per-quiz view (Figure 8.13, captured on a 17-student class with 16/17 completion and a 79% average) shows a question-accuracy heatmap with a Good/OK/Weak/Poor key, an A–F grade distribution, and the derived weak topic ("Indexing" at 69% class accuracy) — answering "how did this quiz go?". The student progress roster (Figure 8.14) lists every student with average score, completion bar, last-active date, and an At Risk / On Track badge, with a "7 at-risk" summary counter, name search, and subject filter on top and a drill-down chevron per row — answering "how is this student doing?". The teacher dashboard adds an at-a-glance overview of active students and grade distribution. Keeping these read models separate avoids forcing two different questions into one overloaded query.
+The analytics design deliberately separates per-quiz analysis from cross-quiz student progress. The per-quiz view (Figure 8.13, captured on a 17-student class with 16/17 completion and a 79% average) shows a question-accuracy heatmap with a Good/OK/Weak/Poor key, an A–F grade distribution, and the derived weak topic ("Indexing" at 69% class accuracy) — answering "how did this quiz go?". The student progress roster (Figure 8.14) lists every student with average score, completion bar, last-active date, and an At Risk / On Track badge, with a "7 at-risk" summary counter, name search, and subject filter on top and a drill-down chevron per row — answering "how is this student doing?". The teacher dashboard (Figure 8.15) adds an at-a-glance overview: active students, subject materials, quizzes created, and average section score (22 / 7 / 6 / 70% in the capture), with a recent-activity feed of who completed which quiz at what score, a grade-distribution summary, and an AI-insights card. Keeping these read models separate avoids forcing two different questions into one overloaded query.
 
 ![Figure 8.13: Per-quiz analytics — class stats, accuracy heatmap, grade distribution, weak topics.](Screenshot/Teacher/teacher-analytics-per-quiz-heatmap-grade-weak-topics.png)
 
 ![Figure 8.14: Student progress roster — averages, completion, at-risk flags with drill-down.](Screenshot/Teacher/teacher-student-progress-roster-avg-score-at-risk.png)
 
-![Figure 8.15: Teacher dashboard overview — active students and grade distribution at a glance.](Screenshot/Teacher/teacher-dashboard-overview-active-students-grade-distribution.png)
+![Figure 8.15: Teacher dashboard overview — activity stats, recent completions, grade distribution, AI insights.](Screenshot/Teacher/teacher-dashboard-overview-active-students-grade-distribution.png)
 
 ## 8.9 Security and Reliability Results
 

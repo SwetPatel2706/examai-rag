@@ -65,4 +65,6 @@ Table 4.4: Non-functional requirements.
 | Data & files | Supabase Postgres + Auth + private Storage |
 | Tooling | Git & GitHub; FastAPI Swagger UI (`/docs`); pytest (82 backend tests); Vitest + Testing Library (63 frontend tests) |
 
+Table 4.5: Software stack (as used).
+
 **Server Hosting Requirement.** The system is developed and verified as a local prototype and is deployment-ready: the FastAPI backend runs under Uvicorn, the frontend builds to static assets via Vite, and data, authentication, and file storage target managed Supabase (Postgres) with vector search on Qdrant Cloud. The reference production layout is Render.com (backend API) + static frontend hosting + managed Supabase and Qdrant services. The application has not yet been deployed online; deployment remains planned future work.

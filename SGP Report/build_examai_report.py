@@ -183,6 +183,7 @@ def split_label(label):
 def parse_front_matter():
     fm = parse_md(DRAFT / "Chapter 00 - Front Matter.md")
     abstract, lof, lot, abbr = [], None, None, []
+    company = []
     section = None
     for kind, pay in fm:
         if kind in ("h1", "h2"):
@@ -191,6 +192,9 @@ def parse_front_matter():
         if section and "abstract" in section:
             if kind == "para":
                 abstract.append(pay)
+        elif section and "company profile" in section:
+            if kind == "para":
+                company.append(pay)
         elif section and "list of figures" in section:
             if kind == "table":
                 lof = pay
@@ -206,13 +210,15 @@ def parse_front_matter():
             abstract_file.read_text(encoding="utf-8").split())]
     bib = parse_md(DRAFT / "Bibliography.md")
     bib_entries = [p for k, p in bib if k in ("bullet", "para")]
-    return abstract, lof, lot, abbr, bib_entries
+    return abstract, lof, lot, abbr, bib_entries, company
 
 
 # ================================================================ DOCX build
-def build_docx(toc=None) -> Path:
+def build_docx(toc=None, fig_pages=None, tab_pages=None) -> Path:
     """Build the DOCX. toc optionally carries [(level, title, page-no str)]
-    from the PDF pass so the TOC prints numbered dot-leader entries."""
+    from the PDF pass so the TOC prints numbered dot-leader entries.
+    fig_pages/tab_pages optionally map 'figure n'/'table n' -> page-no str
+    so the List of Figures/Tables prints a Page No. column like the PDF."""
     from docx import Document
     from docx.enum.section import WD_SECTION
     from docx.enum.text import (WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT,
@@ -381,7 +387,7 @@ def build_docx(toc=None) -> Path:
         set_section_header_footer(s, header_right)
         return s
 
-    abstract, lof, lot, abbr, bib_entries = parse_front_matter()
+    abstract, lof, lot, abbr, bib_entries, company = parse_front_matter()
 
     # ---------- recreated frontmatter (editable) ----------
     add_centered("PROJECT REPORT", 16)
@@ -459,6 +465,12 @@ def build_docx(toc=None) -> Path:
     for p_ in abstract:
         add_para(p_)
 
+    if company:
+        doc.add_page_break()
+        add_centered("COMPANY PROFILE", 16)
+        for p_ in company:
+            add_para(p_)
+
     doc.add_page_break()
     add_centered("TABLE OF CONTENT", 16)
     p = doc.add_paragraph()
@@ -489,14 +501,23 @@ def build_docx(toc=None) -> Path:
         r.font.name = "Calibri"
         r.font.size = Pt(11)
 
+    def with_pages(tbl, pages):
+        headers, rows, _cap = tbl
+        if not pages:
+            return headers, rows
+        return (headers + ["Page No."],
+                [r + [pages.get(r[0].lower(), "")] for r in rows])
+
     if lof:
         doc.add_page_break()
         add_centered("LIST OF FIGURES", 16)
-        add_table(lof[0], lof[1], caption=None)
+        h, r = with_pages(lof, fig_pages)
+        add_table(h, r, caption=None)
     if lot:
         doc.add_page_break()
         add_centered("LIST OF TABLES", 16)
-        add_table(lot[0], lot[1], caption=None)
+        h, r = with_pages(lot, tab_pages)
+        add_table(h, r, caption=None)
     if abbr:
         doc.add_page_break()
         add_centered("ABBREVIATIONS", 16)
@@ -586,7 +607,7 @@ def build_body_pdf() -> Path:
     MT, MB = 56, 62
     FW = PAGE_W - ML - MR  # 432
 
-    abstract, lof, lot, abbr, bib_entries = parse_front_matter()
+    abstract, lof, lot, abbr, bib_entries, company = parse_front_matter()
 
     sTitle = ParagraphStyle("Title", fontName="Helvetica-Bold", fontSize=17,
                             leading=21, alignment=TA_CENTER, spaceAfter=12)
@@ -805,7 +826,9 @@ def build_body_pdf() -> Path:
 
     def static_heads():
         """Full heading order, so pass-1 pagination matches pass 2."""
-        heads = []
+        heads = [(0, "ABSTRACT"), (0, "COMPANY PROFILE"),
+                 (0, "LIST OF FIGURES"), (0, "LIST OF TABLES"),
+                 (0, "ABBREVIATIONS")]
         for fname, label in CHAPTERS:
             heads.append((0, label))
             for kind, pay in parse_md(DRAFT / fname):
@@ -813,6 +836,7 @@ def build_body_pdf() -> Path:
                     heads.append((1, pay[:80]))
                 elif kind == "h3":
                     heads.append((2, pay[:80]))
+        heads.append((0, "BIBLIOGRAPHY"))
         return heads
 
     STATIC_HEADS = static_heads()
@@ -824,6 +848,11 @@ def build_body_pdf() -> Path:
         # ---- front section (roman) ----
         story.append(Paragraph("ABSTRACT", sTitle))
         for p_ in abstract:
+            story.append(para(p_))
+        story.append(PageBreak())
+
+        story.append(Paragraph("COMPANY PROFILE", sTitle))
+        for p_ in company:
             story.append(para(p_))
         story.append(PageBreak())
 
@@ -932,6 +961,13 @@ def build_body_pdf() -> Path:
                 REC["heads"].append((0, clean[:70], doc.page))
         elif st == "H1" and clean == "BIBLIOGRAPHY":
             REC["chapter"] = clean
+            if REC["collect"]:
+                REC["heads"].append((0, clean, doc.page))
+        elif st == "Title" and clean in ("ABSTRACT", "COMPANY PROFILE",
+                                         "LIST OF FIGURES", "LIST OF TABLES",
+                                         "ABBREVIATIONS"):
+            if REC["collect"]:
+                REC["heads"].append((0, clean, doc.page))
         elif st == "OpNum":
             REC["_pending"] = clean[:20]
             REC["body_pages"].append(doc.page)
@@ -973,6 +1009,8 @@ def build_body_pdf() -> Path:
     # Numbered TOC entries for reuse (e.g. the DOCX TOC).
     numbered_heads = [(lvl, re.sub(r"\s+", " ", t), disp_num(p))
                       for lvl, t, p in REC["heads"]]
+    fig_pages = {k: disp_num(p) for k, p in dict(REC["figs"]).items()}
+    tab_pages = {k: disp_num(p) for k, p in dict(REC["tabs"]).items()}
 
     # Pass 2: final build with numbered TOC / lists (keep pass-1 records).
     REC["collect"] = False
@@ -981,7 +1019,7 @@ def build_body_pdf() -> Path:
     doc.build(assemble(numbered=True))
     print(f"wrote {OUT_BODY_PDF} (body pages: {body_pages}, "
           f"front pages: {REC['front_count']})")
-    return OUT_BODY_PDF, numbered_heads
+    return OUT_BODY_PDF, numbered_heads, fig_pages, tab_pages
 
 
 def merge_final():
@@ -1010,10 +1048,10 @@ if __name__ == "__main__":
     which = set(sys.argv[1:]) or {"docx", "pdf", "merge"}
     # PDF first: its two-pass layout produces the TOC page numbers that the
     # DOCX TOC reuses (shared page size/margins).
-    heads = None
+    heads, fig_pages, tab_pages = None, None, None
     if "pdf" in which:
-        _, heads = build_body_pdf()
+        _, heads, fig_pages, tab_pages = build_body_pdf()
     if "docx" in which:
-        build_docx(toc=heads)
+        build_docx(toc=heads, fig_pages=fig_pages, tab_pages=tab_pages)
     if "merge" in which:
         merge_final()

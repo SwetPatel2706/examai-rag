@@ -56,25 +56,25 @@ There is no external company for this Software Group Project. ExamAI is an in-ho
 | Figure 8.1 | System architecture |
 | Figure 8.2 | Class diagram |
 | Figure 8.3 | Use-case diagram |
-| Figure 8.4 | Sequence diagram — RAG chat |
-| Figure 8.5 | Activity diagram — material ingestion |
-| Figure 8.6.1 | Data flow diagram — Level 0 |
-| Figure 8.6.2 | Data flow diagram — Level 1 |
-| Figure 9.1 | Sign-in form (seeded login, no signup) |
-| Figure 9.2 | Student dashboard — hero, quick stats, enrolled subjects |
-| Figure 9.3 | Subject resources grouped by teacher |
-| Figure 9.4 | RAG chat — scope panel, citations, grounded refusal |
+| Figure 8.4 | RAG chat sequence |
+| Figure 8.5 | Material ingestion activity |
+| Figure 8.6.1 | Level 0 DFD |
+| Figure 8.6.2 | Level 1 DFD |
+| Figure 9.1 | Sign-in form — email and password only, no signup or role selector |
+| Figure 9.2 | Student dashboard — study hero, quick stats, and enrolled subjects with teachers and progress |
+| Figure 9.3 | Subject resources — approved materials grouped by teacher with filter; only ready items are visible to students |
+| Figure 9.4 | RAG chat — per-session material scope, numbered citations with teacher/file tooltip, and grounded refusal of an off-corpus question |
 | Figure 9.5 | Published quiz list with scores |
-| Figure 9.6 | Quiz taking view |
-| Figure 9.7 | Result card — grade, areas to review |
-| Figure 9.8 | Question review — correct vs wrong |
+| Figure 9.6 | Quiz taking — one question at a time under a visible countdown with Previous/Next navigation |
+| Figure 9.7 | Result card — grade, score, and per-topic areas to review |
+| Figure 9.8 | Question review — per-question correct/wrong marking against the correct choice |
 | Figure 9.9 | Flashcard deck list with mastery progress |
-| Figure 9.10 | Flip-study view |
-| Figure 9.11 | Teacher materials with ingestion states |
-| Figure 9.12 | Teacher quiz list — draft/published, manual/AI |
-| Figure 9.13 | Per-quiz analytics — heatmap, distribution, weak topics |
-| Figure 9.14 | Student progress roster with at-risk flags |
-| Figure 9.15 | Teacher dashboard overview |
+| Figure 9.10 | Flip-study view — question front with answer reveal and mastery controls |
+| Figure 9.11 | Teacher materials — upload dropzone, subject tabs, owner column separating own vs co-teacher files, Ready status badges |
+| Figure 9.12 | Teacher quiz list — draft/published badges, manual/AI source tags, publish flow |
+| Figure 9.13 | Per-quiz analytics — class stats, accuracy heatmap, grade distribution, weak topics |
+| Figure 9.14 | Student progress roster — averages, completion, at-risk flags with drill-down |
+| Figure 9.15 | Teacher dashboard overview — activity stats, recent completions, grade distribution, AI insights |
 
 ## List of Tables (proposed)
 
@@ -87,6 +87,7 @@ There is no external company for this Software Group Project. ExamAI is an in-ho
 | Table 3.4 | Risk management |
 | Table 4.2 | Functional requirements |
 | Table 4.4 | Non-functional requirements |
+| Table 4.5 | Software stack (as used) |
 | Table 7.1 | Representative test cases |
 | Table 8.1 | System architecture layers and responsibilities |
 | Table 12.1 | Product deployment layout |
@@ -98,18 +99,24 @@ There is no external company for this Software Group Project. ExamAI is an in-ho
 |---|---|
 | AI | Artificial Intelligence |
 | API | Application Programming Interface |
+| CORS | Cross-Origin Resource Sharing |
 | CRUD | Create, Read, Update, Delete |
+| CSS | Cascading Style Sheets |
 | DFD | Data Flow Diagram |
 | DOCX | Word Open XML Document |
 | HTTP | HyperText Transfer Protocol |
 | JSON | JavaScript Object Notation |
+| JSX | JavaScript XML |
 | JWT | JSON Web Token |
 | LLM | Large Language Model |
+| LMS | Learning Management System |
+| MOOC | Massive Open Online Course |
 | ORM | Object Relational Mapping |
 | PDF | Portable Document Format |
 | PPTX | PowerPoint Open XML Presentation |
 | RAG | Retrieval-Augmented Generation |
 | REST | Representational State Transfer |
+| SDK | Software Development Kit |
 | SQL | Structured Query Language |
 | UI | User Interface |
 | UX | User Experience |

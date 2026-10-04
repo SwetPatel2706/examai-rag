@@ -230,24 +230,41 @@ def build_docx(toc=None) -> Path:
         p.paragraph_format.space_after = Pt(space_after)
         return p
 
-    def add_para(text):
-        # light inline-code handling: `x` -> Consolas
-        p = doc.add_paragraph()
-        for j, chunk in enumerate(re.split(r"(`[^`]+`)", text)):
+    def add_runs(p, text, size=11):
+        # inline markdown: `code` -> Consolas, **bold**, *italic*
+        parts = re.split(r"(`[^`]+`|\*\*.+?\*\*|(?<!\*)\*[^*\n]+?\*(?!\*))",
+                         text)
+        for chunk in parts:
             if not chunk:
                 continue
-            r = p.add_run(chunk[1:-1] if chunk.startswith("`") else chunk)
-            r.font.name = "Calibri" if not chunk.startswith("`") else "Consolas"
-            r.font.size = Pt(11)
+            r = p.add_run()
+            if chunk.startswith("`") and chunk.endswith("`"):
+                r.text = chunk[1:-1]
+                r.font.name = "Consolas"
+            elif chunk.startswith("**") and chunk.endswith("**"):
+                r.text = chunk[2:-2]
+                r.font.name = "Calibri"
+                r.bold = True
+            elif (chunk.startswith("*") and chunk.endswith("*")
+                    and len(chunk) > 2):
+                r.text = chunk[1:-1]
+                r.font.name = "Calibri"
+                r.italic = True
+            else:
+                r.text = chunk
+                r.font.name = "Calibri"
+            r.font.size = Pt(size)
+        return p
+
+    def add_para(text):
+        p = add_runs(doc.add_paragraph(), text)
         p.paragraph_format.space_after = Pt(6)
         return p
 
     def add_bullet(text):
         p = doc.add_paragraph(style="List Bullet")
         p.clear()
-        r = p.add_run(text)
-        r.font.name = "Calibri"
-        r.font.size = Pt(11)
+        add_runs(p, text)
         return p
 
     def add_table(headers, rows, caption=None, fontsize=9.5):
@@ -266,9 +283,7 @@ def build_docx(toc=None) -> Path:
                 c = t.cell(ri, j)
                 c.text = ""
                 val = row[j] if j < len(row) else ""
-                r = c.paragraphs[0].add_run(val)
-                r.font.name = "Calibri"
-                r.font.size = Pt(fontsize)
+                add_runs(c.paragraphs[0], val, size=fontsize)
         doc.add_paragraph().paragraph_format.space_after = Pt(2)
         if caption:
             p = doc.add_paragraph()
@@ -614,26 +629,32 @@ def build_body_pdf() -> Path:
                                      .replace("<", "&lt;")
                                      .replace(">", "&gt;"), s)
 
-    def para(text):
-        # `code` -> courier
-        parts = re.split(r"(`[^`]+`)", text)
+    def inline_xml(text):
+        # inline markdown: `code` -> Courier, **bold**, *italic*
+        esc = (text.replace("&", "&amp;").replace("<", "&lt;")
+               .replace(">", "&gt;"))
+        esc = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc)
+        esc = re.sub(r"(?<!\*)\*([^*\n]+?)\*(?!\*)", r"<i>\1</i>", esc)
+        parts = re.split(r"(`[^`]+`)", esc)
         xml = ""
         for ch in parts:
-            ch = ch.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            if ch.startswith("`"):
+            if ch.startswith("`") and ch.endswith("`"):
                 xml += f'<font face="Courier">{ch[1:-1]}</font>'
             else:
                 xml += ch
-        return Paragraph(xml, sBody)
+        return xml
+
+    def para(text):
+        return Paragraph(inline_xml(text), sBody)
 
     def bullets(text):
-        return Paragraph(text.replace("&", "&amp;"), sBullet,
-                         bulletText="\u2022")
+        return Paragraph(inline_xml(text), sBullet, bulletText="\u2022")
 
     def styled_table(headers, rows, widths=None):
-        data = [[Paragraph(h, sCellH) for h in headers]]
+        data = [[Paragraph(inline_xml(h), sCellH) for h in headers]]
         for row in rows:
-            data.append([Paragraph((row[j] if j < len(row) else ""), sCell)
+            data.append([Paragraph(inline_xml(row[j] if j < len(row) else ""),
+                                   sCell)
                          for j in range(len(headers))])
         cw = widths or ([FW / len(headers)] * len(headers))
         t = Table(data, colWidths=cw, repeatRows=1)

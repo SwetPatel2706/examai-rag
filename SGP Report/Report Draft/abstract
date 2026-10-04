@@ -1,0 +1,18 @@
+ExamAI is a full-stack, AI-powered exam-preparation platform designed to connect students with teacher-
+approved learning material. The platform combines retrieval-augmented generation (RAG) chat, teacher-
+authored shared quizzes, AI-assisted quiz generation, and student-owned flashcard decks in one web
+application. It provides separate workflows for students and teachers while keeping authorization, material
+ownership, and academic comparability explicit in the system design.
+Students can select a subject, choose the approved materials that should scope a study session, ask
+questions, receive answers with teacher and filename attribution, attempt published quizzes, review weak
+topics, and generate flashcards. Teachers can upload PDF, PPTX, and DOCX materials, monitor ingestion
+status, author or generate quizzes, publish shared assessments, and review class-wide analytics.
+The backend uses FastAPI, SQLAlchemy, Alembic, Supabase Postgres and Auth, Gemini, Qdrant Cloud, and
+local sentence-transformer embeddings. The frontend uses React, Vite, React Router, Zustand, Tailwind
+CSS, and reusable interface primitives. The project demonstrates secure role-based access, metadata-
+filtered retrieval, concurrent ingestion protection, structured-output retry handling, server-side quiz
+grading, and measured frontend performance. The current implementation contains 82 offiine backend
+tests and 63 frontend tests.
+The report presents the motivation, objectives, literature and technology overview, project management
+approach, requirements, system analysis, testing, system design, results, limitations, future enhancements,
+and conclusion of the ExamAI project.

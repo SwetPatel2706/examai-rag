@@ -1,9 +1,9 @@
-# Chapter 9 — Limitation and Future Enhancement
+# Chapter 10 — Limitation and Future Enhancement
 
 - LIMITATION
 - FUTURE ENHANCEMENT
 
-## 9.1 Limitation
+## 10.1 Limitation
 
 - ExamAI is a web application only — there is no mobile app yet.
 - Users are provisioned by an explicit seed operation; there is no public signup, password reset, OAuth, or administrator role.
@@ -13,7 +13,7 @@
 - There is no in-app teacher–student messaging or broadcast, and no payment or purchase flow.
 - Analytics describe quiz attempts within the application; they do not claim to measure long-term learning outcomes.
 
-## 9.2 Future Enhancement
+## 10.2 Future Enhancement
 
 - Add hybrid dense-plus-sparse retrieval and compare retrieval quality on a controlled dataset.
 - Add richer source previews (page/slide thumbnails) and material version history.

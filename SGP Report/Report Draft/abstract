@@ -11,8 +11,8 @@ The backend uses FastAPI, SQLAlchemy, Alembic, Supabase Postgres and Auth, Gemin
 local sentence-transformer embeddings. The frontend uses React, Vite, React Router, Zustand, Tailwind
 CSS, and reusable interface primitives. The project demonstrates secure role-based access, metadata-
 filtered retrieval, concurrent ingestion protection, structured-output retry handling, server-side quiz
-grading, and measured frontend performance. The current implementation contains 82 offiine backend
+grading, and measured frontend performance. The current implementation contains 82 offline backend
 tests and 63 frontend tests.
 The report presents the motivation, objectives, literature and technology overview, project management
-approach, requirements, system analysis, testing, system design, results, limitations, future enhancements,
+approach, requirements, system analysis, detail description, testing, system design, results, limitations, future enhancements,
 and conclusion of the ExamAI project.

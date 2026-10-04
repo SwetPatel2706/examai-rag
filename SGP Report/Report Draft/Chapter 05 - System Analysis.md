@@ -50,7 +50,7 @@ The prototype uses open-source frameworks and managed free or development-tier s
 
 ### 5.5.4 Schedule Feasibility
 
-The phased plan in Section 3.2.3 is schedule-feasible because it keeps a stable build ahead of review milestones and explicitly defers non-essential features (personal graded quizzes, messaging, mobile clients, hybrid retrieval). Building in dependency order meant later phases consumed stable contracts instead of waiting on open design decisions.
+The phased plan in Section 3.5.3 is schedule-feasible because it keeps a stable build ahead of review milestones and explicitly defers non-essential features (personal graded quizzes, messaging, mobile clients, hybrid retrieval). Building in dependency order meant later phases consumed stable contracts instead of waiting on open design decisions.
 
 ## 5.6 Features of New System
 

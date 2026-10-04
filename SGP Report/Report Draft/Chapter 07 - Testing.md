@@ -1,10 +1,10 @@
-# Chapter 6 — Testing
+# Chapter 7 — Testing
 
 - BLACK-BOX TESTING
 - WHITE-BOX TESTING
 - TEST CASES
 
-## 6.1 Black-Box Testing
+## 7.1 Black-Box Testing
 
 The following black-box tests check that each feature behaves correctly from a user's point of view, without looking at the underlying code:
 
@@ -20,7 +20,7 @@ The following black-box tests check that each feature behaves correctly from a u
 - Flashcard Testing — deck generation from selected materials produces reviewable cards with mastery states.
 - Analytics Testing — per-quiz and cross-quiz views return their separate read models only to the subject's teachers.
 
-## 6.2 White-Box Testing
+## 7.2 White-Box Testing
 
 The following checks were made against the internal logic of the system:
 
@@ -33,7 +33,7 @@ The following checks were made against the internal logic of the system:
 - Ingestion State Logic — status transitions (processing → ready / failed), retry from failure, and version-safe updates under concurrent operations.
 - API Contract Logic — every endpoint exercised with valid and invalid payloads through the interactive API documentation; standardized response envelopes verified.
 
-## 6.3 Test Cases
+## 7.3 Test Cases
 
 | Test ID | Test Case | Input | Expected Result |
 |---|---|---|---|
@@ -47,6 +47,6 @@ The following checks were made against the internal logic of the system:
 | TC8 | Teacher reads analytics | Per-quiz and progress requests | Separate correct read models returned |
 | TC9 | Frontend stale response | Slow earlier request resolving last | Older response does not overwrite current state |
 
-Table 6.1: Representative test cases — all passing.
+Table 7.1: Representative test cases — all passing.
 
 The backend suite (82 tests across smoke, phase, and review-fix files) runs fully offline in under a second; the frontend suite (63 tests across routes, stores, API client, and components) runs under Vitest. Integration with hosted services (Supabase, Qdrant, Gemini) remains environment-dependent and is covered by manual end-to-end passes rather than automated tests.

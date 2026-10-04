@@ -1,6 +1,9 @@
 # Chapter 3 — Project Management
 
 - PROJECT PLANNING OBJECTIVES
+- SOFTWARE SCOPE
+- RESOURCE
+- PROJECT DEVELOPMENT APPROACH
 - PROJECT SCHEDULING
 - RISK MANAGEMENT
 
@@ -14,17 +17,43 @@
 - Test continuously — offline backend and frontend suites run throughout, not only at the end.
 - Keep a stable, working build ahead of every review milestone, deferring explicit v2 scope rather than destabilizing the core.
 
-## 3.2 Project Scheduling
+## 3.2 Software Scope
 
-### 3.2.1 Basic Principle
+ExamAI is an in-house academic Software Group Project — there is no external company or client. The software scope covers a role-aware web platform with two roles (student, teacher): teacher-owned material ingestion (PDF, PPTX, DOCX), metadata-filtered RAG chat with teacher/file/page citations, shared published quizzes with server-side grading, personal flashcard decks, and class-wide analytics. Out of scope (explicit v2): student-generated graded quizzes, in-app messaging/broadcast, mobile clients, hybrid retrieval, and institutional identity/admin controls.
+
+## 3.3 Resource
+
+### 3.3.1 Human Resource
+
+- Internal Guide (Ms. Shreya Bhatt, Assistant Professor, CSE): scope approval, design and RAG-architecture feedback, milestone reviews, report evaluation.
+- Patel Swet (IU2341230111) — core development: system architecture, backend services, AI/RAG pipeline, data model and API contracts.
+- Khatri Keshav (IU2341230068) — frontend support: study and dashboard interface work.
+- Patel Dhairya (IU2341230041) — backend support: route/handler assistance, validation, service-level support.
+- End users: students and teachers, whose needs define acceptance. (Detailed responsibility split: Section 3.5.4.)
+
+### 3.3.2 Reusable Software Resources
+
+Open-source and managed reusable components (versions as used): React 19, Vite 8, React Router 7, Zustand 5, Tailwind CSS 4; Python 3.14, FastAPI, Uvicorn, SQLAlchemy 2 + Alembic, Pydantic 2; sentence-transformers (`all-MiniLM-L6-v2`), qdrant-client ≥ 1.16, Gemini API (`gemini-2.5-flash` configured default — verify per deployment); Supabase Postgres + Auth + private Storage; Qdrant Cloud; pytest (82 backend tests), Vitest + Testing Library (63 frontend tests).
+
+### 3.3.3 Environment Resource
+
+Local development runs from `backend/` with the canonical `backend/venv/` (Python 3.14.6) plus Node 20.19+/22.12+ for the frontend; migrations via Alembic, demo data via the seed command, Qdrant collection via the provision command. Reference production layout: Render.com (API) + static frontend hosting + managed Supabase and Qdrant services.
+
+## 3.4 Project Development Approach
+
+ExamAI was built with an incremental development model: requirements were converted into data and service contracts, then each phase delivered a vertical slice across backend and frontend, tested offline where possible, and reviewed before the next slice began. External-service risks (model availability, vector-database behaviour, embedding cost) were isolated behind utility and service boundaries, so core logic never depends directly on a vendor response shape. Cleanup and hardening passes followed once features stabilized.
+
+## 3.5 Project Scheduling
+
+### 3.5.1 Basic Principle
 
 The project was built in layers, one on top of the other: authentication and the relational data model first, then subject and material management, then the ingestion pipeline, then RAG chat, then quizzes and flashcards, and finally analytics and hardening. Each layer was verified on its own — for example, retrieval filtering was tested against seeded data before any generation feature consumed it — so problems were caught early, one layer at a time.
 
-### 3.2.2 Compartmentalization
+### 3.5.2 Compartmentalization
 
-The system was split into clear, separate modules so each part could be built and tested on its own: a data layer (users, subjects, memberships, materials, quizzes, attempts, decks), a backend service layer (ingestion, retrieval, generation, grading, analytics), an API layer of thin route handlers, and a frontend layer (pages, stores, API client). The Pydantic schemas shared between the API and the model-output contracts act as the agreed interfaces between modules. Splitting the work this way meant a bug in one module rarely affected the others, and responsibilities could be divided among team members along module lines (Section 3.2.4).
+The system was split into clear, separate modules so each part could be built and tested on its own: a data layer (users, subjects, memberships, materials, quizzes, attempts, decks), a backend service layer (ingestion, retrieval, generation, grading, analytics), an API layer of thin route handlers, and a frontend layer (pages, stores, API client). The Pydantic schemas shared between the API and the model-output contracts act as the agreed interfaces between modules. Splitting the work this way meant a bug in one module rarely affected the others, and responsibilities could be divided among team members along module lines (Section 3.5.4).
 
-### 3.2.3 Work Breakdown Structure
+### 3.5.3 Work Breakdown Structure
 
 | Phase | Primary work | Main outcome |
 |---|---|---|
@@ -39,7 +68,7 @@ The system was split into clear, separate modules so each part could be built an
 
 Table 3.1: Work breakdown structure.
 
-### 3.2.4 Project Organization
+### 3.5.4 Project Organization
 
 - **Internal Guide (Ms. Shreya Bhatt, Assistant Professor, CSE):** guides and reviews the project — scope approval, design and RAG-architecture feedback, milestone reviews, and report evaluation.
 - **Patel Swet (IU2341230111) — core development:** system architecture, backend services and integration, AI/RAG pipeline (ingestion, retrieval, citations, generation, retries), data model and API contracts, and overall technical integration.
@@ -49,9 +78,9 @@ Table 3.1: Work breakdown structure.
 
 This allocation reflects the work actually performed: the core AI/RAG architecture, retrieval pipeline, and system integration were built by Swet; Keshav and Dhairya hold contained, viva-explainable responsibilities in the frontend and supporting backend respectively.
 
-### 3.2.5 Timeline Chart
+### 3.5.5 Timeline Chart
 
-#### 3.2.5.1 Time Allocation
+#### 3.5.5.1 Time Allocation
 
 Development ran over fourteen weeks, from the last week of July 2026 to the last week of October 2026 (repository history: first commit 24 Jul 2026), ahead of the November 2026 submission.
 
@@ -63,9 +92,23 @@ Development ran over fourteen weeks, from the last week of July 2026 to the last
 | Testing | 2 weeks (2 – 15 Oct) | Offline backend suite, frontend suite, manual end-to-end passes, bug fixes. |
 | Hardening & documentation | 2 weeks (16 – 29 Oct) | Auth/concurrency review, cleanup, report writing, demo preparation. |
 
-Table 3.2.5.1: Time allocation.
+Table 3.2: Time allocation.
 
-## 3.3 Risk Management
+#### 3.5.5.2 Task Sets
+
+| Task set | Tasks |
+|---|---|
+| Requirements | Literature survey (Chapter 2), role/scope definition, API and data-model contracts. |
+| Design | Relational schema + migrations, service boundaries, ingestion/retrieval contracts, UI layout. |
+| Build | Auth → subjects/materials → ingestion → RAG chat → quizzes → flashcards → analytics, in dependency order. |
+| Verification | 82 offline backend tests, 63 frontend tests, manual end-to-end passes, concurrency and auth review. |
+| Documentation | Report chapters, figures/screenshots, demo preparation, stable build ahead of review. |
+
+Table 3.3: Task sets.
+
+## 3.6 Risk Management
+
+### 3.6.1 Risk Identification
 
 | Risk | Description | Mitigation Strategy |
 |---|---|---|
@@ -77,4 +120,12 @@ Table 3.2.5.1: Time allocation.
 | Scope creep | Personal quizzes, messaging, mobile apps delaying the core. | Explicit in-scope / future-scope split from Section 1.3, enforced at planning. |
 | Time constraints | Any phase overrunning into review milestones. | Stable-build-ahead-of-review rule; risky integrations isolated behind service boundaries. |
 
-Table 3.3: Risk management.
+Table 3.4: Risk management.
+
+### 3.6.2 Risk Identification Artifacts
+
+The risk register above is the primary artifact: each risk carries a description and a mitigation strategy that maps to a concrete mechanism (Postgres pre-validation + Qdrant subject/material filters, per-material locks with version-safe status updates, service-layer membership checks, schema-first prompts with error-aware retries, bounded client caching with request deduplication). Phase exit criteria (stable build ahead of each review) act as the schedule-risk artifact.
+
+### 3.6.3 Risk Projection
+
+High-impact risks are incorrect retrieval scope and concurrent ingestion (data-integrity class) — projected as low probability after the service-layer guards, but monitored through the offline suites and manual end-to-end passes. Medium-impact risks are LLM model/quota changes and slow external services (deployment-environment class) — contained by configuration and by keeping blocking work off the event loop. Scope creep and time constraints are controlled by the explicit in-scope/future-scope split (Section 1.3) and the stable-build-ahead-of-review rule.

@@ -45,42 +45,52 @@ The platform is implemented as a React frontend and a FastAPI backend. Supabase 
 
 The project was built incrementally over one academic semester, verified by 82 offline backend tests and 63 frontend tests. In conclusion, ExamAI demonstrates that retrieval-grounded study help, shared teacher-authored assessment, personal revision content and class-wide analytics can be combined into one coherent, role-aware system — closing the specific gaps identified in the literature survey in Chapter 2.
 
+## Company Profile
+
+There is no external company for this Software Group Project. ExamAI is an in-house academic project carried out at the Institute of Technology and Engineering, Indus University, under the internal guidance of Ms. Shreya Bhatt (Assistant Professor, Department of Computer Science and Engineering). The reference production layout is Render.com (backend API) + static frontend hosting + managed Supabase (Postgres, Auth, Storage) and Qdrant Cloud services.
+
 ## List of Figures (proposed)
 
 | Figure No | Title |
 |---|---|
-| Figure 7.1 | System architecture |
-| Figure 7.2 | Class diagram |
-| Figure 7.3 | Use-case diagram |
-| Figure 7.4 | Sequence diagram — RAG chat |
-| Figure 7.5 | Activity diagram — material ingestion |
-| Figure 7.6.1 | Data flow diagram — Level 0 |
-| Figure 7.6.2 | Data flow diagram — Level 1 |
-| Figure 8.1 | Sign-in form (seeded login, no signup) |
-| Figure 8.2 | Student dashboard — hero, quick stats, enrolled subjects |
-| Figure 8.3 | Subject resources grouped by teacher |
-| Figure 8.4 | RAG chat — scope panel, citations, grounded refusal |
-| Figure 8.5 | Published quiz list with scores |
-| Figure 8.6 | Quiz taking view |
-| Figure 8.7 | Result card — grade, areas to review |
-| Figure 8.8 | Question review — correct vs wrong |
-| Figure 8.9 | Flashcard deck list with mastery progress |
-| Figure 8.10 | Flip-study view |
-| Figure 8.11 | Teacher materials with ingestion states |
-| Figure 8.12 | Teacher quiz list — draft/published, manual/AI |
-| Figure 8.13 | Per-quiz analytics — heatmap, distribution, weak topics |
-| Figure 8.14 | Student progress roster with at-risk flags |
-| Figure 8.15 | Teacher dashboard overview |
+| Figure 8.1 | System architecture |
+| Figure 8.2 | Class diagram |
+| Figure 8.3 | Use-case diagram |
+| Figure 8.4 | Sequence diagram — RAG chat |
+| Figure 8.5 | Activity diagram — material ingestion |
+| Figure 8.6.1 | Data flow diagram — Level 0 |
+| Figure 8.6.2 | Data flow diagram — Level 1 |
+| Figure 9.1 | Sign-in form (seeded login, no signup) |
+| Figure 9.2 | Student dashboard — hero, quick stats, enrolled subjects |
+| Figure 9.3 | Subject resources grouped by teacher |
+| Figure 9.4 | RAG chat — scope panel, citations, grounded refusal |
+| Figure 9.5 | Published quiz list with scores |
+| Figure 9.6 | Quiz taking view |
+| Figure 9.7 | Result card — grade, areas to review |
+| Figure 9.8 | Question review — correct vs wrong |
+| Figure 9.9 | Flashcard deck list with mastery progress |
+| Figure 9.10 | Flip-study view |
+| Figure 9.11 | Teacher materials with ingestion states |
+| Figure 9.12 | Teacher quiz list — draft/published, manual/AI |
+| Figure 9.13 | Per-quiz analytics — heatmap, distribution, weak topics |
+| Figure 9.14 | Student progress roster with at-risk flags |
+| Figure 9.15 | Teacher dashboard overview |
 
 ## List of Tables (proposed)
 
 | Table No | Title |
 |---|---|
 | Table 2.3 | Existing systems vs ExamAI |
-| Table 3.2.5.1 | Time allocation |
-| Table 3.3 | Risk management |
+| Table 3.1 | Work breakdown structure |
+| Table 3.2 | Time allocation |
+| Table 3.3 | Task sets |
+| Table 3.4 | Risk management |
 | Table 4.2 | Functional requirements |
 | Table 4.4 | Non-functional requirements |
+| Table 7.1 | Representative test cases |
+| Table 8.1 | System architecture layers and responsibilities |
+| Table 12.1 | Product deployment layout |
+| Table 12.2 | API and web service summary |
 
 ## Abbreviations
 

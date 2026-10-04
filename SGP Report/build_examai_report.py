@@ -153,6 +153,32 @@ def parse_md(path: Path):
     return blocks
 
 
+def split_outline(blocks):
+    """Split leading ALL-CAPS bullets (chapter outline for the opener page).
+
+    Returns (outline, content): content excludes the h1 and outline bullets.
+    """
+    outline, content = [], []
+    seen_h1, outline_done = False, False
+    for kind, pay in blocks:
+        if kind == "h1" and not seen_h1:
+            seen_h1 = True
+            continue
+        if (not outline_done and kind == "bullet"
+                and pay.upper() == pay):
+            outline.append(pay)
+            continue
+        outline_done = True
+        content.append((kind, pay))
+    return outline, content
+
+
+def split_label(label):
+    """'CHAPTER 3   PROJECT MANAGEMENT' -> ('CHAPTER 3', 'PROJECT MGMT')."""
+    m = re.match(r"(CHAPTER \d+)\s+(.*)", label)
+    return (m.group(1), m.group(2)) if m else (label, "")
+
+
 def parse_front_matter():
     fm = parse_md(DRAFT / "Chapter 00 - Front Matter.md")
     abstract, lof, lot, abbr = [], None, None, []
@@ -478,16 +504,28 @@ def build_docx(toc=None) -> Path:
     # ---------- chapters, one section each for running header ----------
     for fname, label in CHAPTERS:
         new_body_section(label)
-        blocks = parse_md(DRAFT / fname)
-        # chapter opener: h1 + outline bullets
-        first = True
-        for kind, pay in blocks:
-            if kind == "h1" and first:
-                add_centered(label, 17, color=NAVY, space_after=12)
-                first = False
-                continue
+        num, title = split_label(label)
+        outline, content = split_outline(parse_md(DRAFT / fname))
+        # Dedicated opener page: CHAPTER n, big title, outline bullets.
+        for _ in range(3):
+            doc.add_paragraph()
+        add_centered(num, 15, space_after=12)
+        add_centered(title, 22, space_after=14)
+        doc.add_paragraph()
+        for item in outline:
+            p = doc.add_paragraph()
+            p.paragraph_format.left_indent = Inches(2.2)
+            p.paragraph_format.space_after = Pt(6)
+            r = p.add_run("\u25aa  " + item)
+            r.bold = True
+            r.font.name = "Calibri"
+            r.font.size = Pt(11)
+        doc.add_page_break()
+        # First content page carries a smaller centered chapter title.
+        add_centered(re.sub(r"\s+", " ", label), 14, space_after=12)
+        for kind, pay in content:
             if kind == "h1":
-                add_centered(pay.upper(), 17, color=NAVY, space_after=12)
+                add_centered(pay.upper(), 14, space_after=12)
             elif kind == "h2":
                 h = doc.add_heading(level=2)
                 r = h.add_run(pay)
@@ -521,7 +559,7 @@ def build_docx(toc=None) -> Path:
 
     # ---------- bibliography ----------
     new_body_section("BIBLIOGRAPHY")
-    add_centered("BIBLIOGRAPHY", 17, color=NAVY, space_after=12)
+    add_centered("BIBLIOGRAPHY", 15, space_after=12)
     for n, entry in enumerate(bib_entries, start=1):
         add_para(f"{entry}" if re.match(r"^\d+\.", entry) else f"{n}. {entry}")
 
@@ -551,9 +589,30 @@ def build_body_pdf() -> Path:
 
     sTitle = ParagraphStyle("Title", fontName="Helvetica-Bold", fontSize=17,
                             leading=21, alignment=TA_CENTER, spaceAfter=12)
-    sH1 = ParagraphStyle("H1", fontName="Helvetica-Bold", fontSize=17,
-                         leading=21, alignment=TA_CENTER, spaceAfter=12,
-                         textColor=colors.HexColor("#183B56"))
+    sH1 = ParagraphStyle("H1", fontName="Helvetica-Bold", fontSize=15,
+                         leading=19, alignment=TA_CENTER, spaceAfter=12)
+    # Chapter-opener page styles (ignored by the TOC/header recorder).
+    sOpNum = ParagraphStyle("OpNum", fontName="Helvetica-Bold", fontSize=15,
+                            leading=19, alignment=TA_CENTER)
+    sOpTitle = ParagraphStyle("OpTitle", fontName="Helvetica-Bold",
+                              fontSize=22, leading=27, alignment=TA_CENTER)
+    # Small-square bullet needs a font that carries U+25AA; Helvetica does
+    # not, so prefer matplotlib's bundled DejaVuSans-Bold, else a bullet.
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfbase.pdfmetrics import registerFont
+    _sqFont, _sqChar = "Helvetica-Bold", "\u2022"
+    try:
+        import matplotlib
+        _cand = (Path(matplotlib.get_data_path()) / "fonts" / "ttf"
+                 / "DejaVuSans-Bold.ttf")
+        if _cand.exists():
+            registerFont(TTFont("DejaVuSans-Bold", str(_cand)))
+            _sqFont, _sqChar = "DejaVuSans-Bold", "\u25aa"
+    except Exception:
+        pass
+    sOpBul = ParagraphStyle("OpBul", fontName=_sqFont, fontSize=11,
+                            leading=15, leftIndent=172, bulletIndent=150,
+                            spaceAfter=6, textColor=colors.black)
     sH2 = ParagraphStyle("H2", fontName="Helvetica-Bold", fontSize=13,
                          leading=16, spaceBefore=10, spaceAfter=6)
     sH3 = ParagraphStyle("H3", fontName="Helvetica-Bold", fontSize=11.5,
@@ -587,7 +646,7 @@ def build_body_pdf() -> Path:
                 n -= v
         return out
 
-    REC = {"heads": [], "figs": [], "tabs": [],
+    REC = {"heads": [], "figs": [], "tabs": [], "body_pages": [],
            "chapter": "", "front_count": 0, "collect": False}
 
     def page_end_front(canvas, doc):
@@ -814,14 +873,21 @@ def build_body_pdf() -> Path:
         # ships the abbreviations page and starts the body template.
 
         for fname, label in CHAPTERS:
-            blocks = parse_md(DRAFT / fname)
+            num, title = split_label(label)
+            outline, content = split_outline(parse_md(DRAFT / fname))
+            # Dedicated opener page: CHAPTER n, big title, outline bullets.
+            story.append(PageBreak())
+            story.append(Spacer(1, 0.7 * inch))
+            story.append(Paragraph(num, sOpNum))
+            story.append(Spacer(1, 0.25 * inch))
+            story.append(Paragraph(title, sOpTitle))
+            story.append(Spacer(1, 0.35 * inch))
+            for item in outline:
+                story.append(Paragraph(item, sOpBul, bulletText=_sqChar))
+            # First content page carries a smaller centered chapter title.
             story.append(PageBreak())
             story.append(Paragraph(label, sH1))
-            first = True
-            for kind, pay in blocks:
-                if kind == "h1" and first:
-                    first = False
-                    continue  # already emitted as label
+            for kind, pay in content:
                 if kind == "h1":
                     story.append(Paragraph(pay.upper(), sH1))
                 elif kind == "h2":
@@ -856,14 +922,20 @@ def build_body_pdf() -> Path:
         if not isinstance(flowable, Paragraph):
             return
         clean = _re.sub(r"<[^>]+>", "",
-                        getattr(flowable, "text", "")).strip()
+                        getattr(flowable, "text", "") or "").strip()
         st = flowable.style.name
         if st == "H1" and clean.startswith("CHAPTER"):
             REC["chapter"] = clean[:70]
+            REC["body_pages"].append(doc.page)
             if REC["collect"]:
                 REC["heads"].append((0, clean[:70], doc.page))
         elif st == "H1" and clean == "BIBLIOGRAPHY":
             REC["chapter"] = clean
+        elif st == "OpNum":
+            REC["_pending"] = clean[:20]
+            REC["body_pages"].append(doc.page)
+        elif st == "OpTitle":
+            REC["chapter"] = f"{REC.pop('_pending', '')} {clean[:60]}".strip()
         elif st == "H2":
             if REC["collect"]:
                 REC["heads"].append((1, clean[:80], doc.page))
@@ -889,12 +961,13 @@ def build_body_pdf() -> Path:
     doc.build(assemble(numbered=False))
     Path(tmp).unlink(missing_ok=True)
 
-    # Derive front/body split from first chapter page.
-    first_ch = next((p for lvl, _t, p in REC["heads"] if lvl == 0), None)
+    # Derive front/body split from the first body-template page (an opener
+    # page precedes each chapter's content label).
+    first_body = min(REC["body_pages"]) if REC["body_pages"] else None
     body_pages = max([p for _, _, p in REC["heads"]] +
                      [p for _, p in REC["figs"]] +
                      [p for _, p in REC["tabs"]] + [1])
-    REC["front_count"] = (first_ch - 1) if first_ch else 0
+    REC["front_count"] = (first_body - 1) if first_body else 0
 
     # Numbered TOC entries for reuse (e.g. the DOCX TOC).
     numbered_heads = [(lvl, re.sub(r"\s+", " ", t), disp_num(p))

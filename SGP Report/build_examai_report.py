@@ -525,7 +525,7 @@ def build_body_pdf() -> Path:
                                     Paragraph, Spacer, Table, TableStyle,
                                     Image, PageBreak,
                                     tableofcontents)
-    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
 
     PAGE_W, PAGE_H = letter  # 612 x 792
     ML = MR = 90  # 1.25in side margins (AutoVerse)
@@ -674,11 +674,53 @@ def build_body_pdf() -> Path:
         if alt:
             story.append(Paragraph(alt, sCap))
 
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+
+    _toc_cell = {}
+
     def toc_entry(level, title, num):
+        # Two-column row: [title + dot leaders | number]. The number cell is
+        # right-aligned at a fixed edge, so every page number lands exactly
+        # on the rightmost side no matter how long the title is.
         title = re.sub(r"\s+", " ", title)
-        dots = "." * max(3, 74 - len(title) - len(num) - level * 4)
-        txt = f"{title} {dots} {num}"
-        return Paragraph(txt, [sTOC0, sTOC1, sTOC2][min(level, 2)])
+        font = "Helvetica-Bold" if level == 0 else "Helvetica"
+        size = 11
+        indent = [0, 18, 36][min(level, 2)]
+        # Frame carries 6pt default padding on each side; 1pt epsilon.
+        rowW = FW - 12 - indent - 1
+        numW = 26
+        titleW = rowW - numW
+        tw = stringWidth(title, font, size)
+        dotw = stringWidth(".", font, size)
+        ndots = max(3, int((titleW - tw - stringWidth(" ", font, size))
+                           / dotw))
+        esc = (title.replace("&", "&amp;").replace("<", "&lt;")
+               .replace(">", "&gt;"))
+        base = [sTOC0, sTOC1, sTOC2][min(level, 2)]
+        if level not in _toc_cell:
+            left = ParagraphStyle(f"TOCL{level}", parent=base, leftIndent=0,
+                                  spaceBefore=0, spaceAfter=0)
+            right = ParagraphStyle(f"TOCR{level}", parent=base, leftIndent=0,
+                                   alignment=TA_RIGHT, spaceBefore=0,
+                                   spaceAfter=0)
+            _toc_cell[level] = (left, right)
+        leftSt, rightSt = _toc_cell[level]
+        row = [[Paragraph(f"{esc} {'.' * ndots}", leftSt),
+                Paragraph(num, rightSt)]]
+        cols = [titleW, numW]
+        if indent:
+            row[0].insert(0, Paragraph("", leftSt))
+            cols = [indent, titleW, numW]
+        t = Table(row, colWidths=cols)
+        t.setStyle(TableStyle([
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        t.hAlign = "LEFT"
+        return t
 
     def static_heads():
         """Full heading order, so pass-1 pagination matches pass 2."""

@@ -35,13 +35,14 @@ CHAPTERS = [
     ("Chapter 03 - Project Management.md", "CHAPTER 3   PROJECT MANAGEMENT"),
     ("Chapter 04 - System Requirements.md", "CHAPTER 4   SYSTEM REQUIREMENTS"),
     ("Chapter 05 - System Analysis.md", "CHAPTER 5   SYSTEM ANALYSIS"),
-    ("Chapter 06 - Testing.md", "CHAPTER 6   TESTING"),
-    ("Chapter 07 - System Design.md", "CHAPTER 7   SYSTEM DESIGN"),
-    ("Chapter 08 - Result and Discussion.md", "CHAPTER 8   RESULT AND DISCUSSION"),
-    ("Chapter 09 - Limitation and Future Enhancement.md",
-     "CHAPTER 9   LIMITATION AND FUTURE ENHANCEMENT"),
-    ("Chapter 10 - Conclusion.md", "CHAPTER 10   CONCLUSION"),
-    ("Chapter 11 - Appendices.md", "CHAPTER 11   APPENDICES"),
+    ("Chapter 06 - Detail Description.md", "CHAPTER 6   DETAIL DESCRIPTION"),
+    ("Chapter 07 - Testing.md", "CHAPTER 7   TESTING"),
+    ("Chapter 08 - System Design.md", "CHAPTER 8   SYSTEM DESIGN"),
+    ("Chapter 09 - Result and Discussion.md", "CHAPTER 9   RESULT AND DISCUSSION"),
+    ("Chapter 10 - Limitation and Future Enhancement.md",
+     "CHAPTER 10   LIMITATION AND FUTURE ENHANCEMENT"),
+    ("Chapter 11 - Conclusion.md", "CHAPTER 11   CONCLUSION"),
+    ("Chapter 12 - Appendices.md", "CHAPTER 12   APPENDICES"),
 ]
 
 # ---------------------------------------------------------------- MD parsing

@@ -183,10 +183,13 @@ def parse_front_matter():
 
 
 # ================================================================ DOCX build
-def build_docx() -> Path:
+def build_docx(toc=None) -> Path:
+    """Build the DOCX. toc optionally carries [(level, title, page-no str)]
+    from the PDF pass so the TOC prints numbered dot-leader entries."""
     from docx import Document
     from docx.enum.section import WD_SECTION
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.enum.text import (WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT,
+                                WD_TAB_LEADER)
     from docx.enum.table import WD_TABLE_ALIGNMENT
     from docx.oxml.ns import qn
     from docx.oxml import OxmlElement
@@ -416,42 +419,33 @@ def build_docx() -> Path:
 
     doc.add_page_break()
     add_centered("TABLE OF CONTENT", 16)
-    add_para("Title                                                                 "
-             "Page No")
-    # static TOC (headings) + Word field so Word can paginate on open
-    toc_entries = []
-    for fname, label in CHAPTERS:
-        toc_entries.append((0, label))
-        for kind, pay in parse_md(DRAFT / fname):
-            if kind == "h2":
-                toc_entries.append((1, pay))
-            elif kind == "h3":
-                toc_entries.append((2, pay))
-    for lvl, title in toc_entries:
+    p = doc.add_paragraph()
+    r = p.add_run("Title")
+    r.bold = True
+    r.font.name = "Calibri"
+    r.font.size = Pt(11)
+    # Numbered dot-leader TOC (page numbers come from the PDF pass, which
+    # shares page size/margins with this document).
+    if toc is None:
+        toc = []
+        for fname, label in CHAPTERS:
+            toc.append((0, re.sub(r"\s+", " ", label), ""))
+            for kind, pay in parse_md(DRAFT / fname):
+                if kind == "h2":
+                    toc.append((1, re.sub(r"\s+", " ", pay)[:80], ""))
+                elif kind == "h3":
+                    toc.append((2, re.sub(r"\s+", " ", pay)[:80], ""))
+    for lvl, title, num in toc:
+        title = re.sub(r"\s+", " ", title)
         p = doc.add_paragraph()
         p.paragraph_format.space_after = Pt(1)
         p.paragraph_format.left_indent = Inches(0.25 * lvl)
-        r = p.add_run(title)
+        p.paragraph_format.tab_stops.add_tab_stop(
+            Inches(6.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+        r = p.add_run(title + (f"\t{num}" if num else ""))
         r.bold = (lvl == 0)
         r.font.name = "Calibri"
         r.font.size = Pt(11)
-    # Word auto-TOC field
-    p = doc.add_paragraph()
-    r = p.add_run()
-    fld = OxmlElement("w:fldChar")
-    fld.set(qn("w:fldCharType"), "begin")
-    r._r.append(fld)
-    r2 = p.add_run()._r
-    ins = OxmlElement("w:instrText")
-    ins.set(qn("xml:space"), "preserve")
-    ins.text = 'TOC \\o "1-3" \\h \\z \\u'
-    r2.append(ins)
-    r3 = p.add_run()._r
-    fe = OxmlElement("w:fldChar")
-    fe.set(qn("w:fldCharType"), "end")
-    r3.append(fe)
-    add_para("(Right-click the table of contents in Word and choose \u201cUpdate "
-             "Field\u201d to fill page numbers after layout.)")
 
     if lof:
         doc.add_page_break()
@@ -681,6 +675,7 @@ def build_body_pdf() -> Path:
             story.append(Paragraph(alt, sCap))
 
     def toc_entry(level, title, num):
+        title = re.sub(r"\s+", " ", title)
         dots = "." * max(3, 74 - len(title) - len(num) - level * 4)
         txt = f"{title} {dots} {num}"
         return Paragraph(txt, [sTOC0, sTOC1, sTOC2][min(level, 2)])
@@ -838,6 +833,10 @@ def build_body_pdf() -> Path:
                      [p for _, p in REC["tabs"]] + [1])
     REC["front_count"] = (first_ch - 1) if first_ch else 0
 
+    # Numbered TOC entries for reuse (e.g. the DOCX TOC).
+    numbered_heads = [(lvl, re.sub(r"\s+", " ", t), disp_num(p))
+                      for lvl, t, p in REC["heads"]]
+
     # Pass 2: final build with numbered TOC / lists (keep pass-1 records).
     REC["collect"] = False
     REC["chapter"] = ""
@@ -845,7 +844,7 @@ def build_body_pdf() -> Path:
     doc.build(assemble(numbered=True))
     print(f"wrote {OUT_BODY_PDF} (body pages: {body_pages}, "
           f"front pages: {REC['front_count']})")
-    return OUT_BODY_PDF
+    return OUT_BODY_PDF, numbered_heads
 
 
 def merge_final():
@@ -872,9 +871,12 @@ def merge_final():
 
 if __name__ == "__main__":
     which = set(sys.argv[1:]) or {"docx", "pdf", "merge"}
-    if "docx" in which:
-        build_docx()
+    # PDF first: its two-pass layout produces the TOC page numbers that the
+    # DOCX TOC reuses (shared page size/margins).
+    heads = None
     if "pdf" in which:
-        build_body_pdf()
+        _, heads = build_body_pdf()
+    if "docx" in which:
+        build_docx(toc=heads)
     if "merge" in which:
         merge_final()

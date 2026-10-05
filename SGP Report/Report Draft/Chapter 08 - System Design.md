@@ -18,7 +18,7 @@ The architecture has a presentation layer, an API and service layer, a relationa
 |---|---|
 | Frontend | Pages, routing, stores, API client, caching, loading and error states |
 | API | Authentication, request validation, standardized response envelope, request IDs |
-| Services | Materials, ingestion, RAG chat, quizzes, flashcards, analytics; all authorization |
+| Services | Materials, ingestion, RAG chat, quizzes, flashcards, analytics, administration; all authorization |
 | Relational data | Users, subjects, memberships, materials, quizzes, attempts, decks |
 | Vector + AI | Qdrant filtered retrieval, Gemini structured generation, local embeddings |
 | Storage | Private teacher material files, application configuration |
@@ -29,13 +29,13 @@ Table 8.1: System architecture layers and responsibilities.
 
 ![Figure 8.2: Class diagram](figures/fig72_class.png)
 
-The domain centres on Subject: teachers join it through membership, students through enrollment; materials and quizzes belong to exactly one subject and one teacher; attempts belong to one student and one quiz; decks belong to one student and record the source material identifiers used at generation time.
+The domain centres on Subject: teachers join it through membership, students through enrollment; materials and quizzes belong to exactly one subject and one teacher; attempts belong to one student and one quiz; decks belong to one student and record the source material identifiers used at generation time. The `users.role` field is three-valued (student, teacher, admin); administrators own no subject workspace and instead manage accounts, subjects, and both join tables through the admin console.
 
 ## 8.3 Use-Case Diagram
 
 ![Figure 8.3: Use-case diagram](figures/fig73_usecase.png)
 
-Both roles authenticate through the same sign-in flow. Subject-scoped requests are authorized against the caller’s teacher assignment or student enrollment before protected data is returned or changed.
+All three roles authenticate through the same sign-in flow. Subject-scoped requests are authorized against the caller’s teacher assignment or student enrollment before protected data is returned or changed. Administration requests (`/api/admin/*`, `/admin/*`) are authorized instead by the global `require_admin` gate: admins manage users, subjects, and memberships but never bypass subject checks to read study or analytics data.
 
 ## 8.4 Sequence Diagram
 
@@ -53,13 +53,13 @@ Material ingestion begins with a teacher upload. The service validates type and 
 
 ### 8.6.1 Level 0 DFD
 
-At the highest level, students and teachers interact with ExamAI. ExamAI communicates with Supabase for identity, relational data, and file storage; with Qdrant for vector retrieval; and with Gemini for structured generation. The system returns study answers, assessments, feedback, decks, and analytics.
+At the highest level, students, teachers, and administrators interact with ExamAI. ExamAI communicates with Supabase for identity, relational data, and file storage; with Qdrant for vector retrieval; and with Gemini for structured generation. The system returns study answers, assessments, feedback, decks, and analytics to students and teachers, and managed accounts, subjects, and memberships to administrators.
 
 ![Figure 8.6.1: Level 0 DFD](figures/fig761_dfd0.png)
 
 ### 8.6.2 Level 1 DFD
 
-The level-one flow separates authentication, subject access, material ingestion, RAG chat, quiz management, flashcard generation, and analytics. Authorization is checked by the services handling subject-scoped requests. During ingestion, material, teacher, and subject identifiers are stored in each Qdrant payload; retrieval filters by subject and selected material identifiers, and citation resolution uses the returned payload metadata.
+The level-one flow separates authentication, subject access, material ingestion, RAG chat, quiz management, flashcard generation, analytics, and user/membership administration. Authorization is checked by the services handling subject-scoped requests, while administration flows are gated by `require_admin`. During ingestion, material, teacher, and subject identifiers are stored in each Qdrant payload; retrieval filters by subject and selected material identifiers, and citation resolution uses the returned payload metadata.
 
 ![Figure 8.6.2: Level 1 DFD](figures/fig762_dfd1.png)
 

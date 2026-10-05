@@ -23,7 +23,7 @@ A survey of existing platforms is useful because it shows what students and teac
 | 3 | Assessment fairness | Quizlet/Forms-style quizzes are typically per-link and incomparable across a class | One published quiz per topic for all students in the subject, enabling class-wide comparison |
 | 4 | Feedback depth | Scores usually stop at a total; weak-topic analysis is absent | Server-side grading returns per-question feedback plus weak-topic detection per attempt |
 | 5 | Teacher insight | Scattered gradebooks (Classroom), or nothing (chatbots, Quizlet) | Dedicated per-quiz analytics (heatmap, grade distribution) plus cross-quiz student progress with at-risk flags |
-| 6 | Access control | Coarse roles; students can paste any content into a chatbot | Service-layer membership checks: enrollment for students, subject membership for teachers, per-request material validation |
+| 6 | Access control | Coarse roles; students can paste any content into a chatbot | Service-layer membership checks (enrollment for students, subject membership for teachers, global `require_admin` for administrators) plus per-request material validation; admin-provisioned accounts replace public signup |
 
 Table 2.3: Existing systems vs ExamAI.
 
@@ -33,4 +33,4 @@ Three gaps appeared consistently across all five options studied:
 - **Comparability gap.** Revision and quiz tools are built around individual practice links. Nothing guarantees that every student in a class answers the same questions, so teachers cannot compare performance fairly.
 - **Oversight gap.** No surveyed option connects study help, assessment, and class-wide analytics through one authorization model. Teachers either get a gradebook without study context, or study tools without any teacher visibility.
 
-ExamAI is built directly around closing these three gaps: teacher-owned retrieval with teacher-attributed citations, shared published quizzes, and analytics fed by the same attempts — all guarded by subject membership.
+ExamAI is built directly around closing these three gaps: teacher-owned retrieval with teacher-attributed citations, shared published quizzes, and analytics fed by the same attempts — all guarded by subject membership, with administrator-provisioned accounts and memberships replacing public signup.

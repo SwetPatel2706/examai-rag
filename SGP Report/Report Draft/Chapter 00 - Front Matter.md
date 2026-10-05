@@ -39,11 +39,11 @@ We thank our internal guide, **Ms. Shreya Bhatt, Assistant Professor, Department
 
 ## Abstract
 
-ExamAI is a full-stack, AI-assisted exam-preparation platform that connects students with teacher-approved learning material. Students select an enrolled subject, choose which approved materials should scope a study session, ask questions, and receive answers grounded in retrieved passages with numbered citations that identify the teacher, the file, and the page or slide. Teachers upload PDF, PPTX and DOCX materials, monitor ingestion status, author quizzes manually or with AI assistance, publish one shared quiz per topic for the whole class, and review class performance through analytics. Students additionally generate personal flashcard decks from their selected materials.
+ExamAI is a full-stack, AI-assisted exam-preparation platform that connects students with teacher-approved learning material. Students select an enrolled subject, choose which approved materials should scope a study session, ask questions, and receive answers grounded in retrieved passages with numbered citations that identify the teacher, the file, and the page or slide. Teachers upload PDF, PPTX and DOCX materials, monitor ingestion status, author quizzes manually or with AI assistance, publish one shared quiz per topic for the whole class, and review class performance through analytics. Students additionally generate personal flashcard decks from their selected materials. Administrators provision teacher/student accounts, subjects, and teacher assignments / student enrollments through the admin console (`/api/admin/*`, `/admin/*`).
 
-The platform is implemented as a React frontend and a FastAPI backend. Supabase provides authentication, PostgreSQL storage and private file storage. A single metadata-filtered Qdrant collection stores embedded material chunks; Gemini provides structured language-model generation for chat answers, quiz questions and flashcards, guarded by schema-driven retries. Authorization is enforced in the service layer: teacher access follows subject membership, student access follows subject enrollment, and every retrieval is pre-validated so a student can never cite material from a subject they are not enrolled in.
+The platform is implemented as a React frontend and a FastAPI backend. Supabase provides authentication, PostgreSQL storage and private file storage. A single metadata-filtered Qdrant collection stores embedded material chunks; Gemini provides structured language-model generation for chat answers, quiz questions and flashcards, guarded by schema-driven retries. Authorization is enforced in the service layer: teacher access follows subject membership, student access follows subject enrollment, administration follows the global `require_admin` gate (which manages but never bypasses those relations), and every retrieval is pre-validated so a student can never cite material from a subject they are not enrolled in.
 
-The project was built incrementally over one academic semester, verified by 82 offline backend tests and 63 frontend tests. In conclusion, ExamAI demonstrates that retrieval-grounded study help, shared teacher-authored assessment, personal revision content and class-wide analytics can be combined into one coherent, role-aware system — closing the specific gaps identified in the literature survey in Chapter 2.
+The project was built incrementally over one academic semester, verified by 103 offline backend tests and 84 frontend tests. In conclusion, ExamAI demonstrates that retrieval-grounded study help, shared teacher-authored assessment, personal revision content, class-wide analytics, and centralized administration can be combined into one coherent, role-aware system — closing the specific gaps identified in the literature survey in Chapter 2.
 
 ## Company Profile
 
@@ -75,6 +75,11 @@ There is no external company for this Software Group Project. ExamAI is an in-ho
 | Figure 9.13 | Per-quiz analytics — class stats, accuracy heatmap, grade distribution, weak topics |
 | Figure 9.14 | Student progress roster — averages, completion, at-risk flags with drill-down |
 | Figure 9.15 | Teacher dashboard overview — activity stats, recent completions, grade distribution, AI insights |
+| Figure 9.16 | Admin users — full account list with search, role filter, and per-row subject drill-down |
+| Figure 9.17 | Admin user drill-down — expanded teacher row with assigned subjects |
+| Figure 9.18 | Admin subjects — full subject list with add action |
+| Figure 9.19 | Admin subject drill-down — expanded subject with teacher and student rosters |
+| Figure 9.20 | Admin membership — assign or remove teacher/student by subject, kind, and user |
 
 ## List of Tables (proposed)
 
@@ -115,6 +120,7 @@ There is no external company for this Software Group Project. ExamAI is an in-ho
 | PDF | Portable Document Format |
 | PPTX | PowerPoint Open XML Presentation |
 | RAG | Retrieval-Augmented Generation |
+| RBAC | Role-Based Access Control |
 | REST | Representational State Transfer |
 | SDK | Software Development Kit |
 | SQL | Structured Query Language |

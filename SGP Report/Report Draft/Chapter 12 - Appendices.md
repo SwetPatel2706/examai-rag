@@ -30,7 +30,7 @@ ExamAI exposes its functionality through a RESTful API built with FastAPI. Every
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | /api/auth/login | Log in a provisioned user; role derived from profile |
+| POST | /api/auth/login | Log in a provisioned user; role (student, teacher, admin) derived from profile |
 | GET | /api/subjects | List accessible subjects for the current role |
 | POST | /api/materials | Teacher upload of PDF/PPTX/DOCX with status tracking |
 | POST | /api/chat | Ask a question over subject + selected material IDs |
@@ -39,7 +39,10 @@ ExamAI exposes its functionality through a RESTful API built with FastAPI. Every
 | GET/POST | /api/flashcards/decks | List / generate personal decks; mastery updates |
 | GET | /api/analytics/quiz/{id} | Per-quiz heatmap, distribution, weak topics |
 | GET | /api/analytics/progress | Cross-quiz roster with at-risk flags |
+| GET/POST/PATCH/DELETE | /api/admin/users | Manage teacher/student accounts (paginated list, search, drill-down subjects); admins cannot create other admins |
+| GET/POST/PATCH/DELETE | /api/admin/subjects | Manage subjects with member drill-downs |
+| POST/DELETE | /api/admin/subjects/{id}/teachers, /students | Assign/remove teachers, enroll/remove students |
 
 Table 12.2: API and web service summary.
 
-Authentication is session/token based: the access token is kept in memory on the client with a HttpOnly refresh cookie, and every subject-scoped call re-checks enrollment or membership in the service layer.
+Authentication is session/token based: the access token is kept in memory on the client with a HttpOnly refresh cookie, and every subject-scoped call re-checks enrollment or membership in the service layer. Administration is gated separately by `require_admin` and only manages those relations — it never bypasses them. The seed provisions the `admin@examai.com` administrator; admins use the `/admin/*` console (Users, Subjects, Membership), not a subject workspace.

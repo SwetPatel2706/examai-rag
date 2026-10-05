@@ -13,7 +13,7 @@ ExamAI is a web application built to make exam preparation more trustworthy and 
 
 ExamAI brings these activities into a single role-aware platform. A student selects an enrolled subject, chooses which teacher-approved materials should scope a study session, asks questions, and receives answers with numbered citations that identify the teacher, the file, and the page or slide each claim comes from. The same student attempts the same published quiz as every classmate in the subject, receives per-question feedback with weak topics, and generates personal flashcard decks from selected material for revision. A teacher uploads PDF, PPTX and DOCX materials, monitors their processing status, authors quizzes manually or with AI assistance, publishes them for the class, and reviews performance through per-quiz analytics and cross-quiz student progress views.
 
-The application is built using React for the frontend, FastAPI (Python) for the backend, PostgreSQL for relational data, Qdrant for vector retrieval, and Gemini for structured generation. Access control follows subject membership on both sides: teachers act through subject membership, students through subject enrollment.
+The application is built using React for the frontend, FastAPI (Python) for the backend, PostgreSQL for relational data, Qdrant for vector retrieval, and Gemini for structured generation. Access control follows subject membership on both sides: teachers act through subject membership, students through subject enrollment. A third global role, administrator, provisions users, subjects, and memberships through the admin console (`/api/admin/*`, `/admin/*`) via `require_admin` and is never subject-scoped.
 
 ## 1.2 Project Purpose
 
@@ -25,19 +25,20 @@ For teachers, the purpose is complementary: a practical way to distribute approv
 
 The system is capable of:
 
-- Secure email/password login for provisioned users, with the role (student or teacher) derived from the backend profile.
-- Subject dashboards: enrolled subjects for students, teaching subjects for teachers, with multi-teacher subjects supported.
+- Secure email/password login for provisioned users, with the role (student, teacher, or admin) derived from the backend profile.
+- Subject dashboards: enrolled subjects for students, teaching subjects for teachers, with multi-teacher subjects supported. Administrators use a separate console (`/admin/*`: Users, Subjects, Membership) rather than a subject dashboard.
 - Teacher-owned material uploads (PDF, PPTX, DOCX, 25 MB limit) with processing / ready / failed status, retry, and deletion.
 - Subject-scoped RAG chat over a per-session material selection, returning answers with numbered teacher/file/page citations.
 - Manual and AI-assisted quiz authoring converging on the same question shape, with a draft → review → publish flow.
 - Shared published quizzes: all students in a subject take the same quiz; server-side grading with per-question feedback and weak-topic detection.
 - Student-owned flashcard deck generation from selected materials, with mastery tracking (new / learning / mastered).
 - Teacher analytics: per-quiz views (accuracy heatmap, grade distribution, weak topics) and cross-quiz student progress (averages, completion, at-risk flags, drill-down).
+- Administration console: an `admin` role (seeded as `admin@examai.com`) manages teacher/student accounts, subjects, and teacher assignments / student enrollments through `/api/admin/*` and the `/admin/*` Users, Subjects, and Membership pages. Admins cannot create other admins and never bypass subject membership checks — they only manage them.
 
 The current version has a few known limits:
 
 - It is a web application only — there is no mobile app yet.
-- Users are provisioned by an explicit seed operation; there is no public signup, password reset, OAuth, or admin role.
+- Users are provisioned by an explicit seed operation (which creates the `admin@examai.com` administrator) plus runtime admin user management; there is no public signup, password reset, or OAuth.
 - There is no in-app teacher–student messaging or broadcast.
 - Student-generated graded quizzes are deferred as explicit v2 scope, to protect the fairness of shared assessment.
 - Retrieval is dense-vector only; hybrid dense-plus-sparse search is a flagged future enhancement, not part of this delivery.
@@ -47,7 +48,7 @@ The current version has a few known limits:
 
 ### 1.4.1 Main Objectives
 
-- To build a single role-aware platform for AI-assisted exam preparation.
+- To build a single role-aware platform (student, teacher, admin) for AI-assisted exam preparation.
 - To ground every study answer in teacher-approved material and attribute each claim to its teacher, file, and page or slide.
 - To keep assessment fair by publishing one shared quiz per topic for all students in a subject.
 - To return feedback beyond a total score: per-question results and weak-topic detection.
@@ -56,7 +57,7 @@ The current version has a few known limits:
 
 ### 1.4.2 Secondary Objectives
 
-- To enforce subject membership and role authorization in service-layer logic, not only in route declarations.
+- To enforce subject membership and role authorization (including global `require_admin` for administration) in service-layer logic, not only in route declarations.
 - To preserve source metadata end to end — parsing, chunking, embedding, retrieval, citation — so attribution never depends on a per-request database lookup.
 - To handle structured model-output failures through schema-driven, error-aware retries.
 - To keep the ingestion pipeline safe under concurrent upload, retry, and delete operations.
@@ -95,4 +96,4 @@ Digital learning platforms have been studied and built extensively: learning-man
 
 ## 1.6 Synopsis
 
-ExamAI is a web-based exam-preparation platform in which students study from teacher-approved materials through attributable RAG chat, take the same teacher-published quizzes as their classmates, revise with self-generated flashcards, and teachers monitor class performance through analytics. It is built with React, FastAPI, PostgreSQL, Qdrant, and Gemini, with authorization enforced at the service layer and source metadata preserved from ingestion to citation. The following chapters present the literature survey, project management, requirements, analysis, detail description, testing, design, results, limitations, and conclusion of the project.
+ExamAI is a web-based exam-preparation platform in which students study from teacher-approved materials through attributable RAG chat, take the same teacher-published quizzes as their classmates, revise with self-generated flashcards, teachers monitor class performance through analytics, and administrators provision users, subjects, and memberships through the admin console. It is built with React, FastAPI, PostgreSQL, Qdrant, and Gemini, with authorization enforced at the service layer and source metadata preserved from ingestion to citation. The following chapters present the literature survey, project management, requirements, analysis, detail description, testing, design, results, limitations, and conclusion of the project.

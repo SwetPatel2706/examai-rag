@@ -8,13 +8,13 @@
 
 ## 4.1 User Characteristics
 
-ExamAI has two kinds of users. **Students** can view enrolled subjects, scope study sessions to approved materials, ask questions, attempt published quizzes, review feedback, and generate and study flashcards. **Teachers** can manage subject materials (upload, monitor, retry, delete), author and publish quizzes manually or with AI assistance, and inspect quiz analytics and student progress. No special technical knowledge is needed — the interface is designed to be usable by anyone comfortable browsing a normal website, and no user is assumed to understand vector search or language-model operation.
+ExamAI has three kinds of users. **Students** can view enrolled subjects, scope study sessions to approved materials, ask questions, attempt published quizzes, review feedback, and generate and study flashcards. **Teachers** can manage subject materials (upload, monitor, retry, delete), author and publish quizzes manually or with AI assistance, and inspect quiz analytics and student progress. **Administrators** manage teacher/student accounts, subjects, and teacher assignments / student enrollments through the admin console (`/api/admin/*`, `/admin/*` Users, Subjects, Membership pages); they use no subject workspace and never bypass subject membership checks. No special technical knowledge is needed — the interface is designed to be usable by anyone comfortable browsing a normal website, and no user is assumed to understand vector search or language-model operation.
 
 ## 4.2 Functional Requirement
 
 | ID | Requirement |
 |----|---|
-| FR-01 | The system shall authenticate a provisioned user with email and password and derive the role from the backend profile. |
+| FR-01 | The system shall authenticate a provisioned user with email and password and derive the role (student, teacher, or admin) from the backend profile. |
 | FR-02 | The system shall allow teachers to upload PDF, PPTX and DOCX materials for a subject, within the configured size limit. |
 | FR-03 | The system shall process uploaded material and expose processing, ready, and failed status with retry and delete. |
 | FR-04 | The system shall allow enrolled students to select ready materials to scope a study session. |
@@ -24,6 +24,7 @@ ExamAI has two kinds of users. **Students** can view enrolled subjects, scope st
 | FR-08 | The system shall grade attempts on the server and return per-question feedback with weak topics. |
 | FR-09 | The system shall generate personal flashcard decks from student-selected material, with mastery tracking. |
 | FR-10 | The system shall provide per-quiz analytics and cross-quiz student progress views to teachers. |
+| FR-11 | The system shall allow administrators to manage teacher/student accounts, subjects, and teacher assignments / student enrollments via `/api/admin/*` and the `/admin/*` console, gated by `require_admin`. |
 
 Table 4.2: Functional requirements.
 
@@ -31,13 +32,13 @@ Table 4.2: Functional requirements.
 
 A typical student activity begins with login and subject selection. The student opens the material-scope panel, chooses which ready materials should ground the session, and asks a question; the system returns an answer whose numbered citations identify the teacher and file behind each claim. The student may then attempt a published quiz under its time limit, review per-question feedback and weak topics, and generate a flashcard deck from the same or another material selection for revision.
 
-A typical teacher activity begins with subject access, continues through material upload and ingestion monitoring, then quiz authoring — written manually or drafted by the AI from ready material and edited — followed by publication and analytics review. AI-generated quizzes always remain drafts until a teacher reviews and publishes them, keeping the teacher, not the model, responsible for assessment content. Saving personal study state is the student's domain; publishing shared assessment is the teacher's; the system never mixes the two.
+A typical teacher activity begins with subject access, continues through material upload and ingestion monitoring, then quiz authoring — written manually or drafted by the AI from ready material and edited — followed by publication and analytics review. AI-generated quizzes always remain drafts until a teacher reviews and publishes them, keeping the teacher, not the model, responsible for assessment content. Saving personal study state is the student's domain; publishing shared assessment is the teacher's; provisioning accounts, subjects, and memberships is the administrator's; the system never mixes the three.
 
 ## 4.4 Non Functional Requirement
 
 | Category | Requirement |
 |---|---|
-| Security | Role and subject-membership authorization enforced in services; access tokens kept in memory, refresh via HttpOnly cookie; CORS allow-list. |
+| Security | Role and subject-membership authorization enforced in services (including global `require_admin` for administration; admins cannot create other admins); access tokens kept in memory, refresh via HttpOnly cookie; CORS allow-list. |
 | Reliability | Malformed model output, failed ingestion, retry/delete races, and concurrent operations handled without corrupting state. |
 | Performance | Blocking parser/embedding work kept off the event loop; frontend uses route splitting, bounded caching, request deduplication, and stale-response protection. |
 | Maintainability | Thin routes, schemas separate from ORM models, business logic in services; shared contracts via API envelopes. |
@@ -63,7 +64,7 @@ Table 4.4: Non-functional requirements.
 | Backend | Python 3.14, FastAPI, Uvicorn, SQLAlchemy 2 + Alembic, Pydantic 2 |
 | AI / retrieval | sentence-transformers (`all-MiniLM-L6-v2`), qdrant-client ≥ 1.16, Gemini (`gemini-2.5-flash` configured default — verify per deployment) |
 | Data & files | Supabase Postgres + Auth + private Storage |
-| Tooling | Git & GitHub; FastAPI Swagger UI (`/docs`); pytest (82 backend tests); Vitest + Testing Library (63 frontend tests) |
+| Tooling | Git & GitHub; FastAPI Swagger UI (`/docs`); pytest (103 backend tests); Vitest + Testing Library (84 frontend tests) |
 
 Table 4.5: Software stack (as used).
 

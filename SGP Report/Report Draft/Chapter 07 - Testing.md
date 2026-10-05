@@ -8,7 +8,7 @@
 
 The following black-box tests check that each feature behaves correctly from a user's point of view, without looking at the underlying code:
 
-- Login Testing — a provisioned student or teacher can log in with the correct email and password and receives the correct role.
+- Login Testing — a provisioned student, teacher, or admin can log in with the correct email and password and receives the correct role (admin routes to `/admin/users`).
 - Invalid Login Testing — wrong credentials are rejected with an appropriate error.
 - Unauthorized Subject Testing — a student requesting another subject's materials receives a forbidden response, not data.
 - Material Upload Testing — a teacher upload of a supported file type within the size limit is accepted and enters processing.
@@ -19,13 +19,16 @@ The following black-box tests check that each feature behaves correctly from a u
 - Attempt Testing — submitting an attempt returns a score with per-question feedback and weak topics; duplicate submission does not duplicate the score.
 - Flashcard Testing — deck generation from selected materials produces reviewable cards with mastery states.
 - Analytics Testing — per-quiz and cross-quiz views return their separate read models only to the subject's teachers.
+- Admin Access Testing — teacher/student tokens calling `/api/admin/*` receive 403; unauthenticated calls receive 401.
+- Admin User Testing — admin creates/lists/edits/deletes teacher and student accounts; duplicate email returns 409; creating `role: admin` returns 422; self-delete returns 400.
+- Admin Membership Testing — assign/enroll and remove paths are idempotent with strict role checks; role change clears stale memberships; subject delete cascades memberships but preserves users.
 
 ## 7.2 White-Box Testing
 
 The following checks were made against the internal logic of the system:
 
 - Input Validation Logic — Pydantic schemas reject malformed input (bad identifiers, out-of-range values, wrong file types) before it reaches services or storage.
-- Authorization Logic — service-layer membership checks (enrollment for students, subject membership for teachers) verified for both allowed and denied paths.
+- Authorization Logic — service-layer membership checks (enrollment for students, subject membership for teachers, global `require_admin` for administration) verified for both allowed and denied paths.
 - Retrieval Filter Logic — the Qdrant filter always carries both subject and material constraints built from Postgres-validated IDs.
 - Citation Mapping Logic — each `[n]` marker in generated text resolves to the payload metadata (teacher, filename, locator) of the retrieved chunk.
 - Structured-Output Retry Logic — malformed model JSON (code fences, trailing prose, wrong field types) triggers an error-aware retry carrying the verbatim error, the bad response, and the schema.
@@ -46,7 +49,10 @@ The following checks were made against the internal logic of the system:
 | TC7 | Student submits quiz twice | Same attempt submitted again | Idempotent; score not duplicated |
 | TC8 | Teacher reads analytics | Per-quiz and progress requests | Separate correct read models returned |
 | TC9 | Frontend stale response | Slow earlier request resolving last | Older response does not overwrite current state |
+| TC10 | Non-admin calls admin API | Teacher/student token on `/api/admin/users` | Forbidden (403); 401 without token |
+| TC11 | Admin manages users | Create/edit/delete teacher/student; duplicate email; `role: admin`; self-delete | 201/200/204; 409 duplicate; 422 non-manageable role; 400 self-delete |
+| TC12 | Admin manages membership | Assign/remove teacher/student; wrong-role ID | Idempotent success; 400 wrong role; 404 missing assignment |
 
 Table 7.1: Representative test cases — all passing.
 
-The backend suite (82 tests across smoke, phase, and review-fix files) runs fully offline in under a second; the frontend suite (63 tests across routes, stores, API client, and components) runs under Vitest. Integration with hosted services (Supabase, Qdrant, Gemini) remains environment-dependent and is covered by manual end-to-end passes rather than automated tests.
+The backend suite (103 tests across smoke, phase, admin, and review-fix files) runs fully offline in under a second; the frontend suite (84 tests across routes, stores, API client, and components, including 16 admin console tests) runs under Vitest. Integration with hosted services (Supabase, Qdrant, Gemini) remains environment-dependent and is covered by manual end-to-end passes rather than automated tests.

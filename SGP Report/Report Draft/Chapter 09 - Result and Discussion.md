@@ -8,14 +8,15 @@
 - TEACHER MATERIAL MANAGEMENT
 - TEACHER QUIZ AUTHORING AND PUBLISHING
 - TEACHER ANALYTICS AND STUDENT PROGRESS
+- ADMIN CONSOLE AND MEMBERSHIP MANAGEMENT
 - SECURITY AND RELIABILITY RESULTS
 - OVERALL SYSTEM PERFORMANCE
 
-ExamAI was built, tested, and verified end to end as a local prototype: every feature described in the earlier chapters works as designed against the offline test suites (82 backend, 63 frontend) plus manual end-to-end passes over a local run. This chapter walks through the finished screens in the order a user meets them, with a short discussion of each one. (Online deployment is planned but not yet carried out, so all screens below are captured from the local build running against seeded demo accounts — the names visible are seed data, not real users.)
+ExamAI was built, tested, and verified end to end as a local prototype: every feature described in the earlier chapters works as designed against the offline test suites (103 backend, 84 frontend) plus manual end-to-end passes over a local run. This chapter walks through the finished screens in the order a user meets them, with a short discussion of each one. (Online deployment is planned but not yet carried out, so all screens below are captured from the local build running against seeded demo accounts — the names visible are seed data, not real users.)
 
 ## 9.1 Login and Role-Based Access
 
-A provisioned user logs in with email and password; the backend derives the role from the stored profile and the frontend routes to the student or teacher workspace accordingly. The sign-in form offers email and password fields only — there is no signup link and no client-side role selector, so an unregistered email is rejected and an authenticated user can never reach the other role's routes.
+A provisioned user logs in with email and password; the backend derives the role (student, teacher, or admin) from the stored profile and the frontend routes to the student, teacher, or admin (`/admin/users`) workspace accordingly. The sign-in form offers email and password fields only — there is no signup link and no client-side role selector, so an unregistered email is rejected and an authenticated user can never reach the other roles' routes.
 
 ![Figure 9.1: Sign-in form — email and password only, no signup or role selector.](Screenshot/shared-login-page-signin-form.png)
 
@@ -75,10 +76,24 @@ The analytics design deliberately separates per-quiz analysis from cross-quiz st
 
 ![Figure 9.15: Teacher dashboard overview — activity stats, recent completions, grade distribution, AI insights.](Screenshot/Teacher/teacher-dashboard-overview-active-students-grade-distribution.png)
 
-## 9.9 Security and Reliability Results
+## 9.9 Admin Console and Membership Management
+
+An administrator (`admin@examai.com`, seeded) signs in through the same form and lands on the Admin View (`/admin/users`), which has no subject workspace — only Users, Subjects, and Membership pages behind `require_admin`. The Users list (Figure 9.16) shows all teacher/student accounts with search and All/Teachers/Students filters (31 shown in the capture), role badges, an Add user action, and a per-row drill-down into that user's subjects with edit and delete actions. Expanding a teacher row (Figure 9.17) reveals the assigned subjects with the same management actions. The Subjects list (Figure 9.18) shows every subject with an Add subject action, while expanding a subject (Figure 9.19) reveals its teacher and student rosters. The Membership page (Figure 9.20) assigns or removes a teacher/student for a chosen subject via subject, kind, and user selectors with Assign/Remove actions. Creation provisions the Supabase Auth account first and then the local profile with the same UUID (duplicate email returns 409); admins cannot create other admins and cannot delete themselves. Membership changes only manage the `subject_teachers` / `student_subjects` relations — they never bypass subject authorization for study or analytics data.
+
+![Figure 9.16: Admin users — full account list with search, role filter, role badges, and per-row subject drill-down.](Screenshot/Admin/admin-users-list-all-search-filter.png)
+
+![Figure 9.17: Admin user drill-down — expanded teacher row showing assigned subjects with edit and subject actions.](Screenshot/Admin/admin-users-list-expanded-teacher-subject-actions.png)
+
+![Figure 9.18: Admin subjects — full subject list with add action.](Screenshot/Admin/admin-subjects-list-all-collapsed.png)
+
+![Figure 9.19: Admin subject drill-down — expanded subject showing teacher and student rosters.](Screenshot/Admin/admin-subjects-list-expanded-teachers-students-roster.png)
+
+![Figure 9.20: Admin membership — assign or remove a teacher/student for a subject by subject, kind, and user.](Screenshot/Admin/admin-membership-assign-remove-subject-kind-user.png)
+
+## 9.10 Security and Reliability Results
 
 Access tokens are kept in memory with a HttpOnly refresh cookie; the API client performs one silent refresh-and-replay after a 401 before redirecting to login. CORS uses an allow-list and storage paths are never serialized to clients. Authorization checks are repeated in services rather than relying on route declarations alone. The ingestion pipeline uses per-material locks, row-level guards, and version-safe updates, with blocking parser and embedding calls moved off the event loop. Structured generation uses Pydantic schemas as the output contract, retrying with the error, the bad response, and the schema on failure. These patterns improve reliability without pretending external AI services are deterministic.
 
-## 9.10 Overall System Performance
+## 9.11 Overall System Performance
 
-The backend suite (82 tests) runs fully offline in under a second; the frontend suite (63 tests) runs under Vitest with route, store, and component coverage. Frontend performance work includes route-level code splitting, navigation prefetching, bounded safe-GET caching, concurrent request deduplication, debounced search, loading skeletons, and stale-response handling — targeting measured responsiveness while preserving correctness. The known performance caveat is dependence on hosted services (database, vector store, model API) at deployment time: latency and quota there are deployment properties, and online hosting remains planned future work (Chapter 10).
+The backend suite (103 tests) runs fully offline in under a second; the frontend suite (84 tests) runs under Vitest with route, store, and component coverage. Frontend performance work includes route-level code splitting, navigation prefetching, bounded safe-GET caching, concurrent request deduplication, debounced search, loading skeletons, and stale-response handling — targeting measured responsiveness while preserving correctness. The known performance caveat is dependence on hosted services (database, vector store, model API) at deployment time: latency and quota there are deployment properties, and online hosting remains planned future work (Chapter 10).

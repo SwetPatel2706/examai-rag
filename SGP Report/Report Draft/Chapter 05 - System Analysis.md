@@ -24,7 +24,7 @@ The conventional exam-preparation workflow is distributed across unconnected too
 
 - One approved corpus per subject: teacher-owned, status-checked materials as the only retrieval ground.
 - Source-aware answers: every claim attributable to teacher, file, and page/slide.
-- Subject-level authorization: enrollment for students, membership for teachers, validated per request.
+- Subject-level authorization: enrollment for students, membership for teachers, validated per request; global `require_admin` for administration, which manages (never bypasses) those relations.
 - Shared assessment: one published quiz per topic for the whole class.
 - Feedback with diagnosis: per-question results and weak-topic detection.
 - Personal revision content: student-generated decks from selected materials.
@@ -42,7 +42,7 @@ The system is technically feasible because each required function maps to a matu
 
 ### 5.5.2 Operational Feasibility
 
-The workflows match the real responsibilities of the two roles: students see only approved material and their own progress; teachers retain control over source files and shared quizzes, including mandatory review of AI-drafted questions. Most study features need no training beyond normal web use. The system is therefore operationally suitable as a classroom prototype; institutional deployment would additionally require onboarding, support, backup, and privacy procedures.
+The workflows match the real responsibilities of the three roles: students see only approved material and their own progress; teachers retain control over source files and shared quizzes, including mandatory review of AI-drafted questions; administrators provision accounts, subjects, and memberships without entering any subject workspace. Most study features need no training beyond normal web use. The system is therefore operationally suitable as a classroom prototype; institutional deployment would additionally require onboarding, support, backup, and privacy procedures.
 
 ### 5.5.3 Economical Feasibility
 
@@ -54,7 +54,7 @@ The phased plan in Section 3.5.3 is schedule-feasible because it keeps a stable 
 
 ## 5.6 Features of New System
 
-- Secure login with backend-derived roles; enrollment- and membership-gated subject access.
+- Secure login with backend-derived roles (student, teacher, admin); enrollment- and membership-gated subject access plus a global admin console outside any subject.
 - Teacher-owned material management: upload, processing/ready/failed states, retry, deletion, multi-teacher visibility.
 - Document ingestion for PDF, PPTX, and DOCX with format-aware chunking and source-locator preservation.
 - Attributable RAG chat over per-session material selection, with numbered teacher/file/page citations.

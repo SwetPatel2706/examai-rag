@@ -12,13 +12,12 @@ import {
   unenrollStudent,
 } from '@/api/admin';
 import { INPUT_CLASS } from '@/lib/adminStyles';
-import { useAdminAction } from '@/lib/useAdminAction';
 import { useApi } from '@/lib/useApi';
+import { invalidate } from '@/lib/apiCache';
 import { runWhenIdle } from '@/lib/idlePrefetch';
 import { preloadAdminSiblingsIdle } from '@/lib/lazyRoutes';
 import { toast } from '@/store/toastStore';
 import {
-  ActionErrorBanner,
   Field,
 } from './common';
 
@@ -29,9 +28,6 @@ export default function AdminMembership() {
   // admin screens reuses one shared, identity-scoped cache entry each.
   const usersApi = useApi(() => listAdminUsers({ size: 100 }), [], { key: ['admin', 'users'], staleMs: 60_000 });
   const subjectsApi = useApi(() => listAdminSubjects(), [], { key: ['admin', 'subjects'], staleMs: 60_000 });
-  // Membership changes only touch relations, so no list reload is needed —
-  // the runner is used here for its shared error handling.
-  const { actionError, run } = useAdminAction([]);
 
   React.useEffect(() => {
     runWhenIdle(() => preloadAdminSiblingsIdle());
@@ -66,25 +62,29 @@ export default function AdminMembership() {
   async function handleMembership(assign) {
     const { subjectId, kind, userId } = selection;
     if (!subjectId || !userId) return;
-    const options = { rethrow: false };
-    if (kind === 'teacher') {
-      await run(async () => {
+    const successMessage =
+      kind === 'teacher'
+        ? assign ? 'Teacher assigned' : 'Teacher removed'
+        : assign ? 'Student enrolled' : 'Student removed';
+    try {
+      if (kind === 'teacher') {
         if (assign) {
           await assignTeacher(subjectId, userId);
         } else {
           await unassignTeacher(subjectId, userId);
         }
-        toast.success(assign ? 'Teacher assigned' : 'Teacher removed');
-      }, options);
-    } else {
-      await run(async () => {
-        if (assign) {
-          await enrollStudent(subjectId, userId);
-        } else {
-          await unenrollStudent(subjectId, userId);
-        }
-        toast.success(assign ? 'Student enrolled' : 'Student removed');
-      }, options);
+      } else if (assign) {
+        await enrollStudent(subjectId, userId);
+      } else {
+        await unenrollStudent(subjectId, userId);
+      }
+      // Drill-down caches (user subjects / subject members) go stale here.
+      invalidate(['admin', 'user-subjects']);
+      invalidate(['admin', 'subject-members']);
+      toast.success(successMessage);
+    } catch (err) {
+      // Same channel as success: a temporary toast, not a permanent banner.
+      toast.error(err.message || 'Could not update membership.');
     }
   }
 
@@ -94,8 +94,6 @@ export default function AdminMembership() {
         title="Membership"
         description="Assign teachers or enroll students in a subject."
       />
-
-      <ActionErrorBanner message={actionError} />
 
       <section className="bg-white rounded-2xl ambient-shadow p-sp-md">
         <SectionHeader title="Assign or remove" />

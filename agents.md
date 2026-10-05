@@ -62,7 +62,7 @@ Backend one-time setup (all from `backend/`):
 Backend tests (fully offline — no external services required):
 ```bash
 cd backend
-./venv/bin/pytest                     # full suite: 100 tests pass (~0.8 s)
+./venv/bin/pytest                     # full suite: 102 tests pass (~0.8 s)
 ./venv/bin/pytest tests/test_smoke.py -q   # single file
 ```
 There is no project-level Python linter/typecheck config; `pytest` is the

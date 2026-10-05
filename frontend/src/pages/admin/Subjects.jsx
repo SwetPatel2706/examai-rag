@@ -10,8 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { createAdminSubject, deleteAdminSubject, listAdminSubjects, updateAdminSubject } from '@/api/admin';
+import { createAdminSubject, deleteAdminSubject, getAdminSubjectMembers, listAdminSubjects, updateAdminSubject } from '@/api/admin';
 import { INPUT_CLASS } from '@/lib/adminStyles';
+import { cn, initials } from '@/lib/utils';
 import { useAdminAction } from '@/lib/useAdminAction';
 import { useApi } from '@/lib/useApi';
 import { runWhenIdle } from '@/lib/idlePrefetch';
@@ -97,8 +98,77 @@ function SubjectDialog({ dialog, onClose, onCreate, onRename }) {
   );
 }
 
+/** Lazily loaded member roster for an expanded subject. Mounted only on expand. */
+function SubjectMemberList({ subjectId }) {
+  const api = useApi(() => getAdminSubjectMembers(subjectId), [subjectId], {
+    key: ['admin', 'subject-members', subjectId],
+    staleMs: 60_000,
+  });
+
+  if (api.loading) {
+    return <p className="font-label-md text-label-md text-secondary py-2">Loading members…</p>;
+  }
+  if (api.error || api.data == null) {
+    return <p className="font-label-md text-label-md text-error py-2">Could not load members.</p>;
+  }
+  const teachers = api.data.teachers || [];
+  const students = api.data.students || [];
+  if (teachers.length === 0 && students.length === 0) {
+    return (
+      <p className="font-label-md text-label-md text-secondary py-2">
+        No members yet. Use the Membership page to assign teachers or enroll students.
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-sp-sm py-2">
+      {teachers.length > 0 && (
+        <div>
+          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-1">
+            Teachers · {teachers.length}
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {teachers.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-surface-container font-label-md text-label-md text-on-surface"
+              >
+                <span className="w-6 h-6 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-[11px]">
+                  {initials(t.name)}
+                </span>
+                {t.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {students.length > 0 && (
+        <div>
+          <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-1">
+            Students · {students.length}
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {students.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-surface-container font-label-md text-label-md text-on-surface"
+              >
+                <span className="w-6 h-6 rounded-full bg-tertiary-fixed/30 text-tertiary flex items-center justify-center font-bold text-[11px]">
+                  {initials(s.name)}
+                </span>
+                {s.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSubjects() {
   const [dialog, setDialog] = useState(null);
+  const [expandedSubjectId, setExpandedSubjectId] = useState(null);
 
   const subjectsApi = useApi(() => listAdminSubjects(), [], { key: ['admin', 'subjects'], staleMs: 60_000 });
   const { actionError, run } = useAdminAction([subjectsApi.reload]);
@@ -164,30 +234,58 @@ export default function AdminSubjects() {
           <EmptyState icon="library_books" title="No subjects yet" description="Add your first subject to get started." />
         ) : (
           <ul className="divide-y divide-surface-container-high border-t border-surface-container-high">
-            {subjects.map((s) => (
-              <li key={s.id} className="flex items-center gap-3 px-sp-md py-sp-md hover:bg-surface-container-low transition-colors group">
-                <span className="material-symbols-outlined text-secondary text-[20px]">library_books</span>
-                <span className="font-label-md text-label-md text-on-surface truncate flex-1">{s.name}</span>
+            {subjects.map((s) => {
+              const isExpanded = expandedSubjectId === s.id;
+              const toggle = () => setExpandedSubjectId(isExpanded ? null : s.id);
+              return (
+                <li key={s.id} className={cn(isExpanded && 'bg-primary-fixed/10')}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    onClick={toggle}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                      }
+                    }}
+                    className="flex items-center gap-3 px-sp-md py-sp-md hover:bg-surface-container-low cursor-pointer transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50"
+                  >
+                    <span className="material-symbols-outlined text-secondary text-[20px]">library_books</span>
+                    <span className="font-label-md text-label-md text-on-surface truncate flex-1">{s.name}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setDialog({ mode: 'rename', subject: s }); }}
+                      title={`Rename ${s.name}`}
+                      aria-label={`Rename ${s.name}`}
+                      className="p-sp-xs rounded-lg hover:bg-surface-container text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
                 <button
                   type="button"
-                  onClick={() => setDialog({ mode: 'rename', subject: s })}
-                  title={`Rename ${s.name}`}
-                  aria-label={`Rename ${s.name}`}
-                  className="p-sp-xs rounded-lg hover:bg-surface-container text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                >
-                  <span className="material-symbols-outlined text-[18px]">edit</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(s)}
+                  onClick={(e) => { e.stopPropagation(); handleDelete(s); }}
                   title={`Delete ${s.name}`}
                   aria-label={`Delete ${s.name}`}
                   className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
                 >
                   <span className="material-symbols-outlined text-[18px]">delete</span>
                 </button>
-              </li>
-            ))}
+                  <span className="p-sp-xs text-outline" aria-hidden="true">
+                    <span className="material-symbols-outlined text-[18px] block">
+                      {isExpanded ? 'expand_less' : 'chevron_right'}
+                    </span>
+                  </span>
+                  </div>
+                  {isExpanded && (
+                    <div className="px-sp-md pb-sp-sm bg-surface-container-low/50">
+                      <SubjectMemberList subjectId={s.id} />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

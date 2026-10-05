@@ -385,6 +385,63 @@ def test_admin_subject_membership_errors(db_session):
     assert res.status_code == 409
 
 
+def test_admin_user_subjects_drilldown(db_session):
+    client = TestClient(app, raise_server_exceptions=False)
+    admin = make_user(db_session, "admin", "admin@examai.local")
+    mock_auth(admin)
+    teacher = make_user(db_session, "teacher", "t@examai.com")
+    student = make_user(db_session, "student", "s@examai.com")
+    physics = Subject(name="Physics")
+    chemistry = Subject(name="Chemistry")
+    db_session.add_all([physics, chemistry])
+    db_session.commit()
+    db_session.add(SubjectTeacher(subject_id=physics.id, teacher_id=teacher.id))
+    db_session.add(StudentSubject(subject_id=physics.id, student_id=student.id))
+    db_session.add(StudentSubject(subject_id=chemistry.id, student_id=student.id))
+    db_session.commit()
+
+    res = client.get(f"/api/admin/users/{teacher.id}/subjects")
+    assert res.status_code == 200
+    assert [s["name"] for s in res.json()["data"]] == ["Physics"]
+
+    res = client.get(f"/api/admin/users/{student.id}/subjects")
+    assert res.status_code == 200
+    assert [s["name"] for s in res.json()["data"]] == ["Chemistry", "Physics"]
+
+    # Unknown user and non-manageable (admin) user both 404.
+    assert client.get(f"/api/admin/users/{uuid.uuid4()}/subjects").status_code == 404
+    assert client.get(f"/api/admin/users/{admin.id}/subjects").status_code == 404
+
+    # Non-admins are forbidden.
+    mock_auth(teacher)
+    assert client.get(f"/api/admin/users/{student.id}/subjects").status_code == 403
+
+
+def test_admin_subject_members_drilldown(db_session):
+    client = TestClient(app, raise_server_exceptions=False)
+    admin = make_user(db_session, "admin", "admin@examai.local")
+    mock_auth(admin)
+    teacher = make_user(db_session, "teacher", "t@examai.com")
+    student = make_user(db_session, "student", "s@examai.com")
+    subject = Subject(name="Physics")
+    db_session.add(subject)
+    db_session.commit()
+    db_session.add(SubjectTeacher(subject_id=subject.id, teacher_id=teacher.id))
+    db_session.add(StudentSubject(subject_id=subject.id, student_id=student.id))
+    db_session.commit()
+
+    res = client.get(f"/api/admin/subjects/{subject.id}/members")
+    assert res.status_code == 200
+    members = res.json()["data"]
+    assert [t["email"] for t in members["teachers"]] == ["t@examai.com"]
+    assert [s["email"] for s in members["students"]] == ["s@examai.com"]
+
+    assert client.get(f"/api/admin/subjects/{uuid.uuid4()}/members").status_code == 404
+
+    mock_auth(student)
+    assert client.get(f"/api/admin/subjects/{subject.id}/members").status_code == 403
+
+
 def test_admin_delete_subject_cascades_memberships(db_session):
     client = TestClient(app, raise_server_exceptions=False)
     admin = make_user(db_session, "admin", "admin@examai.local")

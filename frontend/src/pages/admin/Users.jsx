@@ -17,7 +17,7 @@ import { useApi } from '@/lib/useApi';
 import { runWhenIdle } from '@/lib/idlePrefetch';
 import { preloadAdminSiblingsIdle } from '@/lib/lazyRoutes';
 import { toast } from '@/store/toastStore';
-import { createAdminUser, deleteAdminUser, listAdminUsers, updateAdminUser } from '@/api/admin';
+import { createAdminUser, deleteAdminUser, getAdminUserSubjects, listAdminUsers, updateAdminUser } from '@/api/admin';
 import {
   ActionErrorBanner,
   Field,
@@ -224,8 +224,42 @@ function EditUserDialog({ user: target, onClose, onSave }) {
   );
 }
 
-const ROLE_TABS = [
-  { value: '', label: 'All' },
+/** Lazily loaded subject list for an expanded user row. Mounted only on expand. */
+function UserSubjectList({ userId, role }) {
+  const api = useApi(() => getAdminUserSubjects(userId), [userId], {
+    key: ['admin', 'user-subjects', userId],
+    staleMs: 60_000,
+  });
+
+  if (api.loading) {
+    return <p className="font-label-md text-label-md text-secondary py-2">Loading subjects…</p>;
+  }
+  if (api.error || api.data == null) {
+    return <p className="font-label-md text-label-md text-error py-2">Could not load subjects.</p>;
+  }
+  if (api.data.length === 0) {
+    return (
+      <p className="font-label-md text-label-md text-secondary py-2">
+        {role === 'teacher' ? 'Not assigned to any subject yet.' : 'Not enrolled in any subject yet.'} Use the Membership page to change that.
+      </p>
+    );
+  }
+  return (
+    <ul className="flex flex-wrap gap-2 py-2" aria-label="Subjects">
+      {api.data.map((s) => (
+        <li
+          key={s.id}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container font-label-md text-label-md text-on-surface"
+        >
+          <span className="material-symbols-outlined text-[16px] text-secondary">library_books</span>
+          {s.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const ROLE_TABS = [  { value: '', label: 'All' },
   { value: 'teacher', label: 'Teachers' },
   { value: 'student', label: 'Students' },
 ];
@@ -235,6 +269,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
+  const [expandedUserId, setExpandedUserId] = useState(null);
 
   // Cached + identity-scoped like the student/teacher lists: warmed at login
   // and on sibling pages, so navigating back renders instantly.
@@ -352,16 +387,35 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high cv-auto">
-              {visibleUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-surface-container-low transition-colors group">
-                  <td className="px-sp-md py-sp-md">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={cn(
-                        'w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0',
-                        u.role === 'teacher' ? 'bg-primary-fixed text-primary' : 'bg-tertiary-fixed/30 text-tertiary'
-                      )}>
-                        {initials(u.name)}
-                      </div>
+              {visibleUsers.map((u) => {
+                const isExpanded = expandedUserId === u.id;
+                const toggle = () => setExpandedUserId(isExpanded ? null : u.id);
+                return (
+                  <React.Fragment key={u.id}>
+                    <tr
+                      tabIndex={0}
+                      role="button"
+                      aria-expanded={isExpanded}
+                      onClick={toggle}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggle();
+                        }
+                      }}
+                      className={cn(
+                        'hover:bg-surface-container-low cursor-pointer transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50',
+                        isExpanded && 'bg-primary-fixed/10'
+                      )}
+                    >
+                      <td className="px-sp-md py-sp-md">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={cn(
+                            'w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0',
+                            u.role === 'teacher' ? 'bg-primary-fixed text-primary' : 'bg-tertiary-fixed/30 text-tertiary'
+                          )}>
+                            {initials(u.name)}
+                          </div>
                       <div className="min-w-0">
                         <p className="font-label-md text-label-md text-on-surface truncate">{u.name}</p>
                         <p className="font-label-sm text-label-sm text-secondary truncate">{u.email}</p>
@@ -370,7 +424,7 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-sp-md py-sp-md"><RoleBadge role={u.role} /></td>
                   <td className="px-sp-md py-sp-md text-right">
-                    <div className="inline-flex gap-1">
+                    <div className="inline-flex gap-1" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => setEditUser(u)}
@@ -389,10 +443,24 @@ export default function AdminUsers() {
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
+                      <span className="p-sp-xs text-outline self-center" aria-hidden="true">
+                        <span className="material-symbols-outlined text-[18px] block">
+                          {isExpanded ? 'expand_less' : 'chevron_right'}
+                        </span>
+                      </span>
                     </div>
                   </td>
-                </tr>
-              ))}
+                    </tr>
+                    {isExpanded && (
+                      <tr className="bg-surface-container-low/50">
+                        <td colSpan={3} className="px-sp-md py-sp-sm">
+                          <UserSubjectList userId={u.id} role={u.role} />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         )}

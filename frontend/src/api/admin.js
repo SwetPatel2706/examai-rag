@@ -20,6 +20,11 @@ export async function deleteAdminUser(id) {
   return request(`/api/admin/users/${id}`, { method: 'DELETE' });
 }
 
+/** GET /api/admin/users/:id/subjects — subjects the user teaches / is enrolled in. */
+export async function getAdminUserSubjects(id) {
+  return request(`/api/admin/users/${id}/subjects`);
+}
+
 /** GET /api/admin/subjects — all subjects. */
 export async function listAdminSubjects() {
   return request('/api/admin/subjects');
@@ -38,6 +43,11 @@ export async function updateAdminSubject(id, name) {
 /** DELETE /api/admin/subjects/:id */
 export async function deleteAdminSubject(id) {
   return request(`/api/admin/subjects/${id}`, { method: 'DELETE' });
+}
+
+/** GET /api/admin/subjects/:id/members — assigned teachers + enrolled students. */
+export async function getAdminSubjectMembers(id) {
+  return request(`/api/admin/subjects/${id}/members`);
 }
 
 /** POST /api/admin/subjects/:id/teachers */

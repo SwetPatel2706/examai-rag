@@ -22,6 +22,11 @@ function stubAdminApi({ users, subjects }) {
     const method = (options.method || 'GET').toUpperCase();
     const body = options.body ? JSON.parse(options.body) : {};
     if (url.includes('/api/admin/users')) {
+      if (method === 'GET' && url.endsWith('/subjects')) {
+        const id = url.split('/').slice(-2, -1)[0];
+        const mine = id === 't1' || id === 's1' ? subjects.filter((s) => s.id === 'sub1') : [];
+        return jsonResponse(mine);
+      }
       if (method === 'GET') {
         return jsonResponse({ items: users, total: users.length, page: 1, pages: 1, size: 100 });
       }
@@ -44,6 +49,12 @@ function stubAdminApi({ users, subjects }) {
       }
     }
     if (url.includes('/api/admin/subjects')) {
+      if (method === 'GET' && url.endsWith('/members')) {
+        return jsonResponse({
+          teachers: users.filter((u) => u.role === 'teacher'),
+          students: users.filter((u) => u.role === 'student'),
+        });
+      }
       if (url.includes('/teachers') || url.includes('/students')) {
         return jsonResponse({ message: 'ok' });
       }
@@ -173,6 +184,17 @@ describe('AdminUsers', () => {
     expect(screen.getByText('Charlie Student')).toBeInTheDocument();
   });
 
+  it('expands a user row to show their subjects', async () => {
+    stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
+    const user = userEvent.setup();
+    renderPage(AdminUsers);
+    await screen.findByText('Dr. Alice Smith');
+
+    await user.click(screen.getByText('Dr. Alice Smith'));
+
+    expect(await screen.findByLabelText('Subjects')).toBeInTheDocument();
+  });
+
   it('edits a user name and role through the dialog with a toast', async () => {
     const fetch = stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
     const user = userEvent.setup();
@@ -248,6 +270,18 @@ describe('AdminSubjects', () => {
 
     expect(await screen.findByText('Software Engineering II')).toBeInTheDocument();
   });
+
+  it('expands a subject to show its teachers and students', async () => {
+    stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
+    const user = userEvent.setup();
+    renderPage(AdminSubjects);
+    await screen.findByText('Software Engineering');
+
+    await user.click(screen.getByText('Software Engineering'));
+
+    expect(await screen.findByText('Teachers · 1')).toBeInTheDocument();
+    expect(screen.getByText('Students · 1')).toBeInTheDocument();
+  });
 });
 
 describe('AdminMembership', () => {
@@ -267,6 +301,40 @@ describe('AdminMembership', () => {
       )
     );
     expect(await screen.findByText('Teacher assigned')).toBeInTheDocument();
+  });
+
+  it('shows an error toast when membership update fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url, options = {}) => {
+        if (url.includes('/teachers') && (options.method || 'GET').toUpperCase() === 'POST') {
+          return {
+            ok: false,
+            status: 400,
+            json: async () => ({
+              success: false,
+              error: { code: 'BAD_REQUEST', message: 'User is not a teacher.', request_id: 'r2' },
+            }),
+          };
+        }
+        if (url.includes('/api/admin/users')) {
+          return jsonResponse({ items: seedUsers(), total: 2, page: 1, pages: 1, size: 100 });
+        }
+        if (url.includes('/api/admin/subjects')) {
+          return jsonResponse(seedSubjects());
+        }
+        return jsonResponse(null);
+      })
+    );
+    const user = userEvent.setup();
+    renderPage(AdminMembership);
+
+    await user.selectOptions(await screen.findByLabelText('Subject'), 'sub1');
+    await user.selectOptions(screen.getByLabelText('User'), 't1');
+    await user.click(screen.getByRole('button', { name: 'Assign' }));
+
+    // Same temporary channel as success — no permanent banner.
+    expect(await screen.findByText('User is not a teacher.')).toBeInTheDocument();
   });
 });
 

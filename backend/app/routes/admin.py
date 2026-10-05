@@ -300,3 +300,63 @@ def unenroll_student(
     db.delete(row)
     db.commit()
     return StandardResponse.ok(data={"message": "Student unenrolled"})
+
+
+# ── Drill-down ───────────────────────────────────────────────────────────────
+
+@router.get("/users/{user_id}/subjects", response_model=StandardResponse)
+def get_user_subjects(
+    user_id: uuid.UUID,
+    _admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Subjects a teacher is assigned to / a student is enrolled in."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or user.role not in MANAGEABLE_ROLES:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    if user.role == "teacher":
+        subjects = (
+            db.query(Subject)
+            .join(SubjectTeacher, Subject.id == SubjectTeacher.subject_id)
+            .filter(SubjectTeacher.teacher_id == user_id)
+            .order_by(Subject.name)
+            .all()
+        )
+    else:
+        subjects = (
+            db.query(Subject)
+            .join(StudentSubject, Subject.id == StudentSubject.subject_id)
+            .filter(StudentSubject.student_id == user_id)
+            .order_by(Subject.name)
+            .all()
+        )
+    data = [SubjectResponse.model_validate(s).model_dump(mode="json") for s in subjects]
+    return StandardResponse.ok(data=data)
+
+
+@router.get("/subjects/{subject_id}/members", response_model=StandardResponse)
+def get_subject_members(
+    subject_id: uuid.UUID,
+    _admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Teachers assigned to and students enrolled in a subject."""
+    _get_subject_or_404(db, subject_id)
+    teachers = (
+        db.query(User)
+        .join(SubjectTeacher, User.id == SubjectTeacher.teacher_id)
+        .filter(SubjectTeacher.subject_id == subject_id)
+        .order_by(User.name)
+        .all()
+    )
+    students = (
+        db.query(User)
+        .join(StudentSubject, User.id == StudentSubject.student_id)
+        .filter(StudentSubject.subject_id == subject_id)
+        .order_by(User.name)
+        .all()
+    )
+    return StandardResponse.ok(data={
+        "teachers": [AdminUserResponse.model_validate(t).model_dump(mode="json") for t in teachers],
+        "students": [AdminUserResponse.model_validate(s).model_dump(mode="json") for s in students],
+    })

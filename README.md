@@ -63,12 +63,12 @@ npm run dev
 ```bash
 cd backend
 ./venv/bin/pip install -r requirements-dev.txt   # test-only deps (reportlab, …)
-./venv/bin/pytest          # full suite — offline, 100 tests pass (no external services)
+./venv/bin/pytest          # full suite — offline, 102 tests pass (no external services)
 ./venv/bin/pytest tests/test_smoke.py -q   # single file
 ```
 
 Frontend: `npm run lint` (oxlint), `npm run build`, and `npm test` (Vitest +
-Testing Library, 78 tests).
+Testing Library, 81 tests).
 
 ## Demo logins
 

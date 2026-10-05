@@ -14,6 +14,14 @@ generation resolve real citations. The seed never embeds materials whose
 
 # ── People ─────────────────────────────────────────────────────────────────────
 
+ADMINS = [
+    {
+        "email": "admin@examai.local",
+        "name": "ExamAI Admin",
+        "role": "admin",
+    },
+]
+
 TEACHERS = [
     {
         "email": "teacher1@examai.com",

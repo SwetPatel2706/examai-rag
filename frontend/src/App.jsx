@@ -26,6 +26,7 @@ const TeacherMaterials = lazy(loaders['/teacher/materials']);
 const QuizCreateEdit = lazy(loaders['/teacher/quiz/create']);
 const Analytics = lazy(loaders['/teacher/analytics']);
 const StudentProgress = lazy(loaders['/teacher/students']);
+const AdminDashboard = lazy(loaders['/admin']);
 
 function RequireAuth({ children }) {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -42,13 +43,15 @@ function RequireRole({ role, children }) {
     return <Navigate to="/login" replace />;
   }
   if (userRole !== role) {
-    return <Navigate to={userRole === 'teacher' ? '/teacher' : '/student'} replace />;
+    return <Navigate to={roleHome(userRole)} replace />;
   }
   return children;
 }
 
 function roleHome(role) {
-  return role === 'teacher' ? '/teacher' : '/student';
+  if (role === 'teacher') return '/teacher';
+  if (role === 'admin') return '/admin';
+  return '/student';
 }
 
 /**
@@ -183,6 +186,9 @@ export function AppRoutes() {
         <Route path="/teacher/quiz/create" element={<StandardRoute role="teacher" Page={QuizCreateEdit} />} />
         <Route path="/teacher/analytics" element={<StandardRoute role="teacher" Page={Analytics} />} />
         <Route path="/teacher/students" element={<StandardRoute role="teacher" Page={StudentProgress} />} />
+
+        {/* ── Admin ── */}
+        <Route path="/admin" element={<StandardRoute role="admin" Page={AdminDashboard} />} />
 
         {/* Legacy redirects for old routes */}
         <Route path="/student-old" element={<Navigate to="/student" replace />} />

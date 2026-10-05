@@ -18,13 +18,17 @@ const TEACHER_NAV = [
   { icon: 'groups', label: 'Student Progress', to: '/teacher/students' },
 ];
 
+const ADMIN_NAV = [
+  { icon: 'admin_panel_settings', label: 'Admin', to: '/admin' },
+];
+
 /**
  * AppLayout wraps a sidebar + main content area.
- * @param {{ role: 'student' | 'teacher', children: React.ReactNode }} props
+ * @param {{ role: 'student' | 'teacher' | 'admin', children: React.ReactNode }} props
  */
 export default function AppLayout({ role, children }) {
   const isNested = useContext(PersistentLayoutContext);
-  const navItems = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
+  const navItems = role === 'teacher' ? TEACHER_NAV : role === 'admin' ? ADMIN_NAV : STUDENT_NAV;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const mobileMenuButtonRef = useRef(null);
 

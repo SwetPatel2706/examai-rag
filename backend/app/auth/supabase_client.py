@@ -100,6 +100,22 @@ class SupabaseAuthClient:
             raise ValueError(msg)
         return response.json()
 
+    async def admin_delete_user(self, user_id: str) -> None:
+        """Delete a user with the service role key (for admin user removal)."""
+        url = f"{self.auth_url}/admin/users/{user_id}"
+        headers = {
+            "apikey": self.service_key,
+            "Authorization": f"Bearer {self.service_key}",
+        }
+        response = await self.client.delete(url, headers=headers)
+        if response.status_code not in (200, 204, 404):
+            try:
+                error_info = response.json()
+            except Exception:
+                error_info = {}
+            msg = error_info.get("msg") or error_info.get("error", "Failed to delete user")
+            raise ValueError(msg)
+
     async def _admin_get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """List users with pagination to find one by email (admin helper)."""
         headers = {

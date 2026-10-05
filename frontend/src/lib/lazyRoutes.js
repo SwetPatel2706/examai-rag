@@ -21,6 +21,7 @@ const routeEntries = [
   { pattern: '/teacher/quiz/create', loader: () => import('../pages/QuizCreateEdit'), prefetch: warmTeacherQuizEditor },
   { pattern: '/teacher/analytics', loader: () => import('../pages/Analytics'), prefetch: warmTeacherAnalytics },
   { pattern: '/teacher/students', loader: () => import('../pages/StudentProgress'), prefetch: warmTeacherProgress },
+  { pattern: '/admin', loader: () => import('../pages/AdminDashboard'), prefetch: null },
 ];
 
 export const loaders = Object.fromEntries(routeEntries.map(({ pattern, loader }) => [pattern, loader]));
@@ -343,6 +344,7 @@ export function preloadRoleData(role) {
       warmStudentDeep(),
     ]);
   }
+  // Admin has its own screens; nothing to warm.
   return Promise.resolve(null);
 }
 

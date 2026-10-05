@@ -16,6 +16,7 @@ function renderLogin(initialEntry = '/login') {
         <Route path="/login" element={<Login />} />
         <Route path="/student" element={<div>Student Home</div>} />
         <Route path="/teacher" element={<div>Teacher Home</div>} />
+        <Route path="/admin/users" element={<div>Admin Users</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -63,6 +64,20 @@ describe('Login', () => {
 
     expect(await screen.findByText('Teacher Home')).toBeInTheDocument();
     expect(useAuthStore.getState().role).toBe('teacher');
+  });
+
+  it('redirects an admin to the admin users page', async () => {
+    useAuthStore.getState().clearAuth();
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(loginEnvelope('admin'))));
+
+    renderLogin();
+    await user.type(screen.getByLabelText('Email Address'), 'admin@examai.com');
+    await user.type(screen.getByLabelText('Password'), 'Password123!');
+    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+
+    expect(await screen.findByText('Admin Users')).toBeInTheDocument();
+    expect(useAuthStore.getState().role).toBe('admin');
   });
 
   it('shows the error banner when login fails', async () => {

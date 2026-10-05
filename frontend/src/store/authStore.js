@@ -29,7 +29,7 @@ function persist(state) {
 
 const useAuthStore = create((set) => ({
   user: persisted?.user ?? null, // { id, email, role, name }
-  role: persisted?.role ?? null, // 'student' | 'teacher'
+  role: persisted?.role ?? null, // 'student' | 'teacher' | 'admin'
   accessToken: null, // memory-only — re-minted from the refresh cookie on load
 
   setAuth: (user, role, { accessToken } = {}) => {

@@ -52,7 +52,7 @@ npm run dev
 ```bash
 ./venv/bin/pip install -r requirements.txt     # install/refresh deps
 ./venv/bin/alembic upgrade head                # apply Postgres migrations
-./venv/bin/python -m app.seed                  # seed demo users/subjects/quizzes
+./venv/bin/python -m app.seed                  # seed demo users (incl. admin)/subjects/quizzes
 # optional — for RAG Chat and Flashcard generation:
 ./venv/bin/python -m app.provision_qdrant      # create the Qdrant collection
 ./venv/bin/python -m app.seed --with-rag       # also embed synthetic materials
@@ -63,12 +63,12 @@ npm run dev
 ```bash
 cd backend
 ./venv/bin/pip install -r requirements-dev.txt   # test-only deps (reportlab, …)
-./venv/bin/pytest          # full suite — offline, 82 tests pass (no external services)
+./venv/bin/pytest          # full suite — offline, 103 tests pass (no external services)
 ./venv/bin/pytest tests/test_smoke.py -q   # single file
 ```
 
 Frontend: `npm run lint` (oxlint), `npm run build`, and `npm test` (Vitest +
-Testing Library, 63 tests).
+Testing Library, 84 tests).
 
 ## Demo logins
 
@@ -78,5 +78,6 @@ is only the non-production/local fallback when that variable is unset (see
 
 | Role | Email | Subjects |
 |---|---|---|
+| Admin | `admin@examai.com` | All (via the `/admin` console, not enrollments) |
 | Teacher | `teacher1@examai.com` | Software Engineering; Advanced Database Systems |
 | Student | `student1@examai.com` | Software Engineering; Data Structures & Algorithms |

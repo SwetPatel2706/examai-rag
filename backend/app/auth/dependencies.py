@@ -73,3 +73,4 @@ class RoleChecker:
 # Common dependencies
 require_teacher = RoleChecker(["teacher"])
 require_student = RoleChecker(["student"])
+require_admin = RoleChecker(["admin"])

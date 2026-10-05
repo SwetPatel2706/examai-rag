@@ -17,6 +17,7 @@ from app.models.flashcard import FlashcardDeck, Flashcard
 from app.auth.supabase_client import supabase_auth
 from app.services.quiz.grading_service import compute_weak_topics
 from app.seed_data import (
+    ADMINS,
     TEACHERS,
     STUDENTS,
     SUBJECTS,
@@ -228,9 +229,9 @@ async def seed_data(with_rag: bool = False):
         now = datetime.datetime.now(datetime.timezone.utc)
         seed_password = resolve_seed_password()
 
-        # 1. Provision all users (teachers + students) in Supabase Auth + local DB.
+        # 1. Provision all users (admins + teachers + students) in Supabase Auth + local DB.
         users = {}
-        for u in TEACHERS + STUDENTS:
+        for u in ADMINS + TEACHERS + STUDENTS:
             user = await provision_user(db, u["email"], u["name"], u.get("role", "student"), u.get("password", seed_password))
             users[u["email"]] = user
         db.commit()

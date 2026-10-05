@@ -9,6 +9,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.routes import (
+    admin,
     analytics,
     auth,
     chat,
@@ -132,6 +133,7 @@ def _json_safe_validation_errors(errors: list) -> list:
 # Include routers
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(admin.router)
 app.include_router(subjects.router)
 app.include_router(materials.router)
 app.include_router(chat.router)

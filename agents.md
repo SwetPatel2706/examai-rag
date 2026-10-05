@@ -52,7 +52,9 @@ Backend one-time setup (all from `backend/`):
   working directory**, so always run uvicorn / alembic / seed / pytest from
   `backend/`, never from the repo root.
 - Migrate: `./venv/bin/alembic upgrade head`
-- Seed demo data: `./venv/bin/python -m app.seed` — add `--with-rag` to embed
+- Seed demo data: `./venv/bin/python -m app.seed` — provisions teachers,
+  students, **and the `admin@examai.com` admin** (Supabase Auth + local
+  profiles); add `--with-rag` to embed
   synthetic material content so Chat/Flashcards resolve real citations (needs
   Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
 - Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
@@ -60,7 +62,7 @@ Backend one-time setup (all from `backend/`):
 Backend tests (fully offline — no external services required):
 ```bash
 cd backend
-./venv/bin/pytest                     # full suite: 82 tests pass (~0.8 s)
+./venv/bin/pytest                     # full suite: 103 tests pass (~0.8 s)
 ./venv/bin/pytest tests/test_smoke.py -q   # single file
 ```
 There is no project-level Python linter/typecheck config; `pytest` is the
@@ -96,8 +98,8 @@ materials — no fairness constraint applies (not graded/comparative), so no
 teacher-authoring step needed here.
 
 ## Roles
-Two roles: `student`, `teacher`. Users are provisioned only through an explicit seed operation. Runtime auth supports email/password login and logout; there is no signup, forgot-password/reset, OAuth, magic-link, MFA, or client role selector. The backend derives the role from the seeded user profile.
-No admin role in scope yet.
+Three roles: `student`, `teacher`, `admin`. Users are provisioned through the seed operation or the admin API. Runtime auth supports email/password login and logout; there is no signup, forgot-password/reset, OAuth, magic-link, MFA, or client role selector. The backend derives the role from the user profile.
+The `admin` role is minimal: CRUD of teachers/students/subjects plus subject membership (assign teacher / enroll student) via `/api/admin/*` and the `/admin/*` UI (Users, Subjects, Membership pages). Admins cannot create other admins, and admin endpoints never bypass the existing student/teacher access checks.
 
 ## Data entities (cross-cutting, see backend/agents.md for schema detail)
 `users` (role) · `subjects` (many teachers per subject) · `materials`

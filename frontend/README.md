@@ -59,7 +59,7 @@ npm run lint
 
 Uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for fast static checks.
 
-> Automated test suite: Vitest + Testing Library, **63 tests** across 14 files
+> Automated test suite: Vitest + Testing Library, **84 tests** across 15 files
 > (`npm run test`). Run `npm run lint`, `npm run build`, and `npm run test` as
 > your verification gate before handing off changes.
 
@@ -80,8 +80,8 @@ src/
 
 ### Data flow
 
-1. **Auth** — `authStore` holds role (`student` | `teacher`) and user profile after login.
-2. **Routing** — React Router splits student (`/student/*`) and teacher (`/teacher/*`) trees; both share login/signup.
+1. **Auth** — `authStore` holds role (`student` | `teacher` | `admin`) and user profile after login.
+2. **Routing** — React Router splits student (`/student/*`), teacher (`/teacher/*`), and admin (`/admin/users`, `/admin/subjects`, `/admin/membership`) trees; all share login.
 3. **Layout** — `AppLayout` renders a role-specific sidebar and main content. On viewports below `lg`, the sidebar becomes a toggleable drawer.
 4. **API layer** — `src/api/` modules call the FastAPI backend. Business logic stays on the server; pages compose API responses into UI state.
 5. **Material scope** — Chat and flashcard generation send per-session material selections (not persisted server-side). Citations must always include teacher name and material filename.

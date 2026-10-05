@@ -21,6 +21,9 @@ const routeEntries = [
   { pattern: '/teacher/quiz/create', loader: () => import('../pages/QuizCreateEdit'), prefetch: warmTeacherQuizEditor },
   { pattern: '/teacher/analytics', loader: () => import('../pages/Analytics'), prefetch: warmTeacherAnalytics },
   { pattern: '/teacher/students', loader: () => import('../pages/StudentProgress'), prefetch: warmTeacherProgress },
+  { pattern: '/admin/users', loader: () => import('../pages/admin/Users'), prefetch: warmAdminUsers },
+  { pattern: '/admin/subjects', loader: () => import('../pages/admin/Subjects'), prefetch: warmAdminSubjects },
+  { pattern: '/admin/membership', loader: () => import('../pages/admin/Membership'), prefetch: preloadAdminSiblingsIdle },
 ];
 
 export const loaders = Object.fromEntries(routeEntries.map(({ pattern, loader }) => [pattern, loader]));
@@ -57,6 +60,27 @@ function warm(modulePath, exportName, parts, args = [], staleMs = 60_000) {
 
 function warmMany(tasks) {
   return Promise.all(tasks.map((task) => task.catch(() => null)));
+}
+
+function warmAdminUsers() {
+  // Parts mirror the Users page default view (all roles, no search, page 1).
+  return warm('../api/admin', 'listAdminUsers', ['admin', 'users', 'all', '', 1], [{ page: 1, size: 20 }]);
+}
+
+function warmAdminSubjects() {
+  return warm('../api/admin', 'listAdminSubjects', ['admin', 'subjects']);
+}
+
+/**
+ * Sibling-default warmer for the admin screens. Each admin page fires this
+ * while idle so the Users/Subjects/Membership lists are cache-hot
+ * (identity-scoped, shared with the useApi hooks) wherever the admin lands.
+ */
+export function preloadAdminSiblingsIdle() {
+  return warmMany([
+    warmAdminUsers().catch(() => null),
+    warmAdminSubjects().catch(() => null),
+  ]);
 }
 
 function warmStudentSubjects() {
@@ -342,6 +366,10 @@ export function preloadRoleData(role) {
       warmStudentSubjectMaterials(),
       warmStudentDeep(),
     ]);
+  }
+  // Admin screens warm their own lists; nothing role-wide to fetch.
+  if (role === 'admin') {
+    return preloadAdminSiblingsIdle();
   }
   return Promise.resolve(null);
 }

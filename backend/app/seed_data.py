@@ -14,6 +14,16 @@ generation resolve real citations. The seed never embeds materials whose
 
 # ── People ─────────────────────────────────────────────────────────────────────
 
+ADMINS = [
+    {
+        # NOTE: must be a publicly-valid email — LoginRequest.email is an
+        # EmailStr and rejects special-use domains like `.local`.
+        "email": "admin@examai.com",
+        "name": "ExamAI Admin",
+        "role": "admin",
+    },
+]
+
 TEACHERS = [
     {
         "email": "teacher1@examai.com",

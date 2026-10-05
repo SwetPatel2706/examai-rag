@@ -18,13 +18,19 @@ const TEACHER_NAV = [
   { icon: 'groups', label: 'Student Progress', to: '/teacher/students' },
 ];
 
+const ADMIN_NAV = [
+  { icon: 'groups', label: 'Users', to: '/admin/users' },
+  { icon: 'library_books', label: 'Subjects', to: '/admin/subjects' },
+  { icon: 'group_add', label: 'Membership', to: '/admin/membership' },
+];
+
 /**
  * AppLayout wraps a sidebar + main content area.
- * @param {{ role: 'student' | 'teacher', children: React.ReactNode }} props
+ * @param {{ role: 'student' | 'teacher' | 'admin', children: React.ReactNode }} props
  */
 export default function AppLayout({ role, children }) {
   const isNested = useContext(PersistentLayoutContext);
-  const navItems = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
+  const navItems = role === 'teacher' ? TEACHER_NAV : role === 'admin' ? ADMIN_NAV : STUDENT_NAV;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const mobileMenuButtonRef = useRef(null);
 

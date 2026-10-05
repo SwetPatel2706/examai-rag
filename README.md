@@ -68,7 +68,7 @@ cd backend
 ```
 
 Frontend: `npm run lint` (oxlint), `npm run build`, and `npm test` (Vitest +
-Testing Library, 77 tests).
+Testing Library, 78 tests).
 
 ## Demo logins
 

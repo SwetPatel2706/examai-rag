@@ -12,7 +12,11 @@ import {
   unenrollStudent,
 } from '@/api/admin';
 import { INPUT_CLASS } from '@/lib/adminStyles';
-import { useAdminAction, useAdminList } from '@/lib/useAdminList';
+import { useAdminAction } from '@/lib/useAdminAction';
+import { useApi } from '@/lib/useApi';
+import { runWhenIdle } from '@/lib/idlePrefetch';
+import { preloadAdminSiblingsIdle } from '@/lib/lazyRoutes';
+import { toast } from '@/store/toastStore';
 import {
   ActionErrorBanner,
   Field,
@@ -21,11 +25,17 @@ import {
 export default function AdminMembership() {
   const [selection, setSelection] = useState({ subjectId: '', kind: 'teacher', userId: '' });
 
-  const usersApi = useAdminList(() => listAdminUsers({ size: 100 }), []);
-  const subjectsApi = useAdminList(() => listAdminSubjects(), []);
+  // Same cached keys as the Users/Subjects pages: navigating between the
+  // admin screens reuses one shared, identity-scoped cache entry each.
+  const usersApi = useApi(() => listAdminUsers({ size: 100 }), [], { key: ['admin', 'users'], staleMs: 60_000 });
+  const subjectsApi = useApi(() => listAdminSubjects(), [], { key: ['admin', 'subjects'], staleMs: 60_000 });
   // Membership changes only touch relations, so no list reload is needed —
   // the runner is used here for its shared error handling.
   const { actionError, run } = useAdminAction([]);
+
+  React.useEffect(() => {
+    runWhenIdle(() => preloadAdminSiblingsIdle());
+  }, []);
 
   const initialLoading =
     (usersApi.loading && usersApi.data == null) || (subjectsApi.loading && subjectsApi.data == null);
@@ -58,9 +68,23 @@ export default function AdminMembership() {
     if (!subjectId || !userId) return;
     const options = { rethrow: false };
     if (kind === 'teacher') {
-      await run(() => (assign ? assignTeacher(subjectId, userId) : unassignTeacher(subjectId, userId)), options);
+      await run(async () => {
+        if (assign) {
+          await assignTeacher(subjectId, userId);
+        } else {
+          await unassignTeacher(subjectId, userId);
+        }
+        toast.success(assign ? 'Teacher assigned' : 'Teacher removed');
+      }, options);
     } else {
-      await run(() => (assign ? enrollStudent(subjectId, userId) : unenrollStudent(subjectId, userId)), options);
+      await run(async () => {
+        if (assign) {
+          await enrollStudent(subjectId, userId);
+        } else {
+          await unenrollStudent(subjectId, userId);
+        }
+        toast.success(assign ? 'Student enrolled' : 'Student removed');
+      }, options);
     }
   }
 

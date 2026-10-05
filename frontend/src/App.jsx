@@ -8,6 +8,7 @@ import { fetchMe, refreshSession } from './api/auth';
 import { LoadingState } from './components/ui/states';
 import AppLayout from './components/layout/AppLayout';
 import RouteFallback from './components/layout/RouteFallback';
+import { Toaster } from './components/ui/toaster';
 import { markNavigationReady } from './lib/navigationPerformance';
 
 // Lazy page components. Only the Login/bootstrap path is loaded eagerly, so
@@ -167,6 +168,7 @@ function FocusRoute({ role, Page }) {
 export function AppRoutes() {
   return (
     <SessionBootstrap>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<RedirectIfAuthed />} />

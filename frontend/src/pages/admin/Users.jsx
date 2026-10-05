@@ -12,8 +12,12 @@ import {
 } from '@/components/ui/dialog';
 import { cn, initials } from '@/lib/utils';
 import { INPUT_CLASS } from '@/lib/adminStyles';
-import { useAdminAction, useAdminList } from '@/lib/useAdminList';
-import { createAdminUser, deleteAdminUser, listAdminUsers } from '@/api/admin';
+import { useAdminAction } from '@/lib/useAdminAction';
+import { useApi } from '@/lib/useApi';
+import { runWhenIdle } from '@/lib/idlePrefetch';
+import { preloadAdminSiblingsIdle } from '@/lib/lazyRoutes';
+import { toast } from '@/store/toastStore';
+import { createAdminUser, deleteAdminUser, listAdminUsers, updateAdminUser } from '@/api/admin';
 import {
   ActionErrorBanner,
   Field,
@@ -130,6 +134,96 @@ function AddUserDialog({ open, onOpenChange, onCreate }) {
   );
 }
 
+function EditUserDialog({ user: target, onClose, onSave }) {
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('teacher');
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState(null);
+
+  React.useEffect(() => {
+    setName(target?.name ?? '');
+    setRole(target?.role ?? 'teacher');
+    setFormError(null);
+  }, [target]);
+
+  if (!target) return null;
+
+  async function submit(e) {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setSaving(true);
+    setFormError(null);
+    try {
+      await onSave(target.id, { name: trimmed, role });
+      onClose();
+    } catch (err) {
+      setFormError(err.message || 'Could not save user.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-lg w-full">
+        <DialogHeader>
+          <DialogTitle>Edit user</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={submit} className="flex flex-col gap-sp-md">
+          <Field label="Email" htmlFor="admin-edit-user-email">
+            <input
+              id="admin-edit-user-email"
+              type="email"
+              disabled
+              value={target.email}
+              className={cn(INPUT_CLASS, 'opacity-60')}
+            />
+          </Field>
+          <Field label="Name" htmlFor="admin-edit-user-name">
+            <input
+              id="admin-edit-user-name"
+              required
+              minLength={1}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={INPUT_CLASS}
+            />
+          </Field>
+          <Field label="Role" htmlFor="admin-edit-user-role">
+            <select
+              id="admin-edit-user-role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className={INPUT_CLASS}
+            >
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </Field>
+          <FormError message={formError} />
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 px-4 rounded-lg border border-outline-variant text-secondary font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="h-9 px-6 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:scale-[0.98] transition-all disabled:opacity-40"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 const ROLE_TABS = [
   { value: '', label: 'All' },
   { value: 'teacher', label: 'Teachers' },
@@ -140,9 +234,17 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState('');
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editUser, setEditUser] = useState(null);
 
-  const usersApi = useAdminList(() => listAdminUsers({ size: 100 }), []);
+  // Cached + identity-scoped like the student/teacher lists: warmed at login
+  // and on sibling pages, so navigating back renders instantly.
+  const usersApi = useApi(() => listAdminUsers({ size: 100 }), [], { key: ['admin', 'users'], staleMs: 60_000 });
   const { actionError, run } = useAdminAction([usersApi.reload]);
+
+  // While the admin works here, warm the sibling admin lists during idle time.
+  React.useEffect(() => {
+    runWhenIdle(() => preloadAdminSiblingsIdle());
+  }, []);
 
   if (usersApi.loading && usersApi.data == null) {
     return (
@@ -171,7 +273,10 @@ export default function AdminUsers() {
   async function handleDelete(u) {
     const ok = window.confirm(`Delete "${u.name}" (${u.email})? This removes them for all subjects.`);
     if (!ok) return;
-    await run(() => deleteAdminUser(u.id), { rethrow: false });
+    await run(async () => {
+      await deleteAdminUser(u.id);
+      toast.success('User deleted');
+    }, { rethrow: false });
   }
 
   return (
@@ -265,15 +370,26 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-sp-md py-sp-md"><RoleBadge role={u.role} /></td>
                   <td className="px-sp-md py-sp-md text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(u)}
-                      title={`Delete ${u.name}`}
-                      aria-label={`Delete ${u.name}`}
-                      className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
+                    <div className="inline-flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditUser(u)}
+                        title={`Edit ${u.name}`}
+                        aria-label={`Edit ${u.name}`}
+                        className="p-sp-xs rounded-lg hover:bg-surface-container text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(u)}
+                        title={`Delete ${u.name}`}
+                        aria-label={`Delete ${u.name}`}
+                        className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -285,7 +401,22 @@ export default function AdminUsers() {
       <AddUserDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreate={(payload) => run(() => createAdminUser(payload))}
+        onCreate={async (payload) => {
+          await run(async () => {
+            await createAdminUser(payload);
+            toast.success('User created');
+          });
+        }}
+      />
+      <EditUserDialog
+        user={editUser}
+        onClose={() => setEditUser(null)}
+        onSave={async (id, patch) => {
+          await run(async () => {
+            await updateAdminUser(id, patch);
+            toast.success('User updated');
+          });
+        }}
       />
     </AppLayout>
   );

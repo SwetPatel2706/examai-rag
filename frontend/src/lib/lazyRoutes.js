@@ -23,7 +23,7 @@ const routeEntries = [
   { pattern: '/teacher/students', loader: () => import('../pages/StudentProgress'), prefetch: warmTeacherProgress },
   { pattern: '/admin/users', loader: () => import('../pages/admin/Users'), prefetch: warmAdminUsers },
   { pattern: '/admin/subjects', loader: () => import('../pages/admin/Subjects'), prefetch: warmAdminSubjects },
-  { pattern: '/admin/membership', loader: () => import('../pages/admin/Membership'), prefetch: warmAdminMembership },
+  { pattern: '/admin/membership', loader: () => import('../pages/admin/Membership'), prefetch: preloadAdminSiblingsIdle },
 ];
 
 export const loaders = Object.fromEntries(routeEntries.map(({ pattern, loader }) => [pattern, loader]));
@@ -70,8 +70,16 @@ function warmAdminSubjects() {
   return warm('../api/admin', 'listAdminSubjects', ['admin', 'subjects']);
 }
 
-function warmAdminMembership() {
-  return warmMany([warmAdminUsers(), warmAdminSubjects()]);
+/**
+ * Sibling-default warmer for the admin screens. Each admin page fires this
+ * while idle so the Users/Subjects/Membership lists are cache-hot
+ * (identity-scoped, shared with the useApi hooks) wherever the admin lands.
+ */
+export function preloadAdminSiblingsIdle() {
+  return warmMany([
+    warmAdminUsers().catch(() => null),
+    warmAdminSubjects().catch(() => null),
+  ]);
 }
 
 function warmStudentSubjects() {
@@ -360,10 +368,7 @@ export function preloadRoleData(role) {
   }
   // Admin screens warm their own lists; nothing role-wide to fetch.
   if (role === 'admin') {
-    return warmMany([
-      warmAdminUsers(),
-      warmAdminSubjects(),
-    ]);
+    return preloadAdminSiblingsIdle();
   }
   return Promise.resolve(null);
 }

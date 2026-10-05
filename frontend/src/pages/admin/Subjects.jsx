@@ -12,7 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { createAdminSubject, deleteAdminSubject, listAdminSubjects, updateAdminSubject } from '@/api/admin';
 import { INPUT_CLASS } from '@/lib/adminStyles';
-import { useAdminAction, useAdminList } from '@/lib/useAdminList';
+import { useAdminAction } from '@/lib/useAdminAction';
+import { useApi } from '@/lib/useApi';
+import { runWhenIdle } from '@/lib/idlePrefetch';
+import { preloadAdminSiblingsIdle } from '@/lib/lazyRoutes';
+import { toast } from '@/store/toastStore';
 import {
   ActionErrorBanner,
   Field,
@@ -96,8 +100,12 @@ function SubjectDialog({ dialog, onClose, onCreate, onRename }) {
 export default function AdminSubjects() {
   const [dialog, setDialog] = useState(null);
 
-  const subjectsApi = useAdminList(() => listAdminSubjects(), []);
+  const subjectsApi = useApi(() => listAdminSubjects(), [], { key: ['admin', 'subjects'], staleMs: 60_000 });
   const { actionError, run } = useAdminAction([subjectsApi.reload]);
+
+  React.useEffect(() => {
+    runWhenIdle(() => preloadAdminSiblingsIdle());
+  }, []);
 
   if (subjectsApi.loading && subjectsApi.data == null) {
     return (
@@ -120,7 +128,10 @@ export default function AdminSubjects() {
   async function handleDelete(s) {
     const ok = window.confirm(`Delete subject "${s.name}"? Materials, quizzes, and enrollments go with it.`);
     if (!ok) return;
-    await run(() => deleteAdminSubject(s.id), { rethrow: false });
+    await run(async () => {
+      await deleteAdminSubject(s.id);
+      toast.success('Subject deleted');
+    }, { rethrow: false });
   }
 
   return (
@@ -184,8 +195,18 @@ export default function AdminSubjects() {
       <SubjectDialog
         dialog={dialog}
         onClose={() => setDialog(null)}
-        onCreate={(name) => run(() => createAdminSubject(name))}
-        onRename={(id, name) => run(() => updateAdminSubject(id, name))}
+        onCreate={async (name) => {
+          await run(async () => {
+            await createAdminSubject(name);
+            toast.success('Subject created');
+          });
+        }}
+        onRename={async (id, name) => {
+          await run(async () => {
+            await updateAdminSubject(id, name);
+            toast.success('Subject renamed');
+          });
+        }}
       />
     </AppLayout>
   );

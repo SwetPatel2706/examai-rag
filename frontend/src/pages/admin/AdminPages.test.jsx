@@ -3,6 +3,8 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
+import { Toaster } from '@/components/ui/toaster';
+import { clear } from '@/lib/apiCache';
 import useAuthStore from '@/store/authStore';
 import AdminUsers from './Users';
 import AdminSubjects from './Subjects';
@@ -30,6 +32,11 @@ function stubAdminApi({ users, subjects }) {
         return jsonResponse(created, 201);
       }
       const id = url.split('/').pop();
+      if (method === 'PATCH') {
+        const target = users.find((u) => u.id === id);
+        Object.assign(target, body);
+        return jsonResponse(target);
+      }
       if (method === 'DELETE') {
         const index = users.findIndex((u) => u.id === id);
         users.splice(index, 1);
@@ -78,12 +85,14 @@ function seedSubjects() {
 function renderPage(Page) {
   return render(
     <MemoryRouter>
+      <Toaster />
       <Page />
     </MemoryRouter>
   );
 }
 
 beforeEach(() => {
+  clear();
   useAuthStore.setState({ user: ADMIN, role: 'admin', accessToken: 't' });
 });
 
@@ -164,6 +173,28 @@ describe('AdminUsers', () => {
     expect(screen.getByText('Charlie Student')).toBeInTheDocument();
   });
 
+  it('edits a user name and role through the dialog with a toast', async () => {
+    const fetch = stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
+    const user = userEvent.setup();
+    renderPage(AdminUsers);
+    await screen.findByText('Charlie Student');
+
+    await user.click(screen.getByRole('button', { name: 'Edit Charlie Student' }));
+    const dialog = await screen.findByRole('dialog');
+    const nameInput = within(dialog).getByLabelText('Name');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Charles Student');
+    await user.selectOptions(within(dialog).getByLabelText('Role'), 'teacher');
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('Charles Student')).toBeInTheDocument();
+    expect(await screen.findByText('User updated')).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/admin/users/s1'),
+      expect.objectContaining({ method: 'PATCH' })
+    );
+  });
+
   it('creates a user through the dialog and closes it on success', async () => {
     const fetch = stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
     const user = userEvent.setup();
@@ -235,6 +266,7 @@ describe('AdminMembership', () => {
         expect.objectContaining({ method: 'POST' })
       )
     );
+    expect(await screen.findByText('Teacher assigned')).toBeInTheDocument();
   });
 });
 

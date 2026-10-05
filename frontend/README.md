@@ -59,7 +59,7 @@ npm run lint
 
 Uses [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) for fast static checks.
 
-> Automated test suite: Vitest + Testing Library, **77 tests** across 15 files
+> Automated test suite: Vitest + Testing Library, **78 tests** across 15 files
 > (`npm run test`). Run `npm run lint`, `npm run build`, and `npm run test` as
 > your verification gate before handing off changes.
 

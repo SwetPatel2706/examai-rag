@@ -23,19 +23,31 @@ import {
 
 export default function AdminMembership() {
   const [selection, setSelection] = useState({ subjectId: '', kind: 'teacher', userId: '' });
+  const [userSearchInput, setUserSearchInput] = useState('');
+  const [userSearch, setUserSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Debounced server-side search so the picker reaches users beyond the
+  // first page without a request per keystroke.
+  React.useEffect(() => {
+    const timer = setTimeout(() => setUserSearch(userSearchInput.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [userSearchInput]);
 
   // Same cached keys as the Users/Subjects pages: navigating between the
   // admin screens reuses one shared, identity-scoped cache entry each.
-  const usersApi = useApi(() => listAdminUsers({ size: 100 }), [], { key: ['admin', 'users'], staleMs: 60_000 });
   const subjectsApi = useApi(() => listAdminSubjects(), [], { key: ['admin', 'subjects'], staleMs: 60_000 });
+  const candidatesApi = useApi(
+    () => listAdminUsers({ role: selection.kind, search: userSearch || undefined, size: 20 }),
+    [selection.kind, userSearch],
+    { key: ['admin', 'users', 'picker', selection.kind, userSearch], staleMs: 60_000 }
+  );
 
   React.useEffect(() => {
     runWhenIdle(() => preloadAdminSiblingsIdle());
   }, []);
 
-  const initialLoading =
-    (usersApi.loading && usersApi.data == null) || (subjectsApi.loading && subjectsApi.data == null);
+  const initialLoading = subjectsApi.loading && subjectsApi.data == null;
   if (initialLoading) {
     return (
       <AppLayout role="admin">
@@ -44,21 +56,19 @@ export default function AdminMembership() {
     );
   }
 
-  const pageError = (usersApi.data == null && usersApi.error) || (subjectsApi.data == null && subjectsApi.error);
-  if (pageError) {
+  if (subjectsApi.data == null && subjectsApi.error) {
     return (
       <AppLayout role="admin">
         <ErrorState
-          message={pageError.message}
-          onRetry={() => { usersApi.reload(); subjectsApi.reload(); }}
+          message={subjectsApi.error.message}
+          onRetry={() => subjectsApi.reload()}
         />
       </AppLayout>
     );
   }
 
-  const allUsers = usersApi.data?.items || [];
   const subjects = subjectsApi.data || [];
-  const candidates = allUsers.filter((u) => u.role === selection.kind);
+  const candidates = candidatesApi.data?.items || [];
 
   async function handleMembership(assign) {
     const { subjectId, kind, userId } = selection;
@@ -129,6 +139,19 @@ export default function AdminMembership() {
               <option value="student">Student</option>
             </select>
           </Field>
+          <Field label="Find user" htmlFor="admin-membership-user-search">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[18px]">search</span>
+              <input
+                id="admin-membership-user-search"
+                type="text"
+                value={userSearchInput}
+                onChange={(e) => { setUserSearchInput(e.target.value); setSelection((m) => ({ ...m, userId: '' })); }}
+                placeholder="Type to filter…"
+                className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low pl-10 pr-3 font-label-md text-label-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+              />
+            </div>
+          </Field>
           <Field label="User" htmlFor="admin-membership-user">
             <select
               id="admin-membership-user"
@@ -136,7 +159,7 @@ export default function AdminMembership() {
               onChange={(e) => setSelection((m) => ({ ...m, userId: e.target.value }))}
               className={INPUT_CLASS}
             >
-              <option value="">Select…</option>
+              <option value="">{candidatesApi.loading ? 'Searching…' : 'Select…'}</option>
               {candidates.map((u) => (
                 <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
               ))}

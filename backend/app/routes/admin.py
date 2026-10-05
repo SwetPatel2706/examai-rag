@@ -123,8 +123,16 @@ def update_user(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
     if body.name is not None:
         user.name = body.name
-    if body.role is not None:
+    if body.role is not None and body.role != user.role:
+        # A role change invalidates the previous role's memberships: a
+        # teacher-turned-student must lose their subject assignments (and
+        # vice versa), otherwise stale rows leak across role semantics.
+        previous_role = user.role
         user.role = body.role
+        if previous_role == "teacher":
+            db.query(SubjectTeacher).filter_by(teacher_id=user_id).delete(synchronize_session=False)
+        else:
+            db.query(StudentSubject).filter_by(student_id=user_id).delete(synchronize_session=False)
     db.commit()
     db.refresh(user)
     return StandardResponse.ok(data=AdminUserResponse.model_validate(user).model_dump(mode="json"))
@@ -141,7 +149,11 @@ async def delete_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or user.role not in MANAGEABLE_ROLES:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-    db.delete(user)
+    # Bulk delete: the User model declares no ORM relationships and every
+    # FK to users.id is ON DELETE CASCADE, so dependent rows are handled by
+    # the database. Session sync is disabled since the loaded instance is
+    # not touched again in this request.
+    db.query(User).filter(User.id == user_id).delete(synchronize_session=False)
     db.commit()
     try:
         await supabase_auth.admin_delete_user(str(user_id))

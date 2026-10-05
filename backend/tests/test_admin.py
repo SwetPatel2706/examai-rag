@@ -385,6 +385,35 @@ def test_admin_subject_membership_errors(db_session):
     assert res.status_code == 409
 
 
+def test_admin_role_change_clears_previous_memberships(db_session):
+    client = TestClient(app, raise_server_exceptions=False)
+    admin = make_user(db_session, "admin", "admin@examai.local")
+    mock_auth(admin)
+    teacher = make_user(db_session, "teacher", "t@examai.com")
+    subject = Subject(name="Physics")
+    db_session.add(subject)
+    db_session.commit()
+    db_session.add(SubjectTeacher(subject_id=subject.id, teacher_id=teacher.id))
+    db_session.commit()
+
+    res = client.patch(f"/api/admin/users/{teacher.id}", json={"role": "student"})
+    assert res.status_code == 200
+    assert res.json()["data"]["role"] == "student"
+    assert db_session.query(SubjectTeacher).count() == 0
+
+    # The converted user can now be enrolled as a student.
+    res = client.post(f"/api/admin/subjects/{subject.id}/students", json={"student_id": str(teacher.id)})
+    assert res.status_code == 200
+
+    # Same-role update preserves memberships.
+    student = make_user(db_session, "student", "s@examai.com")
+    db_session.add(StudentSubject(subject_id=subject.id, student_id=student.id))
+    db_session.commit()
+    res = client.patch(f"/api/admin/users/{student.id}", json={"role": "student", "name": "Renamed"})
+    assert res.status_code == 200
+    assert db_session.query(StudentSubject).filter_by(student_id=student.id).count() == 1
+
+
 def test_admin_user_subjects_drilldown(db_session):
     client = TestClient(app, raise_server_exceptions=False)
     admin = make_user(db_session, "admin", "admin@examai.local")

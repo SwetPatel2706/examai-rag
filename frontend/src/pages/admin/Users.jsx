@@ -3,6 +3,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { SectionHeader } from '@/components/ui/shared';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import { Pagination } from '@/components/ui/pagination';
 import {
   Dialog,
   DialogContent,
@@ -258,22 +259,44 @@ function UserSubjectList({ userId, role }) {
     </ul>
   );
 }
-
-const ROLE_TABS = [  { value: '', label: 'All' },
+const ROLE_TABS = [
+  { value: '', label: 'All' },
   { value: 'teacher', label: 'Teachers' },
   { value: 'student', label: 'Students' },
 ];
 
+const PAGE_SIZE = 20;
+
 export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [expandedUserId, setExpandedUserId] = useState(null);
 
-  // Cached + identity-scoped like the student/teacher lists: warmed at login
-  // and on sibling pages, so navigating back renders instantly.
-  const usersApi = useApi(() => listAdminUsers({ size: 100 }), [], { key: ['admin', 'users'], staleMs: 60_000 });
+  // Debounced server-side search: one request per pause, not per keystroke.
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Server-driven list (search/role/page) so users beyond the first page are
+  // reachable. The key mirrors the params, keeping each view separately cached.
+  const usersApi = useApi(
+    () => listAdminUsers({
+      role: roleFilter || undefined,
+      search: search || undefined,
+      page,
+      size: PAGE_SIZE,
+    }),
+    [roleFilter, search, page],
+    { key: ['admin', 'users', roleFilter || 'all', search, page], staleMs: 60_000 }
+  );
   const { actionError, run } = useAdminAction([usersApi.reload]);
 
   // While the admin works here, warm the sibling admin lists during idle time.
@@ -297,13 +320,9 @@ export default function AdminUsers() {
     );
   }
 
-  const allUsers = usersApi.data?.items || [];
-  const visibleUsers = allUsers.filter((u) => {
-    if (roleFilter && u.role !== roleFilter) return false;
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
-  });
+  const items = usersApi.data?.items || [];
+  const total = usersApi.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   async function handleDelete(u) {
     const ok = window.confirm(`Delete "${u.name}" (${u.email})? This removes them for all subjects.`);
@@ -337,15 +356,15 @@ export default function AdminUsers() {
         <div className="p-sp-md pb-0">
           <SectionHeader
             title="All users"
-            action={<span className="font-label-sm text-label-sm text-secondary">{visibleUsers.length} shown</span>}
+            action={<span className="font-label-sm text-label-sm text-secondary">{total} total</span>}
           />
           <div className="flex items-center gap-sp-md mb-sp-md flex-wrap">
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[18px]">search</span>
               <input
                 type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search name or email…"
                 aria-label="Search users"
                 className="pl-10 pr-4 h-10 border border-outline-variant rounded-xl font-label-md text-label-md outline-none focus:border-primary bg-white transition-colors"
@@ -356,7 +375,7 @@ export default function AdminUsers() {
                 <button
                   key={tab.label}
                   type="button"
-                  onClick={() => setRoleFilter(tab.value)}
+                  onClick={() => { setRoleFilter(tab.value); setPage(1); }}
                   className={cn(
                     'px-4 py-1.5 rounded-full font-label-md text-label-md transition-all cursor-pointer',
                     roleFilter === tab.value
@@ -371,13 +390,14 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        {visibleUsers.length === 0 ? (
+        {items.length === 0 ? (
           <EmptyState
             icon="group_add"
             title="No users found"
             description={search ? 'Try a different search term.' : 'Add your first teacher or student to get started.'}
           />
         ) : (
+          <>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-y border-surface-container-high bg-surface-container-low/50">
@@ -387,7 +407,7 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high cv-auto">
-              {visibleUsers.map((u) => {
+              {items.map((u) => {
                 const isExpanded = expandedUserId === u.id;
                 const toggle = () => setExpandedUserId(isExpanded ? null : u.id);
                 return (
@@ -460,6 +480,13 @@ export default function AdminUsers() {
               })}
             </tbody>
           </table>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            summary={`Showing ${items.length} of ${total} users`}
+          />
+          </>
         )}
       </section>
 

@@ -63,7 +63,8 @@ function warmMany(tasks) {
 }
 
 function warmAdminUsers() {
-  return warm('../api/admin', 'listAdminUsers', ['admin', 'users'], [{ size: 100 }]);
+  // Parts mirror the Users page default view (all roles, no search, page 1).
+  return warm('../api/admin', 'listAdminUsers', ['admin', 'users', 'all', '', 1], [{ page: 1, size: 20 }]);
 }
 
 function warmAdminSubjects() {

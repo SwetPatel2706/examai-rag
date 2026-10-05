@@ -28,7 +28,24 @@ function stubAdminApi({ users, subjects }) {
         return jsonResponse(mine);
       }
       if (method === 'GET') {
-        return jsonResponse({ items: users, total: users.length, page: 1, pages: 1, size: 100 });
+        const params = new URL(url).searchParams;
+        const role = params.get('role');
+        const search = (params.get('search') || '').toLowerCase();
+        const page = Math.max(1, parseInt(params.get('page') || '1', 10));
+        const size = Math.max(1, parseInt(params.get('size') || '100', 10));
+        const filtered = users.filter((u) => {
+          if (role && u.role !== role) return false;
+          if (search && !`${u.name} ${u.email}`.toLowerCase().includes(search)) return false;
+          return true;
+        });
+        const items = filtered.slice((page - 1) * size, page * size);
+        return jsonResponse({
+          items,
+          total: filtered.length,
+          page,
+          pages: Math.max(1, Math.ceil(filtered.length / size)),
+          size,
+        });
       }
       if (method === 'POST') {
         const created = { id: `u-${users.length + 1}`, ...body };
@@ -122,20 +139,44 @@ describe('AdminUsers', () => {
     expect(screen.getByText('Charlie Student')).toBeInTheDocument();
   });
 
-  it('filters by search text and role pills', async () => {
+  it('searches and filters server-side with debounced input', async () => {
     stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
     const user = userEvent.setup();
     renderPage(AdminUsers);
     await screen.findByText('Dr. Alice Smith');
 
     await user.type(screen.getByLabelText('Search users'), 'charlie');
-    expect(screen.queryByText('Dr. Alice Smith')).not.toBeInTheDocument();
+    // The header count only updates once the debounced server fetch lands,
+    // so waiting on it avoids racing stale list data.
+    await waitFor(() => expect(screen.getByText('1 total')).toBeInTheDocument());
     expect(screen.getByText('Charlie Student')).toBeInTheDocument();
+    expect(screen.queryByText('Dr. Alice Smith')).not.toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Search users'));
+    await waitFor(() => expect(screen.getByText('2 total')).toBeInTheDocument());
     await user.click(screen.getByRole('button', { name: 'Teachers' }));
+    await waitFor(() => expect(screen.getByText('1 total')).toBeInTheDocument());
     expect(screen.getByText('Dr. Alice Smith')).toBeInTheDocument();
     expect(screen.queryByText('Charlie Student')).not.toBeInTheDocument();
+  });
+
+  it('paginates through the server-side user set', async () => {
+    const users = [...seedUsers()];
+    for (let i = users.length; i < 25; i++) {
+      users.push({
+        id: `x${i}`,
+        email: `extra${i}@examai.com`,
+        role: i % 2 ? 'student' : 'teacher',
+        name: `Extra ${i}`,
+      });
+    }
+    stubAdminApi({ users, subjects: seedSubjects() });
+    const user = userEvent.setup();
+    renderPage(AdminUsers);
+
+    expect(await screen.findByText('Showing 20 of 25 users')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '2' }));
+    expect(await screen.findByText('Showing 5 of 25 users')).toBeInTheDocument();
   });
 
   it('deletes a user after confirmation and reloads the list', async () => {
@@ -291,6 +332,7 @@ describe('AdminMembership', () => {
     renderPage(AdminMembership);
 
     await user.selectOptions(await screen.findByLabelText('Subject'), 'sub1');
+    await screen.findByRole('option', { name: /Dr\. Alice Smith/ });
     await user.selectOptions(screen.getByLabelText('User'), 't1');
     await user.click(screen.getByRole('button', { name: 'Assign' }));
 
@@ -301,6 +343,21 @@ describe('AdminMembership', () => {
       )
     );
     expect(await screen.findByText('Teacher assigned')).toBeInTheDocument();
+  });
+
+  it('searches the membership user picker server-side', async () => {
+    stubAdminApi({ users: seedUsers(), subjects: seedSubjects() });
+    const user = userEvent.setup();
+    renderPage(AdminMembership);
+
+    await user.selectOptions(await screen.findByLabelText('Subject'), 'sub1');
+    await user.selectOptions(screen.getByLabelText('Kind'), 'student');
+    await screen.findByRole('option', { name: /Charlie Student/ });
+
+    await user.type(screen.getByLabelText('Find user'), 'alice');
+    await waitFor(() =>
+      expect(screen.queryByRole('option', { name: /Charlie Student/ })).not.toBeInTheDocument()
+    );
   });
 
   it('disables both buttons while a membership request is pending', async () => {
@@ -364,6 +421,7 @@ describe('AdminMembership', () => {
     renderPage(AdminMembership);
 
     await user.selectOptions(await screen.findByLabelText('Subject'), 'sub1');
+    await screen.findByRole('option', { name: /Dr\. Alice Smith/ });
     await user.selectOptions(screen.getByLabelText('User'), 't1');
     await user.click(screen.getByRole('button', { name: 'Assign' }));
 

@@ -23,6 +23,7 @@ import {
 
 export default function AdminMembership() {
   const [selection, setSelection] = useState({ subjectId: '', kind: 'teacher', userId: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   // Same cached keys as the Users/Subjects pages: navigating between the
   // admin screens reuses one shared, identity-scoped cache entry each.
@@ -61,7 +62,10 @@ export default function AdminMembership() {
 
   async function handleMembership(assign) {
     const { subjectId, kind, userId } = selection;
-    if (!subjectId || !userId) return;
+    // Only one membership request at a time: the buttons are disabled while
+    // this is pending, but guard here too so no second request can sneak in.
+    if (!subjectId || !userId || submitting) return;
+    setSubmitting(true);
     const successMessage =
       kind === 'teacher'
         ? assign ? 'Teacher assigned' : 'Teacher removed'
@@ -81,10 +85,13 @@ export default function AdminMembership() {
       // Drill-down caches (user subjects / subject members) go stale here.
       invalidate(['admin', 'user-subjects']);
       invalidate(['admin', 'subject-members']);
+      // Only the request that was allowed to run reports success.
       toast.success(successMessage);
     } catch (err) {
       // Same channel as success: a temporary toast, not a permanent banner.
       toast.error(err.message || 'Could not update membership.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -139,15 +146,15 @@ export default function AdminMembership() {
         <div className="flex gap-sp-sm">
           <button
             type="button"
-            disabled={!selection.subjectId || !selection.userId}
+            disabled={!selection.subjectId || !selection.userId || submitting}
             onClick={() => handleMembership(true)}
             className="h-10 px-6 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:scale-[0.98] transition-all disabled:opacity-40"
           >
-            Assign
+            {submitting ? 'Saving…' : 'Assign'}
           </button>
           <button
             type="button"
-            disabled={!selection.subjectId || !selection.userId}
+            disabled={!selection.subjectId || !selection.userId || submitting}
             onClick={() => handleMembership(false)}
             className="h-10 px-6 rounded-xl border border-outline-variant text-secondary font-label-md text-label-md hover:bg-surface-container-low transition-colors disabled:opacity-40"
           >

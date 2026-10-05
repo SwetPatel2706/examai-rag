@@ -190,7 +190,7 @@ describe('AdminUsers', () => {
     renderPage(AdminUsers);
     await screen.findByText('Dr. Alice Smith');
 
-    await user.click(screen.getByText('Dr. Alice Smith'));
+    await user.click(screen.getByRole('button', { name: 'Show subjects of Dr. Alice Smith' }));
 
     expect(await screen.findByLabelText('Subjects')).toBeInTheDocument();
   });
@@ -301,6 +301,40 @@ describe('AdminMembership', () => {
       )
     );
     expect(await screen.findByText('Teacher assigned')).toBeInTheDocument();
+  });
+
+  it('disables both buttons while a membership request is pending', async () => {
+    let release;
+    const pending = new Promise((resolve) => { release = resolve; });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url, options = {}) => {
+        if (url.includes('/teachers') && (options.method || 'GET').toUpperCase() === 'POST') {
+          await pending;
+          return jsonResponse({ message: 'Teacher assigned' });
+        }
+        if (url.includes('/api/admin/users')) {
+          return jsonResponse({ items: seedUsers(), total: 2, page: 1, pages: 1, size: 100 });
+        }
+        if (url.includes('/api/admin/subjects')) {
+          return jsonResponse(seedSubjects());
+        }
+        return jsonResponse(null);
+      })
+    );
+    const user = userEvent.setup();
+    renderPage(AdminMembership);
+    await user.selectOptions(await screen.findByLabelText('Subject'), 'sub1');
+    await user.selectOptions(screen.getByLabelText('User'), 't1');
+    await user.click(screen.getByRole('button', { name: 'Assign' }));
+
+    // Single flight: Assign shows progress and Remove is disabled too.
+    expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeDisabled();
+
+    release();
+    expect(await screen.findByText('Teacher assigned')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Assign' })).toBeEnabled();
   });
 
   it('shows an error toast when membership update fails', async () => {

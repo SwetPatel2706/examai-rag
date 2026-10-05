@@ -239,44 +239,39 @@ export default function AdminSubjects() {
               const toggle = () => setExpandedSubjectId(isExpanded ? null : s.id);
               return (
                 <li key={s.id} className={cn(isExpanded && 'bg-primary-fixed/10')}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={isExpanded}
-                    onClick={toggle}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggle();
-                      }
-                    }}
-                    className="flex items-center gap-3 px-sp-md py-sp-md hover:bg-surface-container-low cursor-pointer transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50"
-                  >
-                    <span className="material-symbols-outlined text-secondary text-[20px]">library_books</span>
-                    <span className="font-label-md text-label-md text-on-surface truncate flex-1">{s.name}</span>
+                  <div className="flex items-center gap-3 px-sp-md py-sp-md hover:bg-surface-container-low transition-colors group">
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setDialog({ mode: 'rename', subject: s }); }}
+                      aria-expanded={isExpanded}
+                      onClick={toggle}
+                      className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50 rounded-lg"
+                    >
+                      <span className="material-symbols-outlined text-secondary text-[20px]">library_books</span>
+                      <span className="font-label-md text-label-md text-on-surface truncate flex-1">{s.name}</span>
+                      <span className="p-sp-xs text-outline" aria-hidden="true">
+                        <span className="material-symbols-outlined text-[18px] block">
+                          {isExpanded ? 'expand_less' : 'chevron_right'}
+                        </span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDialog({ mode: 'rename', subject: s })}
                       title={`Rename ${s.name}`}
                       aria-label={`Rename ${s.name}`}
                       className="p-sp-xs rounded-lg hover:bg-surface-container text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
                     >
                       <span className="material-symbols-outlined text-[18px]">edit</span>
                     </button>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); handleDelete(s); }}
-                  title={`Delete ${s.name}`}
-                  aria-label={`Delete ${s.name}`}
-                  className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                >
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
-                </button>
-                  <span className="p-sp-xs text-outline" aria-hidden="true">
-                    <span className="material-symbols-outlined text-[18px] block">
-                      {isExpanded ? 'expand_less' : 'chevron_right'}
-                    </span>
-                  </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(s)}
+                      title={`Delete ${s.name}`}
+                      aria-label={`Delete ${s.name}`}
+                      className="p-sp-xs rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
                   </div>
                   {isExpanded && (
                     <div className="px-sp-md pb-sp-sm bg-surface-container-low/50">

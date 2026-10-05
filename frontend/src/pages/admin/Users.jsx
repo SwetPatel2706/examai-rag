@@ -393,18 +393,8 @@ export default function AdminUsers() {
                 return (
                   <React.Fragment key={u.id}>
                     <tr
-                      tabIndex={0}
-                      role="button"
-                      aria-expanded={isExpanded}
-                      onClick={toggle}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          toggle();
-                        }
-                      }}
                       className={cn(
-                        'hover:bg-surface-container-low cursor-pointer transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50',
+                        'hover:bg-surface-container-low transition-colors group',
                         isExpanded && 'bg-primary-fixed/10'
                       )}
                     >
@@ -443,14 +433,21 @@ export default function AdminUsers() {
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
-                      <span className="p-sp-xs text-outline self-center" aria-hidden="true">
-                        <span className="material-symbols-outlined text-[18px] block">
+                      <button
+                        type="button"
+                        onClick={toggle}
+                        aria-expanded={isExpanded}
+                        aria-label={`Show subjects of ${u.name}`}
+                        title={`Show subjects of ${u.name}`}
+                        className="p-sp-xs rounded-lg hover:bg-surface-container text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                      >
+                        <span className="material-symbols-outlined text-[18px] block" aria-hidden="true">
                           {isExpanded ? 'expand_less' : 'chevron_right'}
                         </span>
-                      </span>
+                      </button>
                     </div>
                   </td>
-                    </tr>
+                  </tr>
                     {isExpanded && (
                       <tr className="bg-surface-container-low/50">
                         <td colSpan={3} className="px-sp-md py-sp-sm">

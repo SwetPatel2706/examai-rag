@@ -21,7 +21,9 @@ const routeEntries = [
   { pattern: '/teacher/quiz/create', loader: () => import('../pages/QuizCreateEdit'), prefetch: warmTeacherQuizEditor },
   { pattern: '/teacher/analytics', loader: () => import('../pages/Analytics'), prefetch: warmTeacherAnalytics },
   { pattern: '/teacher/students', loader: () => import('../pages/StudentProgress'), prefetch: warmTeacherProgress },
-  { pattern: '/admin', loader: () => import('../pages/AdminDashboard'), prefetch: null },
+  { pattern: '/admin/users', loader: () => import('../pages/admin/Users'), prefetch: warmAdminUsers },
+  { pattern: '/admin/subjects', loader: () => import('../pages/admin/Subjects'), prefetch: warmAdminSubjects },
+  { pattern: '/admin/membership', loader: () => import('../pages/admin/Membership'), prefetch: warmAdminMembership },
 ];
 
 export const loaders = Object.fromEntries(routeEntries.map(({ pattern, loader }) => [pattern, loader]));
@@ -58,6 +60,18 @@ function warm(modulePath, exportName, parts, args = [], staleMs = 60_000) {
 
 function warmMany(tasks) {
   return Promise.all(tasks.map((task) => task.catch(() => null)));
+}
+
+function warmAdminUsers() {
+  return warm('../api/admin', 'listAdminUsers', ['admin', 'users'], [{ size: 100 }]);
+}
+
+function warmAdminSubjects() {
+  return warm('../api/admin', 'listAdminSubjects', ['admin', 'subjects']);
+}
+
+function warmAdminMembership() {
+  return warmMany([warmAdminUsers(), warmAdminSubjects()]);
 }
 
 function warmStudentSubjects() {
@@ -344,7 +358,13 @@ export function preloadRoleData(role) {
       warmStudentDeep(),
     ]);
   }
-  // Admin has its own screens; nothing to warm.
+  // Admin screens warm their own lists; nothing role-wide to fetch.
+  if (role === 'admin') {
+    return warmMany([
+      warmAdminUsers(),
+      warmAdminSubjects(),
+    ]);
+  }
   return Promise.resolve(null);
 }
 

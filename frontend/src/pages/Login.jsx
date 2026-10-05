@@ -26,7 +26,7 @@ export default function Login() {
         accessToken: session.accessToken,
       });
       const from = location.state?.from?.pathname;
-      const home = session.user.role === 'teacher' ? '/teacher' : '/student';
+      const home = session.user.role === 'teacher' ? '/teacher' : session.user.role === 'admin' ? '/admin/users' : '/student';
       const target = from?.startsWith(home) ? from : home;
       // The dashboard mounts next: kick off its route chunk + every screen
       // the role can reach while the router transitions, so the dashboard's

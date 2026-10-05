@@ -19,7 +19,9 @@ const TEACHER_NAV = [
 ];
 
 const ADMIN_NAV = [
-  { icon: 'admin_panel_settings', label: 'Admin', to: '/admin' },
+  { icon: 'groups', label: 'Users', to: '/admin/users' },
+  { icon: 'library_books', label: 'Subjects', to: '/admin/subjects' },
+  { icon: 'group_add', label: 'Membership', to: '/admin/membership' },
 ];
 
 /**

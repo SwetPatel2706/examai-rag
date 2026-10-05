@@ -14,6 +14,17 @@ from app.db.session import get_db
 from app.main import app
 from app.models.subject import StudentSubject, Subject, SubjectTeacher
 from app.models.user import User
+from app.schemas.auth import LoginRequest
+from app.seed_data import ADMINS, STUDENTS, TEACHERS
+
+
+def test_all_seed_emails_pass_login_validation():
+    """Regression test: every seeded account must be accepted by the login
+    schema. A special-use domain (e.g. `.local`) fails EmailStr validation
+    with a 422 before credentials are ever checked."""
+    for person in ADMINS + TEACHERS + STUDENTS:
+        LoginRequest(email=person["email"], password="Password123!")
+    assert len(ADMINS) >= 1
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(

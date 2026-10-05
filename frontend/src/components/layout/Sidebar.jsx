@@ -28,8 +28,8 @@ export default function Sidebar({ items, bottomItems = [], open = false, onOpenC
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const displayName = user?.name ?? (role === 'teacher' ? 'Professor' : 'Student');
-  const displayRole = role === 'teacher' ? 'Professor View' : 'Student View';
+  const displayName = user?.name ?? (role === 'teacher' ? 'Professor' : role === 'admin' ? 'Administrator' : 'Student');
+  const displayRole = role === 'teacher' ? 'Professor View' : role === 'admin' ? 'Admin View' : 'Student View';
   const initials = getInitials(displayName);
 
   async function handleLogout() {

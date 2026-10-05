@@ -116,7 +116,40 @@ describe('AppRoutes', () => {
     expect(screen.getByText('Algorithms')).toBeInTheDocument();
   });
 
-  it('renders the admin dashboard for the admin role', async () => {
+  it('renders the admin users page for the admin role', async () => {
+    useAuthStore.setState({ user: ADMIN, role: 'admin', accessToken: 't' });
+    stubApi({ profile: ADMIN });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/users']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Users' })).toBeInTheDocument();
+  });
+
+  it('renders the admin subjects and membership pages', async () => {
+    useAuthStore.setState({ user: ADMIN, role: 'admin', accessToken: 't' });
+    stubApi({ profile: ADMIN });
+
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/admin/subjects']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+    expect(await screen.findByRole('heading', { name: 'Subjects' })).toBeInTheDocument();
+    unmount();
+
+    render(
+      <MemoryRouter initialEntries={['/admin/membership']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+    expect(await screen.findByRole('heading', { name: 'Membership' })).toBeInTheDocument();
+  });
+
+  it('redirects /admin to the users page', async () => {
     useAuthStore.setState({ user: ADMIN, role: 'admin', accessToken: 't' });
     stubApi({ profile: ADMIN });
 
@@ -126,15 +159,15 @@ describe('AppRoutes', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByText(/Admin —/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Users' })).toBeInTheDocument();
   });
 
-  it('redirects a student away from the admin route', async () => {
+  it('redirects a student away from the admin routes', async () => {
     useAuthStore.setState({ user: STUDENT, role: 'student', accessToken: 't' });
     stubApi({ profile: STUDENT, subjects: studentSubjects(), stats: studentStats() });
 
     render(
-      <MemoryRouter initialEntries={['/admin']}>
+      <MemoryRouter initialEntries={['/admin/users']}>
         <AppRoutes />
       </MemoryRouter>
     );

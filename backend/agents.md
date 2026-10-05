@@ -290,5 +290,11 @@ No teacher→student messaging/broadcast service — flagged out of scope,
 do not build even though it appeared in a Stitch export.
 
 ## Auth
-Supabase-backed, role stored on the user record. No admin role yet — gate
-routes/services on `student` vs `teacher` only.
+Supabase-backed, role stored on the user record (`student` | `teacher` |
+`admin` — free `String`, no CHECK constraint, so no migration gates new
+values). Gate routes/services with `require_teacher` / `require_student` /
+`require_admin` from `app/auth/dependencies.py`. Admin endpoints live in
+`app/routes/admin.py` (`/api/admin/*`): user CRUD provisions both the
+Supabase Auth account and the local profile (same UUID, mirroring
+`seed.py:provision_user`; a failed local commit rolls back and deletes the
+orphan auth account). The seed provisions `admin@examai.com`.

@@ -16,7 +16,9 @@ generation resolve real citations. The seed never embeds materials whose
 
 ADMINS = [
     {
-        "email": "admin@examai.local",
+        # NOTE: must be a publicly-valid email — LoginRequest.email is an
+        # EmailStr and rejects special-use domains like `.local`.
+        "email": "admin@examai.com",
         "name": "ExamAI Admin",
         "role": "admin",
     },

@@ -345,66 +345,65 @@ def dfd0():
 
 
 def dfd1():
-    fig, ax = canvas("ExamAI Data Flow Diagram — Level 1",
-                     "Student learning, teacher authoring, administration, retrieval and persistent data",
-                     size=(17, 10.5), ylim=(0, 11), xlim=(0, 17))
-    box(ax,.25,8.6,1.8,.75,"Student",fc=PALE)
-    box(ax,.25,3.6,1.8,.75,"Teacher",fc=PALE)
-    # Administrator sits on the 6.0 row; LLM API sits on the 4.0 row so each
-    # external connects horizontally to its own process without crossings.
-    box(ax,14.9,4.625,1.8,.75,"Administrator",fc=PALE)
-    def process(cx,cy,number,label):
-        ax.add_patch(Ellipse((cx,cy),2.4,1.8,facecolor=WHITE,edgecolor=INK,lw=1.2))
-        ax.plot([cx-1.0,cx+1.0],[cy+.52,cy+.52],color=INK,lw=.8)
-        ax.text(cx,cy+.68,number,ha="center",va="center",fontsize=9,weight="bold",color=INK)
-        ax.text(cx,cy-.14,label,ha="center",va="center",fontsize=9,weight="bold",color=INK,wrap=True)
-    # Put process nodes in a clean two-row grid; data stores sit below.
-    process(4.0,8.0,"1.0","Authenticate +\nsubject access")
-    process(8.0,8.0,"3.0","RAG chat +\ncitations")
-    # Short label fits the 2.4-wide oval; the LLM link is drawn explicitly
-    # with 4.0 <-> LLM API arrows and described in the key below.
-    process(12.0,8.0,"4.0","Quizzes +\nflashcards")
-    process(4.0,5.0,"2.0","Ingest teacher\nmaterials")
-    process(8.0,5.0,"5.0","Class analytics")
-    process(12.0,5.0,"6.0","User + membership\nadministration")
-    # Data stores share a low, evenly spaced row.
-    def store(x,y,w,title,detail):
-        ax.plot([x,x+w],[y,y],color=INK,lw=1.05)
-        ax.plot([x,x+w],[y+.72,y+.72],color=INK,lw=1.05)
-        ax.plot([x,x],[y,y+.72],color=INK,lw=1.05)
-        ax.text(x+w/2,y+.48,title,ha="center",va="center",fontsize=8,weight="bold",color=INK)
-        ax.text(x+w/2,y+.18,detail,ha="center",va="center",fontsize=7,color=GRAY)
-    store(1.2,1.0,3.2,"D1 · Postgres","users · access · learning records")
-    store(6.9,1.0,3.2,"D2 · Qdrant","vectors · ownership metadata")
-    store(12.6,1.0,3.2,"D3 · Storage","private source files")
-    box(ax,14.9,7.625,1.8,.75,"LLM API","generation",fc="#F8EBCB",detail_size=7.2)
-    # Actor associations stay local to their processes.
-    arrow(ax,2.05,8.98,2.75,8.4)
-    arrow(ax,2.75,7.6,2.05,8.65,rad=.08)
-    # 4.0 <-> LLM API (top row): generated content flows both ways.
-    arrow(ax,13.25,8.2,14.9,8.2)
-    arrow(ax,14.9,7.8,13.25,7.8)
-    # 6.0 <-> Administrator (middle row): membership administration.
-    arrow(ax,13.25,5.2,14.9,5.2)
-    arrow(ax,14.9,4.8,13.25,4.8)
-    arrow(ax,2.05,4.0,2.85,4.75)
-    arrow(ax,2.85,4.35,2.05,3.8,rad=.08)
-    # Compact data-flow key avoids long crossing lines. Each row names both
-    # the process and the store so flow ownership remains explicit.
-    # Key sits clear of both the process row above (bottom ~4.1) and the
-    # data-store row below (top ~1.72) so the D2 title stays visible.
-    ax.text(8.4,3.35,"Process data exchanges",ha="center",va="center",
-            fontsize=9,weight="bold",color=NAVY)
-    ax.text(8.4,2.75,
-            "1.0 ↔ D1: identity, enrollment and access records     ·     2.0 → D3: private source files; → D2: vectors\n"
-            "3.0 ↔ D1: selected-material authorization     ·     3.0 ↔ D2: filtered queries and ranked chunks\n"
-            "4.0 ↔ LLM: generated content     ·     4.0 ↔ D1: quizzes, attempts and decks\n"
-            "5.0 ← D1: class results     ·     6.0 ↔ D1: user, subject and membership records",
-            ha="center",va="center",fontsize=7.4,color=INK,linespacing=1.55,
-            bbox=dict(facecolor=WHITE,edgecolor="#D5DEE5",boxstyle="round,pad=.35",alpha=.98))
-    ax.text(7,.25,"Admin changes are persisted in D1 (Postgres). Qdrant retrieval is scoped by subject_id and selected material_ids; citations identify the source teacher and material.",
-            ha="center",fontsize=8,color=GRAY)
-    save(fig,"fig762_dfd1.png")
+    fig, ax = canvas("ExamAI Data Flow Diagram — Level 1", None,
+                     size=(14, 8.5), ylim=(0, 8.5), xlim=(0, 14))
+
+    def actor(x, y, title, detail):
+        box(ax, x, y, 1.9, .82, title, detail, fc=BLUE, title_size=9,
+            detail_size=7, radius=.03)
+
+    def process(cx, cy, number, label, w=2.5):
+        ax.add_patch(Ellipse((cx, cy), w, 1.0, facecolor=WHITE,
+                             edgecolor=NAVY, lw=1.3))
+        ax.text(cx, cy+.20, number, ha="center", va="center", fontsize=8,
+                weight="bold", color=GRAY)
+        ax.text(cx, cy-.12, label, ha="center", va="center", fontsize=8.2,
+                weight="bold", color=NAVY, wrap=True)
+
+    def store(x, y, w, title, detail):
+        ax.plot([x, x+w], [y, y], color=INK, lw=1.05)
+        ax.plot([x, x+w], [y+.7, y+.7], color=INK, lw=1.05)
+        ax.plot([x, x], [y, y+.7], color=INK, lw=1.05)
+        ax.text(x+w/2, y+.47, title, ha="center", va="center", fontsize=8,
+                weight="bold", color=NAVY)
+        ax.text(x+w/2, y+.2, detail, ha="center", va="center", fontsize=6.8,
+                color=GRAY, wrap=True)
+
+    # Three role-level processes keep this overview readable while covering
+    # the implemented student, teacher and administrator capabilities.
+    actor(.35, 6.25, "Student", "study + assessment")
+    actor(.35, 3.65, "Teacher", "materials + teaching")
+    actor(12.05, 5.05, "Administrator", "accounts + subjects")
+    process(4.35, 6.68, "1.0", "Student learning")
+    process(7.55, 4.08, "2.0", "Teacher workspace")
+    process(9.60, 5.45, "3.0", "Administration")
+
+    # Actor/process exchanges use local arrows with explicit data labels.
+    arrow(ax, 2.25, 6.83, 3.10, 6.83, "study request", label_offset=(0,.18), lw=1)
+    arrow(ax, 3.10, 6.53, 2.25, 6.53,
+          "answers · citations · scores · decks", label_offset=(0,-.18), lw=1)
+    arrow(ax, 2.25, 4.08, 6.30, 4.08,
+          "materials · quiz authoring", label_offset=(0,.18), lw=1)
+    arrow(ax, 6.30, 3.78, 2.25, 3.78,
+          "status · published quizzes · analytics", label_offset=(0,-.18), lw=1)
+    arrow(ax, 10.85, 5.60, 12.05, 5.60, "admin requests", label_offset=(0,.18), lw=1)
+    arrow(ax, 12.05, 5.30, 10.85, 5.30, "managed records", label_offset=(0,-.18), lw=1)
+
+    # Data services form a summary strip at this level of detail.
+    store(.55, 1.45, 4.0, "D1 · Postgres", "users · memberships · learning records")
+    store(5.0, 1.45, 4.0, "D2 · Qdrant", "approved material vectors + metadata")
+    store(9.45, 1.45, 4.0, "D3 · Supabase Storage", "private teacher material files")
+    box(ax, 3.15, .24, 2.6, .62, "LLM Model", "quiz / flashcard generation",
+        fc="#F8EBCB", title_size=8.5, detail_size=6.7)
+    box(ax, 8.25, .24, 2.6, .62, "Embedding model", "text embeddings",
+        fc=GREEN, title_size=8.2, detail_size=6.7)
+    ax.text(2.55, 1.08, "role + learning records", ha="center", fontsize=6.8, color=GRAY)
+    ax.text(7.0, 1.08, "selected-material retrieval", ha="center", fontsize=6.8, color=GRAY)
+    ax.text(11.45, 1.08, "source-file storage", ha="center", fontsize=6.8, color=GRAY)
+    ax.text(7.0, .02,
+            "Subject access gates protected data; citations retain teacher and material attribution.",
+            ha="center", va="bottom", fontsize=6.8, color=GRAY)
+    save(fig, "fig762_dfd1.png")
 
 
 if __name__ == "__main__":

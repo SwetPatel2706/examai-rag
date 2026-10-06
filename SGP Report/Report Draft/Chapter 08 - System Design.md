@@ -59,7 +59,7 @@ At the highest level, students, teachers, and administrators interact with ExamA
 
 ### 8.6.2 Level 1 DFD
 
-The level-one flow separates authentication, subject access, material ingestion, RAG chat, quiz management, flashcard generation, analytics, and user/membership administration. Authorization is checked by the services handling subject-scoped requests, while administration flows are gated by `require_admin`. During ingestion, material, teacher, and subject identifiers are stored in each Qdrant payload; retrieval filters by subject and selected material identifiers, and citation resolution uses the returned payload metadata.
+The level-one diagram groups the implemented flows by role: student learning, teacher workspace, and administration. It shows the principal requests and results while the accompanying data stores identify where relational records, approved material vectors, and private teacher files are kept. Subject access is checked before protected data is returned; retrieved citations retain teacher and material attribution.
 
 ![Figure 8.6.2: Level 1 DFD](figures/fig762_dfd1.png)
 

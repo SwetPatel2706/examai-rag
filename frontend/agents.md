@@ -12,8 +12,8 @@ this file only covers structure, routing, and state behavior.
 - `npm run dev` → Vite dev server with HMR on http://localhost:5173.
 - `npm run lint` → oxlint static checks.
 - `npm run build` → production build into `dist/`; `npm run preview` serves it.
-- `npm run test` → Vitest + Testing Library suite (mocked fetch, jsdom), 63
-  tests. Run `npm run lint` + `npm run build` + `npm run test` for the full
+- `npm run test` → Vitest + Testing Library suite (mocked fetch, jsdom), 84
+  tests across 15 files. Run `npm run lint` + `npm run build` + `npm run test` for the full
   gate; plus a manual browser pass against a live backend.
 - The Vite dev server has **no proxy**: the app calls the API directly at
   `VITE_API_BASE_URL` (default `http://localhost:8000`, set in

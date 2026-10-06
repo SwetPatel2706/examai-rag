@@ -114,8 +114,8 @@ bucket), Render.com deployment (FastAPI), Vite static build.
 
 ## 6. Quantifiable facts (use these in resume bullets)
 
-- **82 backend tests** (pytest, fully offline, ~0.8 s) + **63 frontend tests**
-  (Vitest + Testing Library) — both green.
+- **103 backend tests** (pytest, fully offline, ~1 s) + **84 frontend tests**
+  (Vitest + Testing Library, 15 files) — both green.
 - **8 feature phases** (0–7) with design docs in `backend/plan/` and **27+
   session walkthroughs** in `backend/Walkthrough/`.
 - **~50+ API endpoints** across auth, subjects, materials, chat, quizzes,
@@ -164,7 +164,7 @@ backend/Walkthrough/          # 27+ session walkthroughs
 backend/app/                  # FastAPI app (routes thin, logic in services/)
   models/ schemas/ routes/ services/ utils/ auth/ db/
 backend/migrations/           # Alembic
-backend/tests/                # 82 pytest tests
+backend/tests/                # 103 pytest tests
 frontend/src/                 # React app
   api/ components/ pages/ store/ lib/ test/
 frontend/docs/performance-run.md

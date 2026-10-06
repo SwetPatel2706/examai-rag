@@ -208,7 +208,7 @@ def parse_front_matter():
     if abstract_file.exists():
         abstract = [" ".join(
             abstract_file.read_text(encoding="utf-8").split())]
-    bib = parse_md(DRAFT / "Bibliography.md")
+    bib = parse_md(DRAFT / "Bibliography.APA.md")
     bib_entries = [p for k, p in bib if k in ("bullet", "para")]
     return abstract, lof, lot, abbr, bib_entries, company
 
@@ -265,28 +265,36 @@ def build_docx(toc=None, fig_pages=None, tab_pages=None) -> Path:
 
     def add_runs(p, text, size=11):
         # inline markdown: `code` -> Consolas, **bold**, *italic*
-        parts = re.split(r"(`[^`]+`|\*\*.+?\*\*|(?<!\*)\*[^*\n]+?\*(?!\*))",
-                         text)
-        for chunk in parts:
+        # (code spans split first so a `*` inside code, e.g.
+        # `/api/admin/*`, is never parsed as italic markup)
+        def _emit(seg, bold=False, italic=False, code=False):
+            if not seg:
+                return
+            r = p.add_run()
+            r.text = seg
+            r.font.name = "Consolas" if code else "Calibri"
+            r.bold = bold
+            r.italic = italic
+            r.font.size = Pt(size)
+
+        for chunk in re.split(r"(`[^`]+`)", text):
             if not chunk:
                 continue
-            r = p.add_run()
-            if chunk.startswith("`") and chunk.endswith("`"):
-                r.text = chunk[1:-1]
-                r.font.name = "Consolas"
-            elif chunk.startswith("**") and chunk.endswith("**"):
-                r.text = chunk[2:-2]
-                r.font.name = "Calibri"
-                r.bold = True
-            elif (chunk.startswith("*") and chunk.endswith("*")
+            if (chunk.startswith("`") and chunk.endswith("`")
                     and len(chunk) > 2):
-                r.text = chunk[1:-1]
-                r.font.name = "Calibri"
-                r.italic = True
-            else:
-                r.text = chunk
-                r.font.name = "Calibri"
-            r.font.size = Pt(size)
+                _emit(chunk[1:-1], code=True)
+                continue
+            for sub in re.split(r"(\*\*.+?\*\*|(?<!\*)\*[^*\n]+?\*(?!\*))",
+                                chunk):
+                if not sub:
+                    continue
+                if sub.startswith("**") and sub.endswith("**") and len(sub) > 4:
+                    _emit(sub[2:-2], bold=True)
+                elif (sub.startswith("*") and sub.endswith("*")
+                        and len(sub) > 2):
+                    _emit(sub[1:-1], italic=True)
+                else:
+                    _emit(sub)
         return p
 
     def add_para(text):
@@ -712,16 +720,18 @@ def build_body_pdf() -> Path:
 
     def inline_xml(text):
         # inline markdown: `code` -> Courier, **bold**, *italic*
+        # (code spans split first so a `*` inside code, e.g.
+        # `/api/admin/*`, is never parsed as italic markup)
         esc = (text.replace("&", "&amp;").replace("<", "&lt;")
                .replace(">", "&gt;"))
-        esc = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc)
-        esc = re.sub(r"(?<!\*)\*([^*\n]+?)\*(?!\*)", r"<i>\1</i>", esc)
         parts = re.split(r"(`[^`]+`)", esc)
         xml = ""
         for ch in parts:
-            if ch.startswith("`") and ch.endswith("`"):
+            if ch.startswith("`") and ch.endswith("`") and len(ch) > 2:
                 xml += f'<font face="Courier">{ch[1:-1]}</font>'
             else:
+                ch = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", ch)
+                ch = re.sub(r"(?<!\*)\*([^*\n]+?)\*(?!\*)", r"<i>\1</i>", ch)
                 xml += ch
         return xml
 

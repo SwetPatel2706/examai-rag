@@ -346,63 +346,56 @@ def dfd0():
 
 def dfd1():
     fig, ax = canvas("ExamAI Data Flow Diagram — Level 1", None,
-                     size=(14, 8.5), ylim=(0, 8.5), xlim=(0, 14))
+                     size=(17, 9), ylim=(0, 9), xlim=(0, 17))
 
-    def actor(x, y, title, detail):
-        box(ax, x, y, 1.9, .82, title, detail, fc=BLUE, title_size=9,
+    def actor(x, y, title, detail, w=1.9):
+        box(ax, x, y, w, .82, title, detail, fc=BLUE, title_size=9,
             detail_size=7, radius=.03)
 
-    def process(cx, cy, number, label, w=2.5):
+    def process(cx, cy, number, label, w=2.55):
         ax.add_patch(Ellipse((cx, cy), w, 1.0, facecolor=WHITE,
                              edgecolor=NAVY, lw=1.3))
-        ax.text(cx, cy+.20, number, ha="center", va="center", fontsize=8,
+        ax.text(cx, cy+.2, number, ha="center", va="center", fontsize=8,
                 weight="bold", color=GRAY)
         ax.text(cx, cy-.12, label, ha="center", va="center", fontsize=8.2,
                 weight="bold", color=NAVY, wrap=True)
 
-    def store(x, y, w, title, detail):
-        ax.plot([x, x+w], [y, y], color=INK, lw=1.05)
-        ax.plot([x, x+w], [y+.7, y+.7], color=INK, lw=1.05)
-        ax.plot([x, x], [y, y+.7], color=INK, lw=1.05)
-        ax.text(x+w/2, y+.47, title, ha="center", va="center", fontsize=8,
-                weight="bold", color=NAVY)
-        ax.text(x+w/2, y+.2, detail, ha="center", va="center", fontsize=6.8,
-                color=GRAY, wrap=True)
+    actor(.4, 1.5, "Teacher", "materials + quizzes", w=2.1)
+    actor(6.7, 6.95, "Student", "chat + quizzes + flashcards", w=2.9)
+    actor(14.8, 1.5, "Administrator", "accounts + subjects", w=1.9)
 
-    # Three role-level processes keep this overview readable while covering
-    # the implemented student, teacher and administrator capabilities.
-    actor(.35, 6.25, "Student", "study + assessment")
-    actor(.35, 3.65, "Teacher", "materials + teaching")
-    actor(12.05, 5.05, "Administrator", "accounts + subjects")
-    process(4.35, 6.68, "1.0", "Student learning")
-    process(7.55, 4.08, "2.0", "Teacher workspace")
-    process(9.60, 5.45, "3.0", "Administration")
+    # The learning workflow runs left to right through connected processes.
+    process(4.5, 5.0, "1.0", "Prepare learning\ncontent", w=2.7)
+    process(8.5, 5.0, "2.0", "Student study\n+ assessment", w=2.7)
+    process(12.5, 5.0, "3.0", "Review class\nprogress", w=2.7)
+    process(12.5, 1.8, "4.0", "Manage users\n+ membership", w=2.7)
 
-    # Actor/process exchanges use local arrows with explicit data labels.
-    arrow(ax, 2.25, 6.83, 3.10, 6.83, "study request", label_offset=(0,.18), lw=1)
-    arrow(ax, 3.10, 6.53, 2.25, 6.53,
-          "answers · citations · scores · decks", label_offset=(0,-.18), lw=1)
-    arrow(ax, 2.25, 4.08, 6.30, 4.08,
-          "materials · quiz authoring", label_offset=(0,.18), lw=1)
-    arrow(ax, 6.30, 3.78, 2.25, 3.78,
-          "status · published quizzes · analytics", label_offset=(0,-.18), lw=1)
-    arrow(ax, 10.85, 5.60, 12.05, 5.60, "admin requests", label_offset=(0,.18), lw=1)
-    arrow(ax, 12.05, 5.30, 10.85, 5.30, "managed records", label_offset=(0,-.18), lw=1)
+    # Teacher materials and quiz authoring feed the learning workflow.
+    arrow(ax, 2.5, 2.15, 3.3, 4.62,
+          "materials + quiz authoring", label_offset=(-.35,.08), lw=1)
+    arrow(ax, 11.35, 4.58, 2.5, 1.85,
+          "class analytics", rad=-.08, label_offset=(0,-.27), lw=1)
 
-    # Data services form a summary strip at this level of detail.
-    store(.55, 1.45, 4.0, "D1 · Postgres", "users · memberships · learning records")
-    store(5.0, 1.45, 4.0, "D2 · Qdrant", "approved material vectors + metadata")
-    store(9.45, 1.45, 4.0, "D3 · Supabase Storage", "private teacher material files")
-    box(ax, 3.15, .24, 2.6, .62, "LLM Model", "quiz / flashcard generation",
-        fc="#F8EBCB", title_size=8.5, detail_size=6.7)
-    box(ax, 8.25, .24, 2.6, .62, "Embedding model", "text embeddings",
-        fc=GREEN, title_size=8.2, detail_size=6.7)
-    ax.text(2.55, 1.08, "role + learning records", ha="center", fontsize=6.8, color=GRAY)
-    ax.text(7.0, 1.08, "selected-material retrieval", ha="center", fontsize=6.8, color=GRAY)
-    ax.text(11.45, 1.08, "source-file storage", ha="center", fontsize=6.8, color=GRAY)
-    ax.text(7.0, .02,
-            "Subject access gates protected data; citations retain teacher and material attribution.",
-            ha="center", va="bottom", fontsize=6.8, color=GRAY)
+    # Student requests enter the study process; learning results return.
+    arrow(ax, 7.85, 6.95, 8.35, 5.53,
+          "study requests + quiz answers", rad=.12, label_offset=(-1.05,.32), lw=1)
+    arrow(ax, 8.7, 5.53, 8.3, 6.95,
+          "answers + citations + scores + decks", rad=.12, label_offset=(1.15,-.32), lw=1)
+
+    # Content flows into student study and assessment outcomes feed analytics.
+    arrow(ax, 5.85, 5.0, 7.15, 5.0,
+          "approved content + quizzes", label_offset=(0,.3), lw=1.05)
+    arrow(ax, 9.85, 5.0, 11.15, 5.0,
+          "quiz attempts + progress", label_offset=(0,.3), lw=1.05)
+
+    # Subject membership informs class-progress review; administrators manage it.
+    arrow(ax, 12.5, 2.3, 12.5, 4.5,
+          "subject membership", label_offset=(1.35,0), lw=1)
+    arrow(ax, 14.8, 1.92, 13.85, 1.92,
+          "requests", label_offset=(0,.22), lw=1)
+    arrow(ax, 13.85, 1.65, 14.8, 1.65,
+          "records", label_offset=(0,-.22), lw=1)
+
     save(fig, "fig762_dfd1.png")
 
 

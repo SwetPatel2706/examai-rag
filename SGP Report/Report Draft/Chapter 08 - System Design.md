@@ -53,13 +53,13 @@ Material ingestion begins with a teacher upload. The service validates type and 
 
 ### 8.6.1 Level 0 DFD
 
-At the highest level, students, teachers, and administrators interact with ExamAI. ExamAI communicates with Supabase for identity, relational data, and file storage; with Qdrant for vector retrieval; and with Gemini for structured generation. The system returns study answers, assessments, feedback, decks, and analytics to students and teachers, and managed accounts, subjects, and memberships to administrators.
+At the highest level, students, teachers, and administrators interact with ExamAI. ExamAI uses Supabase for identity, relational data, and file storage; Qdrant for vector retrieval; and an LLM for structured generation. The system returns study answers, assessments, feedback, decks, and analytics to students and teachers, and managed accounts, subjects, and memberships to administrators.
 
 ![Figure 8.6.1: Level 0 DFD](figures/fig761_dfd0.png)
 
 ### 8.6.2 Level 1 DFD
 
-The level-one diagram groups the implemented flows by role: student learning, teacher workspace, and administration. It shows the principal requests and results while the accompanying data stores identify where relational records, approved material vectors, and private teacher files are kept. Subject access is checked before protected data is returned; retrieved citations retain teacher and material attribution.
+The level-one diagram follows the implemented learning workflow: teachers prepare materials and shared quizzes, students study and complete assessments, and quiz results feed class analytics. Administration manages users and subject membership, and students receive answers, citations, scores, and personal flashcard decks.
 
 ![Figure 8.6.2: Level 1 DFD](figures/fig762_dfd1.png)
 

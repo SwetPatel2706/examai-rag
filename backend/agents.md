@@ -57,6 +57,7 @@ backend/
       quiz.py
       chat.py
     routes/
+      admin.py
       auth.py
       subjects.py
       materials.py
@@ -96,7 +97,7 @@ backend/
 
 ## Data model (SQL, Supabase/Postgres)
 ```sql
-users (id, email, role, name, created_at)             -- role: student|teacher
+users (id, email, role, name, created_at)             -- role: student|teacher|admin
 
 subjects (id, name)
 subject_teachers (subject_id, teacher_id)               -- many-to-many

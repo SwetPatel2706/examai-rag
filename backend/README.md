@@ -87,6 +87,7 @@ unset. When `APP_ENV=production` the seeder refuses to run without
 
 | Role | Email | Seeded access |
 |---|---|---|
+| Admin | `admin@examai.com` | All subjects via the `/admin` console (not enrollments) |
 | Teacher | `teacher1@examai.com` | Software Engineering; Advanced Database Systems |
 | Teacher | `teacher2@examai.com` | Software Engineering; Data Structures & Algorithms |
 | Teacher | `teacher3@examai.com` | Advanced Database Systems; Operating Systems |
@@ -101,6 +102,13 @@ shared quizzes (8 published, 4 drafts), and quiz attempts from most enrolled
 students with a realistic grade spread (A–F bands and at-risk flags included).
 Several students have pre-seeded flashcard decks so the deck list and study
 screens render immediately.
+
+The admin console (`/api/admin/*`, UI at `/admin/users`, `/admin/subjects`,
+`/admin/membership`) manages teachers/students (create/edit/delete,
+`teacher`/`student` roles only — admins cannot create other admins), subject
+CRUD, and membership (assign/unassign teachers, enroll/unenroll students, plus
+per-user subjects and per-subject member rosters). All endpoints require the
+`admin` role via `require_admin`.
 
 Start the API, then log in through `POST /api/auth/login` in Swagger at
 `http://localhost:8000/docs`, or use:

@@ -12,8 +12,8 @@ this file only covers structure, routing, and state behavior.
 - `npm run dev` → Vite dev server with HMR on http://localhost:5173.
 - `npm run lint` → oxlint static checks.
 - `npm run build` → production build into `dist/`; `npm run preview` serves it.
-- `npm run test` → Vitest + Testing Library suite (mocked fetch, jsdom), 63
-  tests. Run `npm run lint` + `npm run build` + `npm run test` for the full
+- `npm run test` → Vitest + Testing Library suite (mocked fetch, jsdom), 84
+  tests across 15 files. Run `npm run lint` + `npm run build` + `npm run test` for the full
   gate; plus a manual browser pass against a live backend.
 - The Vite dev server has **no proxy**: the app calls the API directly at
   `VITE_API_BASE_URL` (default `http://localhost:8000`, set in
@@ -26,6 +26,7 @@ Login screen with email/password only. Users are provisioned by an explicit seed
 
 **Student sidebar:** Home/Dashboard, Chat, Quizzes, Flashcards, Resources/Materials
 **Teacher sidebar:** Home/Dashboard, Resources/Materials, Analytics, Student Progress
+**Admin sidebar:** Users, Subjects, Membership (role `admin` redirects to `/admin/users` after login)
 
 Note: "Analytics" (per-quiz breakdown: question accuracy, grade distribution,
 weak topics for one quiz) and "Student Progress" (roster-style, cross-quiz,
@@ -72,6 +73,16 @@ drill-down into per-student detail) are two distinct screens — do not merge.
 5. Student Progress — per-student roster across all subjects/quizzes: avg
    score, completion ratio, last active, at-risk flag, drill-down per student.
    Do NOT build in-app messaging/broadcast to students — flagged out of scope.
+
+## Screens (admin)
+1. Users (`/admin/users`) — list/search/filter teachers and students; create
+   (teacher/student only), edit, and delete. Backed by `/api/admin/users*`.
+2. Subjects (`/admin/subjects`) — list, create, rename, and delete subjects.
+   Backed by `/api/admin/subjects*`.
+3. Membership (`/admin/membership`) — assign/unassign teachers and
+   enroll/unenroll students per subject, plus per-user subject drill-down and
+   per-subject member roster. Backed by the `/api/admin/subjects/{id}/teachers`,
+   `/students`, `/members`, and `/api/admin/users/{id}/subjects` endpoints.
 
 ## State management
 Zustand. Suggested slices: `authStore` (role, user), `subjectStore` (current

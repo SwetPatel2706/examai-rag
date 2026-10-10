@@ -25,8 +25,8 @@ FastAPI. Routes are thin (HTTP only); logic lives in `app/services/`.
   synthetic material content so Chat/Flashcards resolve real citations (needs
   Qdrant reachable + downloads `all-MiniLM-L6-v2` on first use).
 - Provision the Qdrant collection: `./venv/bin/python -m app.provision_qdrant`
-- Tests: `./venv/bin/pytest` from `backend/` — **offline, 82 tests pass
-  (~0.8 s)**, no external services required. Single file:
+- Tests: `./venv/bin/pytest` from `backend/` — **offline, 103 tests pass
+  (~1 s)**, no external services required. Single file:
   `./venv/bin/pytest tests/test_smoke.py -q`.
 - No project-level Python linter/typecheck config; `pytest` is the gate.
   The `.vscode/settings.json` interpreter is pinned to `backend/venv/bin/python`
@@ -57,6 +57,7 @@ backend/
       quiz.py
       chat.py
     routes/
+      admin.py
       auth.py
       subjects.py
       materials.py
@@ -96,7 +97,7 @@ backend/
 
 ## Data model (SQL, Supabase/Postgres)
 ```sql
-users (id, email, role, name, created_at)             -- role: student|teacher
+users (id, email, role, name, created_at)             -- role: student|teacher|admin
 
 subjects (id, name)
 subject_teachers (subject_id, teacher_id)               -- many-to-many

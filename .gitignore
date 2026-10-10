@@ -28,4 +28,7 @@ backend/venv/
 # Regenerable Stitch design exports (re-fetch via frontend/fetch_screens.cjs)
 frontend/.stitch/
 
+# Local report working folder (large binaries, per-user drafts)
+SGP Report/
+
 INTERVIEW_PREPARATION_GUIDE.md
